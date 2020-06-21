@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -12,6 +12,25 @@
 		CE8176D72493CD51002565B0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE8176D62493CD51002565B0 /* Assets.xcassets */; };
 		CE8176DA2493CD51002565B0 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE8176D92493CD51002565B0 /* Preview Assets.xcassets */; };
 		CE8176DD2493CD51002565B0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CE8176DB2493CD51002565B0 /* Main.storyboard */; };
+		CE8176E72493CDB3002565B0 /* MainHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8176E62493CDB3002565B0 /* MainHeader.swift */; };
+		CEDCABF02498E3A7003609C1 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = CEDCABEF2498E3A7003609C1 /* SDWebImageSwiftUI */; };
+		CEDCABF32498E3F2003609C1 /* ImagePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDCABF22498E3F2003609C1 /* ImagePanel.swift */; };
+		CEDCABF6249A442A003609C1 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = CEDCABF5249A442A003609C1 /* Alamofire */; };
+		CEDCAC0F249D114A003609C1 /* QueryResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDCAC09249D1149003609C1 /* QueryResponse.swift */; };
+		CEDCAC10249D114A003609C1 /* WallHavenMeta.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDCAC0B249D114A003609C1 /* WallHavenMeta.swift */; };
+		CEDCAC11249D114A003609C1 /* WallHavenImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDCAC0C249D114A003609C1 /* WallHavenImage.swift */; };
+		CEDCAC13249D114A003609C1 /* WallHavenImageRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDCAC0E249D114A003609C1 /* WallHavenImageRepository.swift */; };
+		CEDCAC17249D1406003609C1 /* data.json in Resources */ = {isa = PBXBuildFile; fileRef = CEDCAC16249D1406003609C1 /* data.json */; };
+		CEDCAC1A249F016A003609C1 /* RandomAccessCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDCAC19249F016A003609C1 /* RandomAccessCollection.swift */; };
+		CEDCAC1C249F1E2D003609C1 /* ImageLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDCAC1B249F1E2D003609C1 /* ImageLine.swift */; };
+		CEDCAC1E249F1ECF003609C1 /* QueryParameter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDCAC1D249F1ECF003609C1 /* QueryParameter.swift */; };
+		CEF82BD82494CA4900610250 /* MainFooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF82BD72494CA4900610250 /* MainFooter.swift */; };
+		CEF82BDA2494E3DC00610250 /* FilterContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF82BD92494E3DC00610250 /* FilterContentView.swift */; };
+		CEF82BDE2494FD7800610250 /* FilterHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF82BDD2494FD7800610250 /* FilterHeader.swift */; };
+		CEF82BE02495125B00610250 /* MainContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF82BDF2495125B00610250 /* MainContentView.swift */; };
+		CEF82BE32495136100610250 /* ViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF82BE22495136100610250 /* ViewState.swift */; };
+		CEF82BE82495316400610250 /* QueryContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF82BE72495316400610250 /* QueryContentView.swift */; };
+		CEF82BEA2495317300610250 /* SettingContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF82BE92495317300610250 /* SettingContentView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +42,23 @@
 		CE8176DC2493CD51002565B0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		CE8176DE2493CD51002565B0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CE8176DF2493CD51002565B0 /* IHaven.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IHaven.entitlements; sourceTree = "<group>"; };
+		CE8176E62493CDB3002565B0 /* MainHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainHeader.swift; sourceTree = "<group>"; };
+		CEDCABF22498E3F2003609C1 /* ImagePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePanel.swift; sourceTree = "<group>"; };
+		CEDCAC09249D1149003609C1 /* QueryResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryResponse.swift; sourceTree = "<group>"; };
+		CEDCAC0B249D114A003609C1 /* WallHavenMeta.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WallHavenMeta.swift; sourceTree = "<group>"; };
+		CEDCAC0C249D114A003609C1 /* WallHavenImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WallHavenImage.swift; sourceTree = "<group>"; };
+		CEDCAC0E249D114A003609C1 /* WallHavenImageRepository.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WallHavenImageRepository.swift; sourceTree = "<group>"; };
+		CEDCAC16249D1406003609C1 /* data.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = data.json; sourceTree = "<group>"; };
+		CEDCAC19249F016A003609C1 /* RandomAccessCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomAccessCollection.swift; sourceTree = "<group>"; };
+		CEDCAC1B249F1E2D003609C1 /* ImageLine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLine.swift; sourceTree = "<group>"; };
+		CEDCAC1D249F1ECF003609C1 /* QueryParameter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryParameter.swift; sourceTree = "<group>"; };
+		CEF82BD72494CA4900610250 /* MainFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainFooter.swift; sourceTree = "<group>"; };
+		CEF82BD92494E3DC00610250 /* FilterContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterContentView.swift; sourceTree = "<group>"; };
+		CEF82BDD2494FD7800610250 /* FilterHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterHeader.swift; sourceTree = "<group>"; };
+		CEF82BDF2495125B00610250 /* MainContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContentView.swift; sourceTree = "<group>"; };
+		CEF82BE22495136100610250 /* ViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewState.swift; sourceTree = "<group>"; };
+		CEF82BE72495316400610250 /* QueryContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryContentView.swift; sourceTree = "<group>"; };
+		CEF82BE92495317300610250 /* SettingContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingContentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -30,12 +66,22 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEDCABF02498E3A7003609C1 /* SDWebImageSwiftUI in Frameworks */,
+				CEDCABF6249A442A003609C1 /* Alamofire in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		CE09F1B42497BD460027F01A /* Extend */ = {
+			isa = PBXGroup;
+			children = (
+				CEDCAC19249F016A003609C1 /* RandomAccessCollection.swift */,
+			);
+			path = Extend;
+			sourceTree = "<group>";
+		};
 		CE8176C62493CD50002565B0 = {
 			isa = PBXGroup;
 			children = (
@@ -55,6 +101,11 @@
 		CE8176D12493CD50002565B0 /* IHaven */ = {
 			isa = PBXGroup;
 			children = (
+				CEDCAC18249D1480003609C1 /* testdata */,
+				CE09F1B42497BD460027F01A /* Extend */,
+				CEF82BE12495131D00610250 /* Struct */,
+				CEF82BE424952AC700610250 /* Resource */,
+				CE8176E52493CD96002565B0 /* Views */,
 				CE8176D22493CD50002565B0 /* AppDelegate.swift */,
 				CE8176D42493CD50002565B0 /* ContentView.swift */,
 				CE8176D62493CD51002565B0 /* Assets.xcassets */,
@@ -74,6 +125,98 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		CE8176E52493CD96002565B0 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				CEDCABF12498E3D1003609C1 /* Panel */,
+				CEF82BE62495314200610250 /* Setting */,
+				CEF82BE52495313A00610250 /* Query */,
+				CEF82BDC2494FD5800610250 /* Filter */,
+				CEF82BDB2494FD4000610250 /* Main */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		CEDCABF12498E3D1003609C1 /* Panel */ = {
+			isa = PBXGroup;
+			children = (
+				CEDCABF22498E3F2003609C1 /* ImagePanel.swift */,
+				CEDCAC1B249F1E2D003609C1 /* ImageLine.swift */,
+			);
+			path = Panel;
+			sourceTree = "<group>";
+		};
+		CEDCAC0A249D114A003609C1 /* WallHaven */ = {
+			isa = PBXGroup;
+			children = (
+				CEDCAC0C249D114A003609C1 /* WallHavenImage.swift */,
+				CEDCAC0E249D114A003609C1 /* WallHavenImageRepository.swift */,
+				CEDCAC0B249D114A003609C1 /* WallHavenMeta.swift */,
+				CEDCAC09249D1149003609C1 /* QueryResponse.swift */,
+				CEDCAC1D249F1ECF003609C1 /* QueryParameter.swift */,
+			);
+			path = WallHaven;
+			sourceTree = "<group>";
+		};
+		CEDCAC18249D1480003609C1 /* testdata */ = {
+			isa = PBXGroup;
+			children = (
+				CEDCAC16249D1406003609C1 /* data.json */,
+			);
+			path = testdata;
+			sourceTree = "<group>";
+		};
+		CEF82BDB2494FD4000610250 /* Main */ = {
+			isa = PBXGroup;
+			children = (
+				CE8176E62493CDB3002565B0 /* MainHeader.swift */,
+				CEF82BD72494CA4900610250 /* MainFooter.swift */,
+				CEF82BDF2495125B00610250 /* MainContentView.swift */,
+			);
+			path = Main;
+			sourceTree = "<group>";
+		};
+		CEF82BDC2494FD5800610250 /* Filter */ = {
+			isa = PBXGroup;
+			children = (
+				CEF82BD92494E3DC00610250 /* FilterContentView.swift */,
+				CEF82BDD2494FD7800610250 /* FilterHeader.swift */,
+			);
+			path = Filter;
+			sourceTree = "<group>";
+		};
+		CEF82BE12495131D00610250 /* Struct */ = {
+			isa = PBXGroup;
+			children = (
+				CEF82BE22495136100610250 /* ViewState.swift */,
+			);
+			path = Struct;
+			sourceTree = "<group>";
+		};
+		CEF82BE424952AC700610250 /* Resource */ = {
+			isa = PBXGroup;
+			children = (
+				CEDCAC0A249D114A003609C1 /* WallHaven */,
+			);
+			path = Resource;
+			sourceTree = "<group>";
+		};
+		CEF82BE52495313A00610250 /* Query */ = {
+			isa = PBXGroup;
+			children = (
+				CEF82BE72495316400610250 /* QueryContentView.swift */,
+			);
+			path = Query;
+			sourceTree = "<group>";
+		};
+		CEF82BE62495314200610250 /* Setting */ = {
+			isa = PBXGroup;
+			children = (
+				CEF82BE92495317300610250 /* SettingContentView.swift */,
+			);
+			path = Setting;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -90,6 +233,10 @@
 			dependencies = (
 			);
 			name = IHaven;
+			packageProductDependencies = (
+				CEDCABEF2498E3A7003609C1 /* SDWebImageSwiftUI */,
+				CEDCABF5249A442A003609C1 /* Alamofire */,
+			);
 			productName = IHaven;
 			productReference = CE8176CF2493CD50002565B0 /* IHaven.app */;
 			productType = "com.apple.product-type.application";
@@ -118,6 +265,10 @@
 				Base,
 			);
 			mainGroup = CE8176C62493CD50002565B0;
+			packageReferences = (
+				CEDCABEE2498E3A7003609C1 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
+				CEDCABF4249A442A003609C1 /* XCRemoteSwiftPackageReference "Alamofire" */,
+			);
 			productRefGroup = CE8176D02493CD50002565B0 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -134,6 +285,7 @@
 			files = (
 				CE8176DD2493CD51002565B0 /* Main.storyboard in Resources */,
 				CE8176DA2493CD51002565B0 /* Preview Assets.xcassets in Resources */,
+				CEDCAC17249D1406003609C1 /* data.json in Resources */,
 				CE8176D72493CD51002565B0 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -146,7 +298,23 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE8176D52493CD50002565B0 /* ContentView.swift in Sources */,
+				CEDCABF32498E3F2003609C1 /* ImagePanel.swift in Sources */,
+				CEDCAC0F249D114A003609C1 /* QueryResponse.swift in Sources */,
+				CEF82BEA2495317300610250 /* SettingContentView.swift in Sources */,
+				CEDCAC13249D114A003609C1 /* WallHavenImageRepository.swift in Sources */,
+				CE8176E72493CDB3002565B0 /* MainHeader.swift in Sources */,
+				CEDCAC1A249F016A003609C1 /* RandomAccessCollection.swift in Sources */,
+				CEF82BD82494CA4900610250 /* MainFooter.swift in Sources */,
 				CE8176D32493CD50002565B0 /* AppDelegate.swift in Sources */,
+				CEF82BDE2494FD7800610250 /* FilterHeader.swift in Sources */,
+				CEDCAC10249D114A003609C1 /* WallHavenMeta.swift in Sources */,
+				CEF82BDA2494E3DC00610250 /* FilterContentView.swift in Sources */,
+				CEDCAC11249D114A003609C1 /* WallHavenImage.swift in Sources */,
+				CEF82BE32495136100610250 /* ViewState.swift in Sources */,
+				CEF82BE82495316400610250 /* QueryContentView.swift in Sources */,
+				CEF82BE02495125B00610250 /* MainContentView.swift in Sources */,
+				CEDCAC1E249F1ECF003609C1 /* QueryParameter.swift in Sources */,
+				CEDCAC1C249F1E2D003609C1 /* ImageLine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -345,6 +513,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		CEDCABEE2498E3A7003609C1 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImageSwiftUI";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.5.0;
+			};
+		};
+		CEDCABF4249A442A003609C1 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.2.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CEDCABEF2498E3A7003609C1 /* SDWebImageSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CEDCABEE2498E3A7003609C1 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
+			productName = SDWebImageSwiftUI;
+		};
+		CEDCABF5249A442A003609C1 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CEDCABF4249A442A003609C1 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = CE8176C72493CD50002565B0 /* Project object */;
 }

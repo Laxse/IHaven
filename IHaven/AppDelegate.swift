@@ -2,7 +2,7 @@
 //  AppDelegate.swift
 //  IHaven
 //
-//  Created by 梁霄 on 2020/6/12.
+//  Created by 梁霄 on 2020/6/9.
 //  Copyright © 2020 梁霄. All rights reserved.
 //
 
@@ -11,29 +11,47 @@ import SwiftUI
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
-
-    var window: NSWindow!
-
-
-    func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // Create the SwiftUI view that provides the window contents.
-        let contentView = ContentView()
-
-        // Create the window and set the content view. 
-        window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 480, height: 300),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
-            backing: .buffered, defer: false)
-        window.center()
-        window.setFrameAutosaveName("Main Window")
-        window.contentView = NSHostingView(rootView: contentView)
-        window.makeKeyAndOrderFront(nil)
+//    static var shared:AppDelegate?
+    var popover: NSPopover!
+    var statusBarItem: NSStatusItem!
+    
+    override init() {
+        
+        super.init()
+//        AppDelegate.shared = self;
     }
-
+    
+    func applicationDidFinishLaunching(_ aNotification: Notification) {
+        // Create the popover
+        popover = NSPopover()
+        popover.contentSize = NSSize(width: 400, height: 500)
+        popover.behavior = .transient
+        popover.contentViewController = NSHostingController(rootView: ContentView())
+        
+        // Create the status item
+        self.statusBarItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
+        
+        if let button = self.statusBarItem.button {
+            button.image = NSImage(named: "MenuBarIcon")
+            button.action = #selector(togglePopover(_:))
+        }
+        NSApp.activate(ignoringOtherApps: true)
+    }
+    
+    
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
     }
-
-
+    
+    
+    @objc func togglePopover(_ sender: AnyObject?) {
+        if let button = self.statusBarItem.button {
+            if self.popover.isShown {
+                self.popover.performClose(sender)
+            } else {
+                self.popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
+            }
+        }
+    }
+    
 }
-
