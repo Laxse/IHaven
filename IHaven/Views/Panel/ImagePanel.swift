@@ -11,22 +11,38 @@ import SDWebImageSwiftUI
 
 struct ImagePanel: View {
     
-    let image: WallHavenImage?
-    @State private var showHoverDetail = false
+    @State var image: WallHavenImage?
+    @State var status:ImageState = .None
+    @State var showHoverDetail = false
     var body: some View {
         ZStack(alignment: .center){
             WebImage(url: image?.thumbs.small)
-                .placeholder(Image.init("FilterBtn"))
+                .onFailure(perform: { (Error) in
+                    DispatchQueue.main.async {
+                        self.image = nil
+                        self.status = .Error
+                        self.showHoverDetail = false
+                    }
+                    
+                })
+                .onSuccess(perform: { _ in
+                    DispatchQueue.main.async {
+                        self.status = .Success
+                    }
+                    
+                })
+                .placeholder(placeholderFor(status:status))
                 .resizable()
+                //                .indicator(Indicator.activity(style: .large))
                 .frame(width:180,height: 120)
                 .scaledToFill()
                 .border(colorFor(purity: image?.purity ?? "sfw"),width: 2.0)
                 .clipped()
+                .cornerRadius(2.0)
                 .onHover { state in
                     withAnimation(.easeIn(duration: 0.3)) {
                         self.showHoverDetail = state
                     }
-                    
             }.onTapGesture {
                 print(self.image?.shortUrl ?? "unknown")
             }
@@ -48,15 +64,25 @@ struct ImagePanel: View {
                                 Text(image?.favorites.description ?? "0")
                                 Image("StarBtn").resizable().frame(width: 14, height: 14)
                                 Spacer()
-                                Text(typeTextFor(image: image)).font(.system(size: 12)).padding(.horizontal, 2).padding(.top, -3).background(Color.init(red: 219/255, green: 124/255, blue: 15/255)).cornerRadius(2)
+                                if(typeTextFor(image: image)){
+                                    Text("png")
+                                        .font(.system(size: 12))
+                                        .padding(.horizontal, 2)
+                                        .padding(.top, -3)
+                                        .background(Color.init(red: 219/255, green: 124/255, blue: 15/255))
+                                        .cornerRadius(2)
+                                }
                                 Image("TagBtn").resizable().frame(width: 16, height: 16)
                                 
-                            }.frame(maxWidth: .infinity)
+                            }.frame(maxWidth: .infinity).frame(height:20).padding(.horizontal, 3)
                         }
                         
                     }.background(LinearGradient(gradient: Gradient(colors: [Color.black.opacity(0.9), Color.black.opacity(0.1)]), startPoint: .bottom, endPoint: .top))
                     
-                }.frame(width:176,height: 116)
+                }
+                .border(colorFor(purity: image?.purity ?? "sfw"),width: 2.0)
+                .frame(width:180,height: 120)
+                
                 //                .zIndex(2)
             }
         }
@@ -67,11 +93,19 @@ struct ImagePanel: View {
     func resolutionFor(image:WallHavenImage?) -> String {
         return image!.resolution
     }
-    func typeTextFor(image:WallHavenImage?) -> String {
-        if(image!.fileType.hasSuffix("png")){
-            return "png"
+    func placeholderFor(status:ImageState) -> Image {
+        if(status == .Error){
+            return Image.init("ImageErrorIcon")
         }else{
-            return ""
+            return Image.init("LoadingIcon")
+        }
+    }
+    //显示png标签
+    func typeTextFor(image:WallHavenImage?) -> Bool {
+        if(image!.fileType.hasSuffix("png")){
+            return true
+        }else{
+            return false
         }
     }
     

@@ -40,8 +40,8 @@ class WallHavenImageRepository {
     func HandleData<T:Decodable>(_ reponse:Data) -> Result<T,Error> {
 
         do {
-            let resultData = try JSONDecoder().decode(T.self, from: reponse)
-           
+            //TODO useless need remove
+            _ = try JSONDecoder().decode(T.self, from: reponse)
         }
         catch {
             print(error)

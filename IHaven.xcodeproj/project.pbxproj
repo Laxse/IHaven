@@ -24,6 +24,7 @@
 		CEDCAC1A249F016A003609C1 /* RandomAccessCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDCAC19249F016A003609C1 /* RandomAccessCollection.swift */; };
 		CEDCAC1C249F1E2D003609C1 /* ImageLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDCAC1B249F1E2D003609C1 /* ImageLine.swift */; };
 		CEDCAC1E249F1ECF003609C1 /* QueryParameter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDCAC1D249F1ECF003609C1 /* QueryParameter.swift */; };
+		CEDCAC22249F8A8C003609C1 /* ImageState.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDCAC21249F8A8C003609C1 /* ImageState.swift */; };
 		CEF82BD82494CA4900610250 /* MainFooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF82BD72494CA4900610250 /* MainFooter.swift */; };
 		CEF82BDA2494E3DC00610250 /* FilterContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF82BD92494E3DC00610250 /* FilterContentView.swift */; };
 		CEF82BDE2494FD7800610250 /* FilterHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF82BDD2494FD7800610250 /* FilterHeader.swift */; };
@@ -52,6 +53,7 @@
 		CEDCAC19249F016A003609C1 /* RandomAccessCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomAccessCollection.swift; sourceTree = "<group>"; };
 		CEDCAC1B249F1E2D003609C1 /* ImageLine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLine.swift; sourceTree = "<group>"; };
 		CEDCAC1D249F1ECF003609C1 /* QueryParameter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryParameter.swift; sourceTree = "<group>"; };
+		CEDCAC21249F8A8C003609C1 /* ImageState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageState.swift; sourceTree = "<group>"; };
 		CEF82BD72494CA4900610250 /* MainFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainFooter.swift; sourceTree = "<group>"; };
 		CEF82BD92494E3DC00610250 /* FilterContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterContentView.swift; sourceTree = "<group>"; };
 		CEF82BDD2494FD7800610250 /* FilterHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterHeader.swift; sourceTree = "<group>"; };
@@ -189,6 +191,7 @@
 			isa = PBXGroup;
 			children = (
 				CEF82BE22495136100610250 /* ViewState.swift */,
+				CEDCAC21249F8A8C003609C1 /* ImageState.swift */,
 			);
 			path = Struct;
 			sourceTree = "<group>";
@@ -312,6 +315,7 @@
 				CEDCAC11249D114A003609C1 /* WallHavenImage.swift in Sources */,
 				CEF82BE32495136100610250 /* ViewState.swift in Sources */,
 				CEF82BE82495316400610250 /* QueryContentView.swift in Sources */,
+				CEDCAC22249F8A8C003609C1 /* ImageState.swift in Sources */,
 				CEF82BE02495125B00610250 /* MainContentView.swift in Sources */,
 				CEDCAC1E249F1ECF003609C1 /* QueryParameter.swift in Sources */,
 				CEDCAC1C249F1E2D003609C1 /* ImageLine.swift in Sources */,

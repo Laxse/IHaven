@@ -29,10 +29,22 @@ struct SettingBtn: View {
             Text("By Laxse ").foregroundColor(Color.purple)
             Spacer()
             Button(action: {
-                   }){
-                       Image(nsImage: NSImage(named: "PreferencesButtonIcon")!)
-                   }.frame(width: SettingBtn.SettingBtnWidth, height: SettingBtn.SettingBtnWidth)
-                   .buttonStyle(PlainButtonStyle())
+            }){
+                Image(nsImage: NSImage(named: "PreferencesButtonIcon")!)
+            }.frame(width: SettingBtn.SettingBtnWidth, height: SettingBtn.SettingBtnWidth)
+                .buttonStyle(PlainButtonStyle())
+                .contextMenu{
+                    Button(action: {
+                    }) {
+                        Text("Choose Country")
+                    }
+                    
+                    Button(action: {
+                        NSApplication.shared.terminate(self)
+                    }) {
+                        Text("Detect Location")
+                    }
+            }
         }
         
     }

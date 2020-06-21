@@ -7,24 +7,33 @@
 //
 
 import SwiftUI
+import SDWebImageSwiftUI
 
 struct MainContentView: View {
     @State private var imageSets: [ImageLine] = []
-    @State private var page = 1
+    @State private var query = QueryParameter()
+    @State private var loading = false
     var body: some View {
         VStack(spacing: 0){
             MainHeader()
-            List(imageSets) { imageLine in
-                HStack(spacing: 10){
-                    ImagePanel(image: imageLine.left).frame(maxWidth: .infinity)
-                    ImagePanel(image: imageLine.right).frame(maxWidth: .infinity)
-                }.onAppear {
-                    self.lastImageLineAppear(imageLine: imageLine)
+            List() {
+                ForEach(imageSets) { imageLine in
+                    HStack(spacing: 10){
+                        ImagePanel(image: imageLine.left).frame(maxWidth: .infinity)
+                        ImagePanel(image: imageLine.right).frame(maxWidth: .infinity)
+                    }.onAppear {
+                        self.lastImageLineAppear(imageLine: imageLine)
+                    }
                 }
+                HStack{
+                    ActivityIndicator(.constant(loading))
+                }.frame(maxWidth:.infinity)
             }
             .onAppear {
-                self.loadImages()
+                self.load()
             }
+            
+            
             MainFooter()
         }.frame(maxHeight: .infinity)
     }
@@ -36,11 +45,15 @@ extension MainContentView{
     private func lastImageLineAppear(imageLine:ImageLine){
         if self.imageSets.isLastItem(imageLine) {
             print("is last now Herry up")
-            loadImages()
+
+            if(!self.loading){
+                load()
+            }
         }
     }
-    private func loadImages() {
+    private func load() {
         if(true){
+            self.loading = true
             do {
                 if let bundlePath = Bundle.main.path(forResource: "data",
                                                      ofType: "json"),
@@ -60,19 +73,34 @@ extension MainContentView{
                         }
                     }
                 }
+//                self.loading = false
             } catch {
                 print(error)
             }
             return
         }
-        //          WallHavenImageRepository.shared.query(parameters: ["page":self.page,"apikey":"vp1ZWXq92VMfjgBIGejfUgHQCXnw88HF"]) { result in
-        //              switch result{
-        //              case let .success(data):
-        //                  self.page = self.page+1
-        //                  self.imageSets.append(contentsOf: data.data)
-        //              case let .failure(error):
-        //                  print(error.localizedDescription)
-        //              }
-        //          }
+        self.loading = true
+        WallHavenImageRepository.shared.query(parameters: query.toDictionary()) { result in
+            switch result{
+            case let .success(data):
+                self.query.page = self.query.page + 1
+                var imageLine = ImageLine(left: nil, right: nil)
+                data.data.forEach { image in
+                    if(imageLine.left==nil){
+                        imageLine.left = image
+                    }else if(imageLine.right==nil){
+                        imageLine.right = image
+                    }
+                    
+                    if(imageLine.left != nil && imageLine.right != nil){
+                        self.imageSets.append(imageLine)
+                        imageLine = ImageLine(left: nil, right: nil)
+                    }
+                }
+                self.loading = false
+            case let .failure(error):
+                print(error.localizedDescription)
+            }
+        }
     }
 }
