@@ -10,7 +10,7 @@ import Foundation
 struct WallHavenMeta: Codable {
     let currentPage: Int?
     let lastPage: Int?
-    let perPage: String?
+    let perPage: Int?
     let total: Int?
     let query: String? //TODO: Specify the type to conforms Codable protocol
     let seed: String? //TODO: Specify the type to conforms Codable protocol

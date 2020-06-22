@@ -11,14 +11,16 @@ import SwiftUI
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
-//    static var shared:AppDelegate?
+    static var shared:AppDelegate?
+    
+    //window or view
     var popover: NSPopover!
     var statusBarItem: NSStatusItem!
-    
+    lazy var aboutWindowController = AboutWindowController()
     override init() {
         
         super.init()
-//        AppDelegate.shared = self;
+        AppDelegate.shared = self;
     }
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
@@ -43,7 +45,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Insert code here to tear down your application
     }
     
-    
+    func showAboutWindow() {
+        aboutWindowController.showWindow(nil)
+//        aboutWindowController.window?.makeKeyAndOrderFront(self)
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        
+    }
     @objc func togglePopover(_ sender: AnyObject?) {
         if let button = self.statusBarItem.button {
             if self.popover.isShown {

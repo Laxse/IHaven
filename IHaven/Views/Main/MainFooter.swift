@@ -11,9 +11,12 @@ import SwiftUI
 struct MainFooter: View {
     var body: some View {
         HStack(alignment: .center) {
+            Text("Made With").foregroundColor(Color.purple)
+            Text("❤").foregroundColor(Color.red)
+            Text("By Laxse ").foregroundColor(Color.purple)
             Spacer()
             SettingBtn()
-        }
+        }.frame(height: 40).padding(.horizontal, 10)
     }
 }
 
@@ -21,31 +24,32 @@ struct MainFooter: View {
  * 查询条件按钮
  */
 struct SettingBtn: View {
-    static var SettingBtnWidth:CGFloat = 50.0
+    static var SettingBtnWidth:CGFloat = 30.0
     var body : some View{
-        HStack(){
-            Text("Made With").foregroundColor(Color.purple)
-            Text("❤").foregroundColor(Color.red)
-            Text("By Laxse ").foregroundColor(Color.purple)
-            Spacer()
-            Button(action: {
-            }){
-                Image(nsImage: NSImage(named: "PreferencesButtonIcon")!)
-            }.frame(width: SettingBtn.SettingBtnWidth, height: SettingBtn.SettingBtnWidth)
-                .buttonStyle(PlainButtonStyle())
-                .contextMenu{
-                    Button(action: {
-                    }) {
-                        Text("Choose Country")
-                    }
-                    
-                    Button(action: {
-                        NSApplication.shared.terminate(self)
-                    }) {
-                        Text("Detect Location")
-                    }
-            }
+        MenuButton(label: Image("PreferencesButtonIcon")
+            .frame(width: SettingBtn.SettingBtnWidth, height: SettingBtn.SettingBtnWidth)) {
+                Button(action: {
+                    AppDelegate.shared?.showAboutWindow()
+                }) {
+                    Text("About IHaven")
+                }
+                Button(action: {
+                    NSWorkspace.shared.open(URL(string: "https://github.com/Laxse/IHaven")!)
+                }) {
+                    Text("Send Feedback...")
+                }
+                Button(action: {
+                    NSApplication.shared.terminate(self)
+                }) {
+                    Text("Preference")
+                }
+                Button(action: {
+                    NSApplication.shared.terminate(self)
+                }) {
+                    Text("Quit")
+                }
         }
-        
+        .frame(width: SettingBtn.SettingBtnWidth, height: SettingBtn.SettingBtnWidth)
+        .menuButtonStyle(BorderlessButtonMenuButtonStyle())
     }
 }
