@@ -10,14 +10,12 @@ import SwiftUI
 import SDWebImageSwiftUI
 
 struct MainContentView: View {
-    @State private var imageSets: [ImageLine] = []
-    @State private var query = QueryParameter()
-    @State private var loading = false
+    @ObservedObject var imageRepository: ImageRepository = ImageRepository()
     var body: some View {
         VStack(spacing: 0){
-            MainHeader()
+            MainHeader(imageRepository: imageRepository)
             List() {
-                ForEach(imageSets) { imageLine in
+                ForEach(imageRepository.images) { imageLine in
                     HStack(spacing: 10){
                         ImagePanel(image: imageLine.left).frame(maxWidth: .infinity)
                         ImagePanel(image: imageLine.right).frame(maxWidth: .infinity)
@@ -26,34 +24,30 @@ struct MainContentView: View {
                     }
                 }
                 HStack{
-                    ActivityIndicator(.constant(loading))
+                    ActivityIndicator(.constant(imageRepository.loading))
                 }.frame(maxWidth:.infinity)
             }
             .onAppear {
                 self.load()
             }
-            
-            
             MainFooter()
         }.frame(maxHeight: .infinity)
     }
     
 }
 
-
 extension MainContentView{
     private func lastImageLineAppear(imageLine:ImageLine){
-        if self.imageSets.isLastItem(imageLine) {
+        if self.imageRepository.images.isLastItem(imageLine) {
             print("is last now Herry up")
-
-            if(!self.loading){
+            if(!self.imageRepository.loading){
                 load()
             }
         }
     }
     private func load() {
         if(true){
-            self.loading = true
+            self.imageRepository.loading = true
             do {
                 if let bundlePath = Bundle.main.path(forResource: "data",
                                                      ofType: "json"),
@@ -68,38 +62,24 @@ extension MainContentView{
                         }
                         
                         if(imageLine.left != nil && imageLine.right != nil){
-                            self.imageSets.append(imageLine)
+                            self.imageRepository.images.append(imageLine)
                             imageLine = ImageLine(left: nil, right: nil)
                         }
                     }
                 }
-//                self.loading = false
+                self.imageRepository.loading = false
             } catch {
                 print(error)
             }
             return
-        }
-        self.loading = true
-        WallHavenImageRepository.shared.query(parameters: query.toDictionary()) { result in
-            switch result{
-            case let .success(data):
-                self.query.page = self.query.page + 1
-                var imageLine = ImageLine(left: nil, right: nil)
-                data.data.forEach { image in
-                    if(imageLine.left==nil){
-                        imageLine.left = image
-                    }else if(imageLine.right==nil){
-                        imageLine.right = image
-                    }
-                    
-                    if(imageLine.left != nil && imageLine.right != nil){
-                        self.imageSets.append(imageLine)
-                        imageLine = ImageLine(left: nil, right: nil)
-                    }
-                }
-                self.loading = false
-            case let .failure(error):
-                print(error.localizedDescription)
+        }else{
+            self.imageRepository.loading = true
+            self.imageRepository.load(succCallBack: {
+                //成功
+                self.imageRepository.loading = false
+            }) {
+                //失败
+                self.imageRepository.loading = false
             }
         }
     }

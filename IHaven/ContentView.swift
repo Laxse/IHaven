@@ -10,13 +10,23 @@ import SwiftUI
 
 struct ContentView: View {
     /* currentView用来控制当前显示页面 */
-    //    @State private var currentView: ViewState = .Main
+    @EnvironmentObject var iHavenContext: IHavenContext
+    
     var body: some View {
         VStack{
+            if(iHavenContext.currentState == .Main){
             MainContentView()
-                .edgesIgnoringSafeArea(.all)
-                .background(Color.black.opacity(0.5))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .edgesIgnoringSafeArea(.all)
+                    .background(Color.black.opacity(0.5))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            if(iHavenContext.currentState == .Filter){
+            FilterContentView()
+                    .edgesIgnoringSafeArea(.all)
+                    .background(Color.black.opacity(0.5))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            
         }
     }
     

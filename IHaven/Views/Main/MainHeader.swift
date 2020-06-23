@@ -9,9 +9,10 @@
 import SwiftUI
 
 struct MainHeader: View {
+    @ObservedObject var imageRepository:ImageRepository
     var body: some View {
         HStack(alignment: .center) {
-            RandomBtn()
+            RandomBtn(imageRepository: imageRepository)
             Spacer()
             Text("IHaven")
                 .font(.title)
@@ -28,10 +29,11 @@ struct MainHeader: View {
  */
 struct RandomBtn: View {
     static var RandomBtnWidth:CGFloat = 18.0
+    @ObservedObject var imageRepository:ImageRepository
     var body : some View{
         Button(action: {
-//            self.currentView = .Filter
-            print("")
+            self.imageRepository.clean()
+            self.imageRepository.load(succCallBack: {}) {}
         }){
             Image(nsImage: NSImage(named: "RandomBtn")!).resizable()
         }
@@ -45,9 +47,10 @@ struct RandomBtn: View {
  */
 struct FilterBtn: View {
     static var FilterBtnWidth:CGFloat = 18.0
+    @EnvironmentObject var iHavenContext: IHavenContext
     var body : some View{
         Button(action: {
-//            self.currentView = .Query
+            self.iHavenContext.currentState = .Filter
         }){
             Image(nsImage: NSImage(named: "FilterBtn")!).resizable()
         }

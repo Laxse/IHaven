@@ -9,10 +9,9 @@
 import SwiftUI
 
 struct FilterHeader: View {
-    @Binding var currentView: ViewState
     var body: some View {
         HStack{
-            FilterBackBtn(currentView: $currentView)
+            FilterBackBtn()
             Spacer()
         }
     }
@@ -22,12 +21,12 @@ struct FilterHeader: View {
  */
 struct FilterBackBtn: View {
     static var FilterBtnWidth:CGFloat = 25.0
-    @Binding var currentView: ViewState
+    @EnvironmentObject var iHavenContext: IHavenContext
     var body : some View{
         Button(action: {
-            self.currentView = .Main
+            self.iHavenContext.currentState = .Main
         }){
-            Image(nsImage: NSImage(named: "BackButton")!)
+            Image(nsImage: NSImage(named: "TagBtn")!)
         }
         .frame(width: FilterBackBtn.FilterBtnWidth, height: FilterBackBtn.FilterBtnWidth)
         .buttonStyle(PlainButtonStyle())

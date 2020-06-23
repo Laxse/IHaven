@@ -7,7 +7,7 @@
 //
 
 import Foundation
-struct QueryParameter {
+class QueryParameter {
     
     let q:String = ""
     

@@ -9,10 +9,9 @@
 import SwiftUI
 
 struct FilterContentView: View {
-    @Binding var currentView: ViewState
     var body: some View {
         VStack(){
-            FilterHeader(currentView: $currentView).background(Color.yellow)
+            FilterHeader().background(Color.yellow)
             QueryBody().padding(.top,0)
             Spacer()
         }
