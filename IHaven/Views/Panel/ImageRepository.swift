@@ -11,6 +11,10 @@ class ImageRepository: ObservableObject {
     @Published var images:[ImageLine] = []
     @Published var query:QueryParameter = QueryParameter()
     @Published var loading:Bool = false
+    
+    static let shared = ImageRepository()
+    private init() {}
+    
     func clean() {
         self.images.removeAll()
     }

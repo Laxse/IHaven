@@ -9,9 +9,10 @@
 import SwiftUI
 
 struct FilterContentView: View {
+    @ObservedObject var imageRepository: ImageRepository = ImageRepository.shared
     var body: some View {
         VStack(){
-            FilterHeader().background(Color.yellow)
+            FilterHeader()
             QueryBody().padding(.top,0)
             Spacer()
         }
@@ -36,7 +37,7 @@ struct QueryBody: View {
                 }
                 
             }
-          
+            
             Section(header:FilterPartLabel(label: "Purity")) {
                 HStack {
                     Button(action: {}) {
@@ -64,7 +65,7 @@ struct QueryBody: View {
             }
             
             Section(header:FilterPartLabel(label: "Sort")) {
-               Text("Sort")
+                Text("Color")
             }
         }.listStyle(SidebarListStyle())
         

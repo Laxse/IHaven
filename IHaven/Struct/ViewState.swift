@@ -8,5 +8,5 @@
 enum ViewState {
     case Main       //主界面
     case Filter     //查询条件配置界面
-    case Query      //查询界面
+    case Query      //查询界面 @Deprecated
 }

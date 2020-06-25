@@ -15,6 +15,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     //window or view
     var popover: NSPopover!
+    let popoverHeight:CGFloat = 500.0
+    let popoverWidth:CGFloat = 400.0
     var statusBarItem: NSStatusItem!
     lazy var aboutWindowController = AboutWindowController()
     
@@ -28,7 +30,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Create the popover
         popover = NSPopover()
-        popover.contentSize = NSSize(width: 400, height: 500)
+        popover.contentSize = NSSize(width: popoverWidth, height: popoverHeight)
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(rootView: ContentView().environmentObject(iHavenContext))
         

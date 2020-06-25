@@ -9,10 +9,9 @@
 import SwiftUI
 
 struct MainHeader: View {
-    @ObservedObject var imageRepository:ImageRepository
     var body: some View {
         HStack(alignment: .center) {
-            RandomBtn(imageRepository: imageRepository)
+            RandomBtn()
             Spacer()
             Text("IHaven")
                 .font(.title)
@@ -21,7 +20,11 @@ struct MainHeader: View {
                 .multilineTextAlignment(.center)
             Spacer()
             FilterBtn()
-        }.padding(.horizontal,10).padding(.vertical, 3).background(Color.black.opacity(0.5))
+        }
+        .padding(.horizontal,10)
+        .padding(.vertical, 3)
+    .frame(height: 40)
+        .background(Color.black.opacity(0.5))
     }
 }
 /**
@@ -29,11 +32,10 @@ struct MainHeader: View {
  */
 struct RandomBtn: View {
     static var RandomBtnWidth:CGFloat = 18.0
-    @ObservedObject var imageRepository:ImageRepository
     var body : some View{
         Button(action: {
-            self.imageRepository.clean()
-            self.imageRepository.load(succCallBack: {}) {}
+            ImageRepository.shared.clean();
+            ImageRepository.shared.load(succCallBack: {}) {}
         }){
             Image(nsImage: NSImage(named: "RandomBtn")!).resizable()
         }
@@ -50,7 +52,9 @@ struct FilterBtn: View {
     @EnvironmentObject var iHavenContext: IHavenContext
     var body : some View{
         Button(action: {
-            self.iHavenContext.currentState = .Filter
+            withAnimation(.easeOut(duration: 0.3)) {
+                self.iHavenContext.currentState = .Filter
+            }
         }){
             Image(nsImage: NSImage(named: "FilterBtn")!).resizable()
         }

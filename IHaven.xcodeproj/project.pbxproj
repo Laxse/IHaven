@@ -36,6 +36,7 @@
 		CEF82BEA2495317300610250 /* SettingContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF82BE92495317300610250 /* SettingContentView.swift */; };
 		CEFE28CD24A2486800BBFBAC /* ImageRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFE28CC24A2486800BBFBAC /* ImageRepository.swift */; };
 		CEFE28CF24A2584800BBFBAC /* IHavenContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFE28CE24A2584800BBFBAC /* IHavenContext.swift */; };
+		CEFE28D124A4B9EC00BBFBAC /* LoadingPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFE28D024A4B9EC00BBFBAC /* LoadingPanel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -69,6 +70,7 @@
 		CEF82BE92495317300610250 /* SettingContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingContentView.swift; sourceTree = "<group>"; };
 		CEFE28CC24A2486800BBFBAC /* ImageRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageRepository.swift; sourceTree = "<group>"; };
 		CEFE28CE24A2584800BBFBAC /* IHavenContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IHavenContext.swift; sourceTree = "<group>"; };
+		CEFE28D024A4B9EC00BBFBAC /* LoadingPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingPanel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -154,6 +156,7 @@
 				CEDCABF22498E3F2003609C1 /* ImagePanel.swift */,
 				CEDCAC1B249F1E2D003609C1 /* ImageLine.swift */,
 				CEFE28CC24A2486800BBFBAC /* ImageRepository.swift */,
+				CEFE28D024A4B9EC00BBFBAC /* LoadingPanel.swift */,
 			);
 			path = Panel;
 			sourceTree = "<group>";
@@ -331,6 +334,7 @@
 				CE8176D32493CD50002565B0 /* AppDelegate.swift in Sources */,
 				CEF82BDE2494FD7800610250 /* FilterHeader.swift in Sources */,
 				CEDCAC10249D114A003609C1 /* WallHavenMeta.swift in Sources */,
+				CEFE28D124A4B9EC00BBFBAC /* LoadingPanel.swift in Sources */,
 				CEF82BDA2494E3DC00610250 /* FilterContentView.swift in Sources */,
 				CEDCAC11249D114A003609C1 /* WallHavenImage.swift in Sources */,
 				CEF82BE32495136100610250 /* ViewState.swift in Sources */,

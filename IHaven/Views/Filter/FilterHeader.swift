@@ -7,28 +7,33 @@
 //
 
 import SwiftUI
-
 struct FilterHeader: View {
     var body: some View {
-        HStack{
+        HStack(alignment: .center){
             FilterBackBtn()
             Spacer()
         }
+        .padding(.vertical,7)
+        .padding(.horizontal,6)
+        .frame(height: 40)
+        .background(Color.black)
     }
 }
 /**
  * 查询条件按钮
  */
 struct FilterBackBtn: View {
-    static var FilterBtnWidth:CGFloat = 25.0
+    static var FilterBtnWidth:CGFloat = 16.0
     @EnvironmentObject var iHavenContext: IHavenContext
     var body : some View{
         Button(action: {
-            self.iHavenContext.currentState = .Main
+            withAnimation(.easeOut(duration: 0.3)) {
+                self.iHavenContext.currentState = .Main
+            }
         }){
-            Image(nsImage: NSImage(named: "TagBtn")!)
+            Image(nsImage: NSImage(named: "BackBtn")!).resizable()
         }
-        .frame(width: FilterBackBtn.FilterBtnWidth, height: FilterBackBtn.FilterBtnWidth)
+        .frame(width: FilterBackBtn.FilterBtnWidth * 2, height: FilterBackBtn.FilterBtnWidth)
         .buttonStyle(PlainButtonStyle())
     }
 }

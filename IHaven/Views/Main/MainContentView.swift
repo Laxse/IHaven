@@ -10,10 +10,11 @@ import SwiftUI
 import SDWebImageSwiftUI
 
 struct MainContentView: View {
-    @ObservedObject var imageRepository: ImageRepository = ImageRepository()
+    
+    @ObservedObject var imageRepository: ImageRepository = ImageRepository.shared
     var body: some View {
         VStack(spacing: 0){
-            MainHeader(imageRepository: imageRepository)
+            MainHeader()
             List() {
                 ForEach(imageRepository.images) { imageLine in
                     HStack(spacing: 10){

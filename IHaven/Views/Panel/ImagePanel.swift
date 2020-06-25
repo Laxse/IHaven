@@ -98,6 +98,7 @@ struct ImagePanel: View {
             return Image.init("ImageErrorIcon")
         }else{
             return Image.init("LoadingIcon")
+
         }
     }
     //显示png标签
