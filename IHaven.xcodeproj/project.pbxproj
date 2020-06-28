@@ -37,6 +37,7 @@
 		CEFE28CD24A2486800BBFBAC /* ImageRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFE28CC24A2486800BBFBAC /* ImageRepository.swift */; };
 		CEFE28CF24A2584800BBFBAC /* IHavenContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFE28CE24A2584800BBFBAC /* IHavenContext.swift */; };
 		CEFE28D124A4B9EC00BBFBAC /* LoadingPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFE28D024A4B9EC00BBFBAC /* LoadingPanel.swift */; };
+		CEFE28D324A8F31C00BBFBAC /* CheckableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFE28D224A8F31C00BBFBAC /* CheckableButton.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -71,6 +72,7 @@
 		CEFE28CC24A2486800BBFBAC /* ImageRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageRepository.swift; sourceTree = "<group>"; };
 		CEFE28CE24A2584800BBFBAC /* IHavenContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IHavenContext.swift; sourceTree = "<group>"; };
 		CEFE28D024A4B9EC00BBFBAC /* LoadingPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingPanel.swift; sourceTree = "<group>"; };
+		CEFE28D224A8F31C00BBFBAC /* CheckableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckableButton.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -205,6 +207,7 @@
 			children = (
 				CEF82BD92494E3DC00610250 /* FilterContentView.swift */,
 				CEF82BDD2494FD7800610250 /* FilterHeader.swift */,
+				CEFE28D224A8F31C00BBFBAC /* CheckableButton.swift */,
 			);
 			path = Filter;
 			sourceTree = "<group>";
@@ -336,6 +339,7 @@
 				CEDCAC10249D114A003609C1 /* WallHavenMeta.swift in Sources */,
 				CEFE28D124A4B9EC00BBFBAC /* LoadingPanel.swift in Sources */,
 				CEF82BDA2494E3DC00610250 /* FilterContentView.swift in Sources */,
+				CEFE28D324A8F31C00BBFBAC /* CheckableButton.swift in Sources */,
 				CEDCAC11249D114A003609C1 /* WallHavenImage.swift in Sources */,
 				CEF82BE32495136100610250 /* ViewState.swift in Sources */,
 				CEF82BE82495316400610250 /* QueryContentView.swift in Sources */,

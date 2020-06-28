@@ -63,4 +63,5 @@ class QueryParameter {
         result["apikey"] = apikey;
         return result
     }
+    
 }

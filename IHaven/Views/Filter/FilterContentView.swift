@@ -13,43 +13,48 @@ struct FilterContentView: View {
     var body: some View {
         VStack(){
             FilterHeader()
-            QueryBody().padding(.top,0)
+            QueryFilter().padding(.top,0)
             Spacer()
         }
     }
     
 }
-struct QueryBody: View {
+struct QueryFilter: View {
     var body: some View{
         List(){
-            
             Section(header:FilterPartLabel(label: "Category")) {
-                HStack {
-                    Button(action: {}) {
-                        Text("General")
-                    }
-                    Button(action: /*@START_MENU_TOKEN@*/{}/*@END_MENU_TOKEN@*/) {
-                        Text("Anime")
-                    }
-                    Button(action: /*@START_MENU_TOKEN@*/{}/*@END_MENU_TOKEN@*/) {
-                        Text("People")
-                    }
-                }
+                Group{
+                    HStack(alignment: .bottom, spacing: 5) {
+                        CheckableButton(lable: "General", unclickFontColor: Color.init(red: 170/255, green: 170/255, blue: 170/255), clickFontColor: Color.white, unclickBackColor: Color.init(red: 94/255, green: 94/255, blue: 94/255), clickBackColor: Color.init(red: 119/255, green: 119/255, blue: 119/255), clickCallBack: {boolean in
+                            print(boolean)
+                        }, checked: false)
+                        CheckableButton(lable: "Anime", unclickFontColor: Color.init(red: 170/255, green: 170/255, blue: 170/255), clickFontColor: Color.white, unclickBackColor: Color.init(red: 94/255, green: 94/255, blue: 94/255), clickBackColor: Color.init(red: 119/255, green: 119/255, blue: 119/255), clickCallBack: {boolean in
+                            print(boolean)
+                        }, checked: false)
+                        CheckableButton(lable: "People", unclickFontColor: Color.init(red: 170/255, green: 170/255, blue: 170/255), clickFontColor: Color.white, unclickBackColor: Color.init(red: 94/255, green: 94/255, blue: 94/255), clickBackColor: Color.init(red: 119/255, green: 119/255, blue: 119/255), clickCallBack: {boolean in
+                            print(boolean)
+                        }, checked: false)
+                    }.padding(.horizontal, 5).padding(.vertical, 5).background(Color.black)
+                }.padding(.top, 10)
+                
                 
             }
             
             Section(header:FilterPartLabel(label: "Purity")) {
-                HStack {
-                    Button(action: {}) {
-                        Text("SFW")
-                    }
-                    Button(action: /*@START_MENU_TOKEN@*/{}/*@END_MENU_TOKEN@*/) {
-                        Text("Sketchy")
-                    }
-                    Button(action: /*@START_MENU_TOKEN@*/{}/*@END_MENU_TOKEN@*/) {
-                        Text("NSFW")
-                    }
-                }
+                Group{
+                    HStack(alignment: .bottom, spacing: 5) {
+                        CheckableButton(lable: "SFW", unclickFontColor: Color.init(red: 170/255, green: 170/255, blue: 170/255), clickFontColor: Color.init(red: 153/255, green: 255/255, blue: 153/255), unclickBackColor: Color.init(red: 94/255, green: 94/255, blue: 94/255), clickBackColor: Color.init(red: 68/255, green: 119/255, blue: 68/255), clickCallBack: {boolean in
+                            print(boolean)
+                        }, checked: false)
+                        CheckableButton(lable: "Sketchy", unclickFontColor: Color.init(red: 170/255, green: 170/255, blue: 170/255), clickFontColor: Color.init(red: 255/255, green: 255/255, blue: 153/255), unclickBackColor: Color.init(red: 94/255, green: 94/255, blue: 94/255), clickBackColor: Color.init(red: 119/255, green: 119/255, blue: 68/255), clickCallBack: {boolean in
+                            print(boolean)
+                        }, checked: false)
+                        CheckableButton(lable: "NSFW", unclickFontColor: Color.init(red: 170/255, green: 170/255, blue: 170/255), clickFontColor: Color.init(red: 255/255, green: 153/255, blue: 153/255), unclickBackColor: Color.init(red: 94/255, green: 94/255, blue: 94/255), clickBackColor: Color.init(red: 119/255, green: 68/255, blue: 68/255), clickCallBack: {boolean in
+                            print(boolean)
+                        }, checked: false)
+                    }.padding(.horizontal, 5).padding(.vertical, 5).background(Color.black)
+                }.padding(.top, 10)
+                
             }
             
             Section(header:FilterPartLabel(label: "Resolution")) {
@@ -78,12 +83,6 @@ struct QueryBody: View {
     }
 }
 
-struct FilterContentView_Previews: PreviewProvider {
-    @Binding var currentView: ViewState
-    static var previews: some View {
-        QueryBody()
-    }
-}
 
 struct FilterPartLabel: View {
     private var label:String
@@ -97,3 +96,5 @@ struct FilterPartLabel: View {
             .edgesIgnoringSafeArea(.all)
     }
 }
+
+
