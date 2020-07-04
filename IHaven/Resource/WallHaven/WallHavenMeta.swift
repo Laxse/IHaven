@@ -10,10 +10,10 @@ import Foundation
 struct WallHavenMeta: Codable {
     let currentPage: Int?
     let lastPage: Int?
-    let perPage: Int?
+    let perPage: String?
     let total: Int?
-    let query: String? //TODO: Specify the type to conforms Codable protocol
-    let seed: String? //TODO: Specify the type to conforms Codable protocol
+    let query: String?
+    let seed: String?
     private enum CodingKeys: String, CodingKey {
         case currentPage = "current_page"
         case lastPage = "last_page"

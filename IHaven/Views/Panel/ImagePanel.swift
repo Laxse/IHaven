@@ -33,7 +33,6 @@ struct ImagePanel: View {
                 })
                 .placeholder(placeholderFor(status:status))
                 .resizable()
-                //                .indicator(Indicator.activity(style: .large))
                 .frame(width:180,height: 120)
                 .scaledToFill()
                 .border(colorFor(purity: image?.purity ?? "sfw"),width: 2.0)
@@ -45,9 +44,11 @@ struct ImagePanel: View {
                     }
             }.onTapGesture {
                 print(self.image?.shortUrl ?? "unknown")
+                //下载图片到Download
+                WallHavenImageRepository.shared.downloadImage(url: self.image!.path)
             }
-            //            .zIndex(1)
             
+            //图片上层悬浮信息
             if showHoverDetail && (image != nil) {
                 VStack(alignment: .leading) {
                     Text("HelloWorld")
@@ -82,8 +83,6 @@ struct ImagePanel: View {
                 }
                 .border(colorFor(purity: image?.purity ?? "sfw"),width: 2.0)
                 .frame(width:180,height: 120)
-                
-                //                .zIndex(2)
             }
         }
     }
@@ -98,7 +97,7 @@ struct ImagePanel: View {
             return Image.init("ImageErrorIcon")
         }else{
             return Image.init("LoadingIcon")
-
+            
         }
     }
     //显示png标签
@@ -121,6 +120,5 @@ struct ImagePanel: View {
         }
         return Color.clear
     }
-    
     
 }

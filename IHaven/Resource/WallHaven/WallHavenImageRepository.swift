@@ -22,15 +22,15 @@ class WallHavenImageRepository {
                    method: .get,
                    parameters: parameters,
                    headers: []
-//            ,requestModifier: {$0.timeoutInterval = 15}
+            //            ,requestModifier: {$0.timeoutInterval = 15}
         )
             .responseData { response in
                 switch response.result{
-                case let .success(data):
-                    print(data)
-                    let queryResponse:Result<QueryResponse,Error> = self.HandleData(data)
-                    callback(queryResponse)
-                case let .failure(error): callback(.failure(error))
+                    case let .success(data):
+                        print(data)
+                        let queryResponse:Result<QueryResponse,Error> = self.HandleData(data)
+                        callback(queryResponse)
+                    case let .failure(error): callback(.failure(error))
                 }
                 
         }
@@ -38,7 +38,7 @@ class WallHavenImageRepository {
     
     //解析Response 为目标类型
     func HandleData<T:Decodable>(_ reponse:Data) -> Result<T,Error> {
-
+        
         do {
             //TODO useless need remove
             _ = try JSONDecoder().decode(T.self, from: reponse)
@@ -50,6 +50,13 @@ class WallHavenImageRepository {
             let error = NSError(domain: "WallHavenDataError", code: 0, userInfo: [NSLocalizedDescriptionKey : "解析数据异常"])
             return .failure(error)
         }
-       return .success(resultData)
+        return .success(resultData)
+    }
+    func downloadImage(url:URL) {
+        let destination = DownloadRequest.suggestedDownloadDestination(for: .downloadsDirectory)
+        print(url.description)
+        _ = AF.download(url.description, to: destination).response { response in
+            print(response.description)
+        }
     }
 }

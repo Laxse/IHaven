@@ -8,17 +8,18 @@
 
 import Foundation
 class QueryParameter {
-    
+    static let UNSET = "UNSET"
     let q:String = ""
     
     /** 100/101/111/etc.. (general/anime/people) */
-    let categories:String = "011"
+    var categories:String = "011"
     
     /** 100* /110/111/etc (sfw/sketchy/nsfw)  */
-    let purity:String = "100"
+    var purity:String = "100"
     
+    static let sortingArray = [UNSET,"date_added","relevance","random","views","favorites","toplist"]
     /** date_added* , relevance, random, views, favorites, toplist */
-    let sorting:String = "date_added"
+    var sorting:String = "date_added"
     
     /** desc asc */
     let order:String = "desc"
@@ -29,14 +30,21 @@ class QueryParameter {
     /** 1920x1080 */
     let atleast:String = ""
     
-    /** 1920x1080,1920x1200 */
-    let resolutions:String = ""
+    static let resolutionArray = [UNSET,"1280x720","1280x800","1280x960","1280x1024","1600x900","1600x1000",
+                                  "1600x1200","1600x1280","1920x1080","1920x1200","1920x1440","1920x1536",
+                                  "2560x1080", "2560x1440","2560x1600","2560x1920","2560x2048","3440x1440",
+                                  "3840x1600","3840x2160","3840x2400","3840x2880","3840x3072"]
     
+    
+    /** 1920x1080,1920x1200 */
+    var resolutions:String = ""
+    
+    static let ratioArray = [UNSET,"9x16","10x16","9x18",    "1x1","3x2","4x3","5x4",    "16x9","16x10",    "21x9","32x9","48x9"]
     /** 16x9,16x10 */
     let ratios:String = ""
     
     /** 660000..... */
-    let color:String = ""
+    var color:String = "NULL"
     
     /**  */
     var page:Int = 1
@@ -51,17 +59,75 @@ class QueryParameter {
         result["q"] = q;
         result["categories"] = categories;
         result["purity"] = purity;
-        result["sorting"] = sorting;
+        
+        if(sorting != QueryParameter.UNSET){
+            result["sorting"] = sorting;
+        }
         result["order"] = order;
         result["topPange"] = topPange;
         result["atleast"] = atleast;
-        result["resolutions"] = resolutions;
-        result["ratios"] = ratios;
-        result["color"] = color;
+        if(resolutions != QueryParameter.UNSET){
+            result["resolutions"] = resolutions;
+        }
+        if(ratios != QueryParameter.UNSET){
+            result["ratios"] = ratios;
+        }
+        if(color != "NULL"){
+            result["color"] = color;
+        }
         result["page"] = page;
         result["seed"] = seed;
         result["apikey"] = apikey;
         return result
     }
     
+    func setCategory(i:Int,v:Bool){
+        self.categories.replaceSubrange(
+            self.categories.index(self.categories.startIndex, offsetBy: i)...self.categories.index(self.categories.startIndex, offsetBy: i), with: v ? "1" : "0")
+    }
+    func getCategory(i:Int) -> Bool {
+        self.categories[self.categories.index(self.categories.startIndex, offsetBy: i)] == "1"
+    }
+    func setPurity(i:Int,v:Bool){
+        self.purity.replaceSubrange(
+            self.purity.index(self.purity.startIndex, offsetBy: i)...self.purity.index(self.purity.startIndex, offsetBy: i), with: v ? "1" : "0")
+    }
+    func getPurity(i:Int) -> Bool {
+        self.purity[self.purity.index(self.purity.startIndex, offsetBy: i)] == "1"
+    }
+    func setColor(color:String) {
+        self.color = color
+    }
+    func getSortIndex() -> Double {
+        if let index = QueryParameter.sortingArray.firstIndex(of: self.sorting) {
+            return Double(index)
+        }else{
+            return Double(0)
+        }
+        
+    }
+    func setSorting(v:Int) {
+        self.sorting = QueryParameter.sortingArray[v]
+    }
+    func getResolutionIndex() -> Double {
+        if let index = QueryParameter.resolutionArray.firstIndex(of: self.resolutions) {
+            return Double(index)
+        }else{
+            return Double(0)
+        }
+    }
+    func setResolution(v:Int) {
+        self.resolutions = QueryParameter.resolutionArray[v]
+    }
+    
+    func getRatioIndex() -> Double {
+        if let index = QueryParameter.ratioArray.firstIndex(of: self.ratios) {
+            return Double(index)
+        }else{
+            return Double(0)
+        }
+    }
+    func setRatio(v:Int) {
+        self.resolutions = QueryParameter.resolutionArray[v]
+    }
 }

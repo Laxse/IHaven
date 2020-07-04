@@ -47,33 +47,33 @@ extension MainContentView{
         }
     }
     private func load() {
-        if(true){
-            self.imageRepository.loading = true
-            do {
-                if let bundlePath = Bundle.main.path(forResource: "data",
-                                                     ofType: "json"),
-                    let jsonData = try String(contentsOfFile: bundlePath).data(using: .utf8) {
-                    let decodedData = try JSONDecoder().decode(QueryResponse.self, from: jsonData)
-                    var imageLine = ImageLine(left: nil, right: nil)
-                    decodedData.data.forEach { image in
-                        if(imageLine.left==nil){
-                            imageLine.left = image
-                        }else if(imageLine.right==nil){
-                            imageLine.right = image
-                        }
-                        
-                        if(imageLine.left != nil && imageLine.right != nil){
-                            self.imageRepository.images.append(imageLine)
-                            imageLine = ImageLine(left: nil, right: nil)
-                        }
-                    }
-                }
-                self.imageRepository.loading = false
-            } catch {
-                print(error)
-            }
-            return
-        }else{
+//        if(true){
+//            self.imageRepository.loading = true
+//            do {
+//                if let bundlePath = Bundle.main.path(forResource: "data",
+//                                                     ofType: "json"),
+//                    let jsonData = try String(contentsOfFile: bundlePath).data(using: .utf8) {
+//                    let decodedData = try JSONDecoder().decode(QueryResponse.self, from: jsonData)
+//                    var imageLine = ImageLine(left: nil, right: nil)
+//                    decodedData.data.forEach { image in
+//                        if(imageLine.left==nil){
+//                            imageLine.left = image
+//                        }else if(imageLine.right==nil){
+//                            imageLine.right = image
+//                        }
+//
+//                        if(imageLine.left != nil && imageLine.right != nil){
+//                            self.imageRepository.images.append(imageLine)
+//                            imageLine = ImageLine(left: nil, right: nil)
+//                        }
+//                    }
+//                }
+//                self.imageRepository.loading = false
+//            } catch {
+//                print(error)
+//            }
+//            return
+//        }else{
             self.imageRepository.loading = true
             self.imageRepository.load(succCallBack: {
                 //成功
@@ -82,6 +82,6 @@ extension MainContentView{
                 //失败
                 self.imageRepository.loading = false
             }
-        }
+//        }
     }
 }
