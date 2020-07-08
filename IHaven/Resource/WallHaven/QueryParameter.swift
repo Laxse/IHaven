@@ -50,7 +50,7 @@ class QueryParameter {
     var page:Int = 1
     
     /**  */
-    let seed:String = ""
+    var seed:String = ""
     
     let apikey = "vp1ZWXq92VMfjgBIGejfUgHQCXnw88HF"
     
@@ -129,5 +129,27 @@ class QueryParameter {
     }
     func setRatio(v:Int) {
         self.resolutions = QueryParameter.resolutionArray[v]
+    }
+    func random() {
+        self.seed = getRandomStringWithNum(num: 6)
+    }
+    private func getRandomStringWithNum(num:Int) -> String {
+        var string = ""
+        var i = 0
+        while i<num {
+            i+=1
+            let number = arc4random() % 36
+            if number < 10{
+                let figure = arc4random() % 10;
+                let tempString = String(figure)
+                string = string + tempString
+            } else {
+                let figure = (arc4random() % 26) + 97;
+                let character = Character(UnicodeScalar(figure)!)
+                let tempString = String(character)
+                string = string + tempString
+            }
+        }
+        return string
     }
 }

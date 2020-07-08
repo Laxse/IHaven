@@ -35,6 +35,7 @@ struct RandomBtn: View {
     var body : some View{
         Button(action: {
             ImageRepository.shared.clean();
+            ImageRepository.shared.query.random()
             ImageRepository.shared.load(succCallBack: {}) {}
         }){
             Image(nsImage: NSImage(named: "RandomBtn")!).resizable()

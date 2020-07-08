@@ -9,7 +9,7 @@
 import SwiftUI
 import SDWebImageSwiftUI
 
-struct ImagePanel: View {
+struct ImagePanel: View { 
     
     @State var image: WallHavenImage?
     @State var status:ImageState = .None

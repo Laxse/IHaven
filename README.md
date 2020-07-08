@@ -1,12 +1,11 @@
 
 
-# Image[TODO]
 <p align="center">
 <img src="screenshots/timg.jpeg" alt="ADPlayer" width="100">
 </p>
 <h1 align="center">IHaven</h1>
 <h4 align="center">🍭Awesome Wallpaper App Based on SwiftUI Power By Wallhaven aimed to macOS</h4>
-Visit website （url）[TODO] or （release）download [TODO]. f^_^;
+Visit website（TODO） or （release）download. f^_^;
 
 # Features in the future
 * Api from wallhacen.cc
@@ -29,7 +28,6 @@ Visit website （url）[TODO] or （release）download [TODO]. f^_^;
 
 
 # Todo
-* [ ] ...
 * [ ] ...
 
 # Localization
