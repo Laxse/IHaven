@@ -14,6 +14,9 @@ struct ImagePanel: View {
     @State var image: WallHavenImage?
     @State var status:ImageState = .None
     @State var showHoverDetail = false
+    
+    //下载改造时候会删除_msg
+    @State var _msg:String = ""
     var body: some View {
         ZStack(alignment: .center){
             WebImage(url: image?.thumbs.small)
@@ -45,13 +48,16 @@ struct ImagePanel: View {
             }.onTapGesture {
                 print(self.image?.shortUrl ?? "unknown")
                 //下载图片到Download
-                WallHavenImageRepository.shared.downloadImage(url: self.image!.path)
+                self._msg = "Downloading..."
+                WallHavenImageRepository.shared.downloadImage(url: self.image!.path, callback: {
+                    self._msg = "Finish Download"
+                })
             }
             
             //图片上层悬浮信息
             if showHoverDetail && (image != nil) {
                 VStack(alignment: .leading) {
-                    Text("HelloWorld")
+                    Text(_msg)
                     Spacer()
                     
                     HStack {
