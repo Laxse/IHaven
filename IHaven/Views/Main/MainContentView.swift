@@ -12,6 +12,7 @@ import SDWebImageSwiftUI
 struct MainContentView: View {
     
     @ObservedObject var imageRepository: ImageRepository = ImageRepository.shared
+    @ViewBuilder
     var body: some View {
         VStack(spacing: 0){
             MainHeader()

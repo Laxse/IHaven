@@ -10,7 +10,7 @@ import SwiftUI
 
 struct FilterContentView: View {
     @ObservedObject var imageRepository: ImageRepository = ImageRepository.shared
-    
+    @ViewBuilder
     var body: some View {
         VStack(){
             FilterHeader()
