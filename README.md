@@ -27,7 +27,7 @@
           class="for-the-badge"
           src="https://forthebadge.com/images/badges/makes-people-smile.svg"
         ></p>
-<p style="font-size:14px" >Visit website <a href="http://o-hohohohoho.com">IHaven</a> or （release to）download. f^_^;</p>
+<p style="font-size:14px" >Visit website <a href="http://ihaven.laxse.cn">IHaven</a> or （release to）download. f^_^;</p>
 
 # Features  
 * Api from wallhacen.cc
