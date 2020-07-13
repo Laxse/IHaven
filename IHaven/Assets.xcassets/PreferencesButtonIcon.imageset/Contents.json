@@ -1,12 +1,12 @@
 {
   "images" : [
     {
-      "filename" : "PreferencesButtonIcon_18x18.png",
+      "filename" : "setting-2.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "PreferencesButtonIcon_18x18@2x.png",
+      "filename" : "setting.png",
       "idiom" : "universal",
       "scale" : "2x"
     },

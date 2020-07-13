@@ -24,7 +24,7 @@ struct MainFooter: View {
  * 查询条件按钮
  */
 struct SettingBtn: View {
-    static var SettingBtnWidth:CGFloat = 30.0
+    static var SettingBtnWidth:CGFloat = 25.0
     var body : some View{
         MenuButton(label: Image("PreferencesButtonIcon")
             .frame(width: SettingBtn.SettingBtnWidth, height: SettingBtn.SettingBtnWidth)) {

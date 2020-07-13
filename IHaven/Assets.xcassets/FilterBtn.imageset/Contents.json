@@ -1,12 +1,12 @@
 {
   "images" : [
     {
-      "filename" : "wallpaper-2.png",
+      "filename" : "filter.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "wallpaper.png",
+      "filename" : "filter-2.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
