@@ -1,7 +1,7 @@
 
 
 <p align="center">
-<img src="screenshots/logo.png" alt="ADPlayer" width="100">
+<img src="screenshots/logo.png" alt="IHaven" width="100">
 </p>
 <h1 align="center" style="font-size:36px" >IHaven</h1>
 <h4 align="center" style="font-size:18px" >🍭Awesome Wallpaper App Based on SwiftUI Power By Wallhaven aimed to macOS</h4>
