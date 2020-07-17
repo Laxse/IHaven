@@ -694,7 +694,7 @@
     "meta": {
         "current_page": 1,
         "last_page": 13159,
-        "per_page": 24,
+        "per_page": "24",
         "total": 315796,
         "query": null,
         "seed": null

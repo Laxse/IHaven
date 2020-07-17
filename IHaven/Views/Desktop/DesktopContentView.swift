@@ -1,14 +1,15 @@
 //
-//  AboutContentView.swift
+//  SettingContentView.swift
 //  IHaven
 //
-//  Created by 梁霄 on 2020/6/22.
+//  Created by 梁霄 on 2020/6/14.
 //  Copyright © 2020 梁霄. All rights reserved.
 //
+
  
 import SwiftUI
 
-struct AboutContentView: View {
+struct DesktopContentView: View {
     var body: some View {
         VStack(alignment: .center, spacing: 5) {
             Image("AppImage").resizable().scaledToFit().frame(height: 60)
@@ -21,8 +22,3 @@ struct AboutContentView: View {
     }
 }
 
-struct AboutContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        AboutContentView()
-    }
-}

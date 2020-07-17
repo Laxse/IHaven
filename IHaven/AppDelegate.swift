@@ -13,12 +13,16 @@ import SwiftUI
 class AppDelegate: NSObject, NSApplicationDelegate {
     static var shared:AppDelegate?
     
-    //window or view
-    var popover: NSPopover!
+
+    
     let popoverHeight:CGFloat = 500.0
     let popoverWidth:CGFloat = 400.0
-    var statusBarItem: NSStatusItem!
+    
+    //window or view
+    var iHavenPopover: NSPopover!
+    var iHavenBarItem: NSStatusItem!
     lazy var aboutWindowController = AboutWindowController()
+    lazy var desktopWindowController = DesktopWindowController()
     
     @ObservedObject var iHavenContext = IHavenContext()
     override init() {
@@ -29,15 +33,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Create the popover
-        popover = NSPopover()
-        popover.contentSize = NSSize(width: popoverWidth, height: popoverHeight)
-        popover.behavior = .transient
-        popover.contentViewController = NSHostingController(rootView: ContentView().environmentObject(iHavenContext))
+        iHavenPopover = NSPopover()
+        iHavenPopover.contentSize = NSSize(width: popoverWidth, height: popoverHeight)
+        iHavenPopover.behavior = .transient
+        iHavenPopover.contentViewController = NSHostingController(rootView: ContentView().environmentObject(iHavenContext))
         
         // Create the status item
-        self.statusBarItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
+        self.iHavenBarItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
         
-        if let button = self.statusBarItem.button {
+        if let button = self.iHavenBarItem.button {
             button.image = NSImage(named: "MenuBarIcon")
             button.action = #selector(togglePopover(_:))
         }
@@ -55,12 +59,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApplication.shared.activate(ignoringOtherApps: true)
         
     }
+    func showDesktopWindow() {
+        desktopWindowController.showWindow(nil)
+        NSApplication.shared.activate(ignoringOtherApps: true)
+    }
     @objc func togglePopover(_ sender: AnyObject?) {
-        if let button = self.statusBarItem.button {
-            if self.popover.isShown {
-                self.popover.performClose(sender)
+        if let button = self.iHavenBarItem.button {
+            if self.iHavenPopover.isShown {
+                self.iHavenPopover.performClose(sender)
             } else {
-                self.popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
+                self.iHavenPopover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
             }
         }
     }

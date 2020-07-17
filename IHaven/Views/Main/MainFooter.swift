@@ -15,6 +15,11 @@ struct MainFooter: View {
             Text("❤").foregroundColor(Color.red)
             Text("By Laxse ").foregroundColor(Color.purple)
             Spacer()
+            Button(action: {
+                AppDelegate.shared?.showDesktopWindow()
+            }) {
+                Text("高级模式")
+            }
             SettingBtn()
         }.frame(height: 40).padding(.horizontal, 10)
     }
