@@ -9,18 +9,26 @@
 import Foundation
 import AppKit
 import SwiftUI
-class DesktopWindowController: NSWindowController {
+class DesktopWindowController: NSWindowController{
+        
     init() {
-      
-       let iHavenDesktop = DesktopWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 600), styleMask: [.closable,.titled], backing: .buffered, defer: false)
-        iHavenDesktop.setFrameAutosaveName("IHaven")
-        iHavenDesktop.contentView = NSHostingView(rootView: DesktopContentView())
+        
+        let iHavenDesktop = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1000, height: 630), styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView,.texturedBackground], backing: .buffered, defer: false)
         iHavenDesktop.center()
-        iHavenDesktop.title = "IHaven"
+        iHavenDesktop.isOpaque = false
+        iHavenDesktop.titlebarAppearsTransparent = true
+        iHavenDesktop.titleVisibility = .hidden
+        //实现自定义标题栏
+        let iHavenToolbar = NSToolbar()
+        iHavenToolbar.showsBaselineSeparator = false
+        iHavenDesktop.toolbar = iHavenToolbar
+
+        iHavenDesktop.contentView = NSHostingView(rootView: DesktopContentView().edgesIgnoringSafeArea(.all).frame(maxWidth: .infinity, maxHeight: .infinity))
         super.init(window: iHavenDesktop)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
 }
