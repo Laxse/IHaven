@@ -13,10 +13,62 @@ class ImageRepository: ObservableObject {
     @Published var loading:Bool = false
     
     static let shared = ImageRepository()
-    private init() {}
+    private init() {
+        load()
+    }
     
     func clean() {
         self.images.removeAll()
+    }
+    func lastImageLineAppear(currentItem:ImageLine){
+          if self.images.isLastItem(currentItem) {
+              print("is last now Herry up")
+              if(!self.loading){
+                  load()
+              }
+          }
+      }
+    
+    private func load() {
+        if(self.loading){
+            return
+        }
+        if(true){
+            self.loading = true
+            do {
+                if let bundlePath = Bundle.main.path(forResource: "data",ofType: "json"),
+                    let jsonData = try String(contentsOfFile: bundlePath).data(using: .utf8) {
+                    let decodedData = try JSONDecoder().decode(QueryResponse.self, from: jsonData)
+                    var imageLines:[ImageLine] = []
+                    var imageLine = ImageLine(left: nil, right: nil)
+                    decodedData.data.forEach { image in
+                        if(imageLine.left==nil){
+                            imageLine.left = image
+                        }else if(imageLine.right==nil){
+                            imageLine.right = image
+                        }
+                        if(imageLine.left != nil && imageLine.right != nil){
+                            imageLines.append(imageLine)
+                            imageLine = ImageLine(left: nil, right: nil)
+                        }
+                    }
+                    self.images.append(contentsOf: imageLines)
+                }
+                self.loading = false
+            } catch {
+                print(error)
+            }
+            return
+        }else{
+            self.loading = true
+            self.load(succCallBack: {
+                //成功
+                self.loading = false
+            }) {
+                //失败
+                self.loading = false
+            }
+        }
     }
     
     func load(succCallBack: @escaping () -> Swift.Void,errorCallBack:  @escaping () -> Swift.Void) {
@@ -24,6 +76,7 @@ class ImageRepository: ObservableObject {
             switch result{
             case let .success(data):
                 self.query.page = self.query.page + 1
+                var imageLines:[ImageLine] = []
                 var imageLine = ImageLine(left: nil, right: nil)
                 data.data.forEach { image in
                     if(imageLine.left==nil){
@@ -33,10 +86,11 @@ class ImageRepository: ObservableObject {
                     }
                     
                     if(imageLine.left != nil && imageLine.right != nil){
-                        self.images.append(imageLine)
+                        imageLines.append(imageLine)
                         imageLine = ImageLine(left: nil, right: nil)
                     }
                 }
+                self.images.append(contentsOf: imageLines)
                 succCallBack()
             case let .failure(error):
                 print(error.localizedDescription)
