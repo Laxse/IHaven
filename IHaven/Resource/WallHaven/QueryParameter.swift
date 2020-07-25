@@ -53,6 +53,13 @@ class QueryParameter {
     var seed:String = ""
     
     let apikey = "vp1ZWXq92VMfjgBIGejfUgHQCXnw88HF"
+
+    func _isUnset(param:String) -> Bool {
+        if(param == QueryParameter.UNSET || param == ""){
+            return true
+        }
+        return false
+    }
     
     func toDictionary() -> [String: Any] {
         var  result:[String:Any] =  [:]
@@ -60,19 +67,25 @@ class QueryParameter {
         result["categories"] = categories;
         result["purity"] = purity;
         
-        if(sorting != QueryParameter.UNSET){
+        if(!_isUnset(param: sorting)){
             result["sorting"] = sorting;
         }
-        result["order"] = order;
+        if(!_isUnset(param: sorting)){
+            result["order"] = order;
+        }
+        
         result["topPange"] = topPange;
-        result["atleast"] = atleast;
-        if(resolutions != QueryParameter.UNSET){
+        
+        if(_isUnset(param: atleast)){
+            result["atleast"] = atleast;
+        }
+        if(_isUnset(param: atleast)){
             result["resolutions"] = resolutions;
         }
-        if(ratios != QueryParameter.UNSET){
+        if(_isUnset(param: ratios)){
             result["ratios"] = ratios;
         }
-        if(color != "NULL"){
+        if(_isUnset(param: color)){
             result["color"] = color;
         }
         result["page"] = page;
