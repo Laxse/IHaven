@@ -60,18 +60,16 @@ class ImageRepository: ObservableObject {
             }
             return
         }else{
-            self.loading = true
             self.load(succCallBack: {
                 //成功
-                self.loading = false
             }) {
                 //失败
-                self.loading = false
             }
         }
     }
     
     func load(succCallBack: @escaping () -> Swift.Void,errorCallBack:  @escaping () -> Swift.Void) {
+        self.loading = true
         WallHavenImageRepository.shared.query(parameters: query.toDictionary()) { result in
             switch result{
             case let .success(data):
@@ -91,9 +89,11 @@ class ImageRepository: ObservableObject {
                     }
                 }
                 self.images.append(contentsOf: imageLines)
+                self.loading = false
                 succCallBack()
             case let .failure(error):
                 print(error.localizedDescription)
+                self.loading = false
                 errorCallBack()
             }
         }

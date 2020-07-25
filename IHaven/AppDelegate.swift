@@ -26,7 +26,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @ObservedObject var iHavenContext = IHavenContext()
     override init() {
-        
         super.init()
         AppDelegate.shared = self;
     }
@@ -55,13 +54,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func showAboutWindow() {
         aboutWindowController.showWindow(nil)
-//        aboutWindowController.window?.makeKeyAndOrderFront(self)
         NSApplication.shared.activate(ignoringOtherApps: true)
         
     }
     func showDesktopWindow() {
         desktopWindowController.showWindow(nil)
         NSApplication.shared.activate(ignoringOtherApps: true)
+        //default mode is Agent（info.plist）
+        //when show Desktop window Dynactic change to show icon on dock
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
     }
     @objc func togglePopover(_ sender: AnyObject?) {
         if let button = self.iHavenBarItem.button {

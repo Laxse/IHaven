@@ -146,6 +146,7 @@ class QueryParameter {
     func random() {
         self.seed = getRandomStringWithNum(num: 6)
     }
+    
     private func getRandomStringWithNum(num:Int) -> String {
         var string = ""
         var i = 0

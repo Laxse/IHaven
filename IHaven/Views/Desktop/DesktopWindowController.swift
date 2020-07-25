@@ -22,13 +22,19 @@ class DesktopWindowController: NSWindowController{
         let iHavenToolbar = NSToolbar()
         iHavenToolbar.showsBaselineSeparator = false
         iHavenDesktop.toolbar = iHavenToolbar
-
         iHavenDesktop.contentView = NSHostingView(rootView: DesktopContentView().edgesIgnoringSafeArea(.all).frame(maxWidth: .infinity, maxHeight: .infinity))
+        
+
+//      窗口关闭通知，隐藏Dock的图标，程序转变为Anent //暂不隐藏
+        NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: iHavenDesktop, queue: OperationQueue.main, using: { note in
+//            NSApp.setActivationPolicy(.accessory)
+        })
         super.init(window: iHavenDesktop)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+   
     
 }
