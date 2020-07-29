@@ -52,10 +52,12 @@ class WallHavenImageRepository {
         }
         return .success(resultData)
     }
-    func downloadImage(url:URL,callback:@escaping () -> Void) {
+    func downloadImage(url:URL,procressCallback:@escaping (Progress)-> Void,callback:@escaping () -> Void) {
         let destination = DownloadRequest.suggestedDownloadDestination(for: .downloadsDirectory)
         print(url.description)
-        _ = AF.download(url.description, to: destination).response { response in
+        _ = AF.download(url.description, to: destination).downloadProgress { progress in
+               procressCallback(progress)
+           }.response { response in
             print(response.description)
             callback()
         }

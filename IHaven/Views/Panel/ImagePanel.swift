@@ -12,11 +12,14 @@ import SDWebImageSwiftUI
 struct ImagePanel: View { 
     
     @State var image: WallHavenImage?
+    //图片加载状态
     @State var status:ImageState = .None
+    //显示图片详情
     @State var showHoverDetail = false
+    //下载状态
+    @State var downloading = false
     
-    //下载改造时候会删除_msg
-    @State var _msg:String = ""
+    @State var downloadProgress: Double = 0.0
     var body: some View {
         ZStack(alignment: .center){
             WebImage(url: image?.thumbs.small)
@@ -46,18 +49,20 @@ struct ImagePanel: View {
                         self.showHoverDetail = state
                     }
             }.onTapGesture {
-                print(self.image?.shortUrl ?? "unknown")
-                //下载图片到Download
-                self._msg = "Downloading..."
-                WallHavenImageRepository.shared.downloadImage(url: self.image!.path, callback: {
-                    self._msg = "Finish Download"
-                })
+                if(!self.downloading){
+                    self.downloading = true
+                    WallHavenImageRepository.shared.downloadImage(url: self.image!.path, procressCallback: { progress in
+                        self.downloadProgress = progress.fractionCompleted
+                    }, callback: {
+                        self.downloading = false
+                    })
+                }
             }
             
             //图片上层悬浮信息
             if showHoverDetail && (image != nil) {
                 VStack(alignment: .leading) {
-                    Text(_msg)
+                    //                    Text(_msg)
                     Spacer()
                     
                     HStack {
@@ -89,6 +94,11 @@ struct ImagePanel: View {
                 }
                 .border(colorFor(purity: image?.purity ?? "sfw"),width: 2.0)
                 .frame(width:180,height: 120)
+            }
+            
+            if downloading {
+                Color.black.opacity(0.3)
+                ProgressBar(progress: $downloadProgress)
             }
         }
     }
@@ -127,4 +137,29 @@ struct ImagePanel: View {
         return Color.clear
     }
     
+}
+
+struct ProgressBar: View {
+    
+    @Binding var progress: Double
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(lineWidth: 12.0)
+                .opacity(0.3)
+                .foregroundColor(Color.purple)
+            
+            Circle()
+                .trim(from: 0.0, to: CGFloat(min(progress, 1.0)))
+                .stroke(style: StrokeStyle(lineWidth: 12.0, lineCap: .round, lineJoin: .round))
+                .foregroundColor(Color.purple)
+                .rotationEffect(Angle(degrees: 270.0))
+                .animation(.linear)
+            
+            Text(String(format: "%.0f %%", min(progress, 1.0)*100.0))
+                .font(.headline)
+                .fontWeight(.ultraLight)
+        }.frame(maxWidth: 80,maxHeight: 80, alignment: .center)
+    }
 }
