@@ -16,7 +16,6 @@ struct DesktopContentView: View {
         NavigationView {
             VStack {
                 HStack {
-                    
                     TextField("搜索", text: $query)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
@@ -43,7 +42,6 @@ struct DesktopContentView: View {
                         Text("Advance").font(.system(size: 20)).fontWeight(.regular)
                         }.frame(height: 42)
                     }
-                
                 .listStyle(SidebarListStyle())
             }.frame(minWidth: 220, maxWidth: 220)
             //.accentColor(.gray)
@@ -51,8 +49,8 @@ struct DesktopContentView: View {
             //1. 'accentColor' has been explicitly marked unavailable here (SwiftUI.View)
             //Need macOS 11+
             //Desktop maybe delay
-        }.frame(maxWidth: .infinity, maxHeight: .infinity)
-        //        .navigationViewStyle(DoubleColumnNavigationViewStyle())
+            }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         
     }
 }

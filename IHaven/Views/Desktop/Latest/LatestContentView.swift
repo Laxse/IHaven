@@ -9,9 +9,12 @@
 import SwiftUI
 
 struct LatestContentView: View {
+    @State var txt:String = "123"
     var body: some View {
         VStack {
-            Text("Hello, World! LatestContentView")
+           
+
+                TextField("123", text: $txt)
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

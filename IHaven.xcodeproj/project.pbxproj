@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CE357BF024D4592900D55B3E /* DownloadState.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE357BEF24D4592900D55B3E /* DownloadState.swift */; };
 		CE8176D32493CD50002565B0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8176D22493CD50002565B0 /* AppDelegate.swift */; };
 		CE8176D52493CD50002565B0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8176D42493CD50002565B0 /* ContentView.swift */; };
 		CE8176D72493CD51002565B0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE8176D62493CD51002565B0 /* Assets.xcassets */; };
@@ -49,6 +50,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		CE357BEF24D4592900D55B3E /* DownloadState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadState.swift; sourceTree = "<group>"; };
 		CE8176CF2493CD50002565B0 /* IHaven.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IHaven.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE8176D22493CD50002565B0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		CE8176D42493CD50002565B0 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -283,6 +285,7 @@
 				CEF82BE22495136100610250 /* ViewState.swift */,
 				CEDCAC21249F8A8C003609C1 /* ImageState.swift */,
 				CEFE28CE24A2584800BBFBAC /* IHavenContext.swift */,
+				CE357BEF24D4592900D55B3E /* DownloadState.swift */,
 			);
 			path = Struct;
 			sourceTree = "<group>";
@@ -411,6 +414,7 @@
 				CEF82BD82494CA4900610250 /* MainFooter.swift in Sources */,
 				CE8176D32493CD50002565B0 /* AppDelegate.swift in Sources */,
 				CEF82BDE2494FD7800610250 /* FilterHeader.swift in Sources */,
+				CE357BF024D4592900D55B3E /* DownloadState.swift in Sources */,
 				CEDCAC10249D114A003609C1 /* WallHavenMeta.swift in Sources */,
 				CEFE28D124A4B9EC00BBFBAC /* LoadingPanel.swift in Sources */,
 				CEF82BDA2494E3DC00610250 /* FilterContentView.swift in Sources */,

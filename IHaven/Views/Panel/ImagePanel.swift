@@ -12,13 +12,13 @@ import SDWebImageSwiftUI
 struct ImagePanel: View { 
     
     @State var image: WallHavenImage?
-    //图片加载状态
-    @State var status:ImageState = .None
-    //显示图片详情
+    // 图片加载状态
+    @State var status: ImageState = .None
+    // 显示图片详情
     @State var showHoverDetail = false
-    //下载状态
-    @State var downloading = false
-    
+    // 下载状态
+    @State var downloadState: DownloadState = .Nope
+    // 下载进度
     @State var downloadProgress: Double = 0.0
     var body: some View {
         ZStack(alignment: .center){
@@ -49,12 +49,21 @@ struct ImagePanel: View {
                         self.showHoverDetail = state
                     }
             }.onTapGesture {
-                if(!self.downloading){
-                    self.downloading = true
+                // image not well
+                if(self.status != .Success){
+                    return
+                }
+                //
+                // check if download
+                if(self.checkImageExist()){
+                    self.downloadState = .Done
+                }
+                if(self.downloadState == .Nope){
+                    self.downloadState = .Doing
                     WallHavenImageRepository.shared.downloadImage(url: self.image!.path, procressCallback: { progress in
                         self.downloadProgress = progress.fractionCompleted
                     }, callback: {
-                        self.downloading = false
+                        self.downloadState = .Done
                     })
                 }
             }
@@ -96,18 +105,42 @@ struct ImagePanel: View {
                 .frame(width:180,height: 120)
             }
             
-            if downloading {
+            if downloadState == .Doing {
                 Color.black.opacity(0.3)
                 ProgressBar(progress: $downloadProgress)
             }
+            if showHoverDetail && downloadState == .Done {
+                //TODO 设置壁纸按钮
+                Button(action: {
+                    do {
+                        let imgurl = self.getImagePath()
+                        let workspace = NSWorkspace.shared
+                        if let screen = NSScreen.main  {
+                            try workspace.setDesktopImageURL(imgurl!, for: screen, options: [:])
+                        }
+                    } catch {
+                        print(error)
+                    }
+                }){
+                    VStack(alignment: .center) {
+                        Text("Set").font(.body).fontWeight(.ultraLight).foregroundColor(Color.purple)
+                        Text("WallPaper").font(.body).fontWeight(.ultraLight).foregroundColor(Color.purple)
+                    }.frame(width: 80, height: 80).background(Color.black.opacity(0.7)).cornerRadius(100)
+                }.buttonStyle(BorderlessButtonStyle()).padding()
+            }
         }
     }
+
     
-    
+}
+
+//状态函数
+extension ImagePanel{
     //返回分辨率
     func resolutionFor(image:WallHavenImage?) -> String {
         return image!.resolution
     }
+    
     func placeholderFor(status:ImageState) -> Image {
         if(status == .Error){
             return Image.init("ImageErrorIcon")
@@ -136,9 +169,34 @@ struct ImagePanel: View {
         }
         return Color.clear
     }
-    
 }
 
+//事件函数
+extension ImagePanel{
+    //校验图片是否存在
+    func checkImageExist() -> Bool {
+        if let imagePathComponent = getImagePath() {
+            let imagePath = imagePathComponent.path
+            if FileManager.default.fileExists(atPath: imagePath) {
+                return true
+            } else {
+                return false
+            }
+        } else {
+            return false
+        }
+    }
+    
+    //返回图片名
+    func getImagePath() -> URL? {
+        let downloadPath = NSURL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.downloadsDirectory, .userDomainMask, true)[0] as String)
+        let imageUrl = image!.path.absoluteString
+        return downloadPath.appendingPathComponent(imageUrl[imageUrl.lastIndex(of: "/")!..<imageUrl.endIndex].description as String)
+        
+    }
+}
+
+//进度视图
 struct ProgressBar: View {
     
     @Binding var progress: Double
