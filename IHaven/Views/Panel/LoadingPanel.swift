@@ -42,9 +42,3 @@ struct LoadingPanel: View {
         }
     }
 }
-
-struct LoadingPanel_Previews: PreviewProvider {
-    static var previews: some View {
-        LoadingPanel()
-    }
-}

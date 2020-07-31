@@ -79,8 +79,8 @@ struct ResolutionSelection:View {
     @Binding var query:QueryParameter
     @State var select: Double
     @State var label:String
-
-     var body: some View{
+    
+    var body: some View{
         Section(header:FilterPartLabel(label: "Resolution")) {
             Text(label)
             Slider(value: Binding(get: {
@@ -101,13 +101,13 @@ struct CategorySection: View {
         Section(header:FilterPartLabel(label: "Category")) {
             Group{
                 HStack(alignment: .bottom, spacing: 5) {
-                    CheckableButton(lable: "General", unclickFontColor: Color.init(red: 170/255, green: 170/255, blue: 170/255), clickFontColor: Color.white, unclickBackColor: Color.init(red: 94/255, green: 94/255, blue: 94/255), clickBackColor: Color.init(red: 119/255, green: 119/255, blue: 119/255), clickCallBack: {boolean in
+                    CheckableButton(lable: "General", unclickFontColor: Color.init(hex: "AAAAAA"), clickFontColor: Color.white, unclickBackColor: Color.init(hex: "5E5E5E"), clickBackColor: Color.init(hex:"777777"), clickCallBack: {boolean in
                         self.query.setCategory(i: 0, v: boolean)
                     }, checked: query.getCategory(i: 0))
-                    CheckableButton(lable: "Anime", unclickFontColor: Color.init(red: 170/255, green: 170/255, blue: 170/255), clickFontColor: Color.white, unclickBackColor: Color.init(red: 94/255, green: 94/255, blue: 94/255), clickBackColor: Color.init(red: 119/255, green: 119/255, blue: 119/255), clickCallBack: {boolean in
+                    CheckableButton(lable: "Anime", unclickFontColor: Color.init(hex: "AAAAAA"), clickFontColor: Color.white, unclickBackColor: Color.init(hex:"777777"), clickBackColor: Color.init(hex: "5E5E5E"), clickCallBack: {boolean in
                         self.query.setCategory(i: 1, v: boolean)
                     }, checked: query.getCategory(i: 1))
-                    CheckableButton(lable: "People", unclickFontColor: Color.init(red: 170/255, green: 170/255, blue: 170/255), clickFontColor: Color.white, unclickBackColor: Color.init(red: 94/255, green: 94/255, blue: 94/255), clickBackColor: Color.init(red: 119/255, green: 119/255, blue: 119/255), clickCallBack: {boolean in
+                    CheckableButton(lable: "People", unclickFontColor: Color.init(hex: "AAAAAA"), clickFontColor: Color.white, unclickBackColor: Color.init(hex:"777777"), clickBackColor: Color.init(hex: "5E5E5E"), clickCallBack: {boolean in
                         self.query.setCategory(i: 2, v: boolean)
                     }, checked: query.getCategory(i: 2))
                 }.padding(.horizontal, 5).padding(.vertical, 5).background(Color.black)
@@ -123,13 +123,13 @@ struct PuritySection:View {
         Section(header:FilterPartLabel(label: "Purity")) {
             Group{
                 HStack(alignment: .bottom, spacing: 5) {
-                    CheckableButton(lable: "SFW", unclickFontColor: Color.init(red: 170/255, green: 170/255, blue: 170/255), clickFontColor: Color.init(red: 153/255, green: 255/255, blue: 153/255), unclickBackColor: Color.init(red: 94/255, green: 94/255, blue: 94/255), clickBackColor: Color.init(red: 68/255, green: 119/255, blue: 68/255), clickCallBack: {boolean in
+                    CheckableButton(lable: "SFW", unclickFontColor: Color.init(hex: "AAAAAA"), clickFontColor: Color.init(hex: "99FF99"), unclickBackColor: Color.init(hex: "5E5E5E"), clickBackColor: Color.init(hex: "447744"), clickCallBack: {boolean in
                         self.query.setPurity(i: 0, v: boolean)
                     }, checked: self.query.getPurity(i: 0))
-                    CheckableButton(lable: "Sketchy", unclickFontColor: Color.init(red: 170/255, green: 170/255, blue: 170/255), clickFontColor: Color.init(red: 255/255, green: 255/255, blue: 153/255), unclickBackColor: Color.init(red: 94/255, green: 94/255, blue: 94/255), clickBackColor: Color.init(red: 119/255, green: 119/255, blue: 68/255), clickCallBack: {boolean in
+                    CheckableButton(lable: "Sketchy", unclickFontColor: Color.init(hex: "AAAAAA"), clickFontColor: Color.init(hex: "FFFF99"), unclickBackColor: Color.init(hex: "5E5E5E"), clickBackColor: Color.init(hex: "777744"), clickCallBack: {boolean in
                         self.query.setPurity(i: 1, v: boolean)
                     }, checked: self.query.getPurity(i: 1))
-                    CheckableButton(lable: "NSFW", unclickFontColor: Color.init(red: 170/255, green: 170/255, blue: 170/255), clickFontColor: Color.init(red: 255/255, green: 153/255, blue: 153/255), unclickBackColor: Color.init(red: 94/255, green: 94/255, blue: 94/255), clickBackColor: Color.init(red: 119/255, green: 68/255, blue: 68/255), clickCallBack: {boolean in
+                    CheckableButton(lable: "NSFW", unclickFontColor: Color.init(hex: "AAAAAA"), clickFontColor: Color.init(hex: "FF9999"), unclickBackColor: Color.init(hex: "5E5E5E"), clickBackColor: Color.init(hex: "774444"), clickCallBack: {boolean in
                         self.query.setPurity(i: 2, v: boolean)
                     }, checked: self.query.getPurity(i: 2))
                 }.padding(.horizontal, 5).padding(.vertical, 5).background(Color.black)
@@ -152,7 +152,7 @@ struct ColorSection:View {
                 }
                 //TODO 改成等宽字体
                 HStack(spacing: 5){
-                    ColorText(currentLabel: $currentLabel, query: $query ,label: "660000")
+                    ColorText(currentLabel: $currentLabel, query: $query,label: "660000")
                     ColorText(currentLabel: $currentLabel, query: $query,label: "990000")
                     ColorText(currentLabel: $currentLabel, query: $query,label: "CC0000")
                     ColorText(currentLabel: $currentLabel, query: $query,label: "CC3333")

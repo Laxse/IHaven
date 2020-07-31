@@ -50,22 +50,7 @@ struct ImagePanel: View {
                     }
             }.onTapGesture {
                 // image not well
-                if(self.status != .Success){
-                    return
-                }
-                //
-                // check if download
-                if(self.checkImageExist()){
-                    self.downloadState = .Done
-                }
-                if(self.downloadState == .Nope){
-                    self.downloadState = .Doing
-                    WallHavenImageRepository.shared.downloadImage(url: self.image!.path, procressCallback: { progress in
-                        self.downloadProgress = progress.fractionCompleted
-                    }, callback: {
-                        self.downloadState = .Done
-                    })
-                }
+                self.downloadImage()
             }
             
             //图片上层悬浮信息
@@ -78,7 +63,7 @@ struct ImagePanel: View {
                         ZStack(){
                             HStack{
                                 Spacer()
-                                Text(resolutionFor(image: image)).foregroundColor(Color.init(red: 255/255, green: 251/255, blue: 240/255,opacity: 0.8))
+                                Text(resolutionFor(image: image)).foregroundColor(Color.init(hex: "FFFBF0"))
                                 Spacer()
                             }.frame(maxWidth: .infinity)
                             HStack(spacing:0){
@@ -90,7 +75,7 @@ struct ImagePanel: View {
                                         .font(.system(size: 12))
                                         .padding(.horizontal, 2)
                                         .padding(.top, -3)
-                                        .background(Color.init(red: 219/255, green: 124/255, blue: 15/255))
+                                        .background(Color.init(hex: "DB7C0F"))
                                         .cornerRadius(2)
                                 }
                                 Image("TagBtn").resizable().frame(width: 16, height: 16)
@@ -112,15 +97,7 @@ struct ImagePanel: View {
             if showHoverDetail && downloadState == .Done {
                 //TODO 设置壁纸按钮
                 Button(action: {
-                    do {
-                        let imgurl = self.getImagePath()
-                        let workspace = NSWorkspace.shared
-                        if let screen = NSScreen.main  {
-                            try workspace.setDesktopImageURL(imgurl!, for: screen, options: [:])
-                        }
-                    } catch {
-                        print(error)
-                    }
+                    self.setImageAsWallPaper()
                 }){
                     VStack(alignment: .center) {
                         Text("Set").font(.body).fontWeight(.ultraLight).foregroundColor(Color.purple)
@@ -130,7 +107,7 @@ struct ImagePanel: View {
             }
         }
     }
-
+    
     
 }
 
@@ -163,9 +140,9 @@ extension ImagePanel{
         if(purity.caseInsensitiveCompare("sfw") == .orderedSame){
             return Color.clear
         }else if(purity.caseInsensitiveCompare("sketchy") == .orderedSame){
-            return Color.init(red: 255/255, green: 200/255, blue: 64/255,opacity: 0.8)
+            return Color.init(hex: "FFC840")
         }else if(purity.caseInsensitiveCompare("nsfw") == .orderedSame){
-            return Color.init(red: 255/255, green: 64/255, blue: 48/255,opacity: 0.8)
+            return Color.init(hex: "FF4030")
         }
         return Color.clear
     }
@@ -173,9 +150,41 @@ extension ImagePanel{
 
 //事件函数
 extension ImagePanel{
+    // 下载图片点击事件
+    func downloadImage() -> Void {
+        if(self.status != .Success){
+            return
+        }
+        // check if download
+        if(self.checkImageExist()){
+            self.downloadState = .Done
+        }
+        if(self.downloadState == .Nope){
+            self.downloadState = .Doing
+            WallHavenImageRepository.shared.downloadImage(url: self.image!.path, procressCallback: { progress in
+                self.downloadProgress = progress.fractionCompleted
+            }, callback: {
+                self.downloadState = .Done
+            })
+        }
+    }
+    
+    // 设置壁纸点击事件
+    func setImageAsWallPaper() -> Void {
+        do {
+            let imgurl = self.getDownloadImagePath()
+            let workspace = NSWorkspace.shared
+            if let screen = NSScreen.main  {
+                try workspace.setDesktopImageURL(imgurl!, for: screen, options: [:])
+            }
+        } catch {
+            print(error)
+        }
+    }
+    
     //校验图片是否存在
     func checkImageExist() -> Bool {
-        if let imagePathComponent = getImagePath() {
+        if let imagePathComponent = getDownloadImagePath() {
             let imagePath = imagePathComponent.path
             if FileManager.default.fileExists(atPath: imagePath) {
                 return true
@@ -188,7 +197,7 @@ extension ImagePanel{
     }
     
     //返回图片名
-    func getImagePath() -> URL? {
+    func getDownloadImagePath() -> URL? {
         let downloadPath = NSURL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.downloadsDirectory, .userDomainMask, true)[0] as String)
         let imageUrl = image!.path.absoluteString
         return downloadPath.appendingPathComponent(imageUrl[imageUrl.lastIndex(of: "/")!..<imageUrl.endIndex].description as String)

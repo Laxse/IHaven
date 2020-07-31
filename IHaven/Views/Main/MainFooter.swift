@@ -44,17 +44,9 @@ struct SettingBtn: View {
                     Text("Send Feedback...")
                 }
                 Button(action: {
-                    do {
-                        let imgurl = NSURL.fileURL(withPath: "/Users/liangxiao/Desktop/WallPaper Set/Rooom Set/wallhaven-r2yz2j.jpg")
-                        let workspace = NSWorkspace.shared
-                        if let screen = NSScreen.main  {
-                            try workspace.setDesktopImageURL(imgurl, for: screen, options: [:])
-                        }
-                    } catch {
-                        print(error)
-                    }
+                   // 哭了哭了
                 }) {
-                    Text("Preference")
+                    Text("我好卑微啊～")
                 }
                 Button(action: {
                     NSApplication.shared.terminate(self)
