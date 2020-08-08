@@ -11,11 +11,15 @@ import SwiftUI
 struct LatestContentView: View {
     @State var txt:String = "123"
     var body: some View {
-        VStack {
-           
-
-                TextField("123", text: $txt)
-        }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            ZStack(content: {
+                HStack(alignment: .center) {
+                    Spacer()
+                    Pagination(count: 5000, size: 24, active: 1)
+                        .padding(.trailing, 10)
+                        .frame(maxHeight: .infinity)
+                    
+                }
+            }).frame(maxWidth: .infinity, maxHeight: .infinity) .edgesIgnoringSafeArea(.all)
     }
 }
 

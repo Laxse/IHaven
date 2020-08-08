@@ -14,44 +14,35 @@ struct DesktopContentView: View {
     
     var body: some View {
         NavigationView {
-            VStack {
+            VStack{
                 HStack {
                     TextField("搜索", text: $query)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
-
-                .padding(.horizontal, 20).padding(.vertical, 15)
+                }.padding(.horizontal, 20).padding(.vertical, 15)
                 List() {
                     // 保留空白区域
                     NavigationLink(destination: LatestContentView()) {
                         Text("Latest").font(.system(size: 20)).fontWeight(.regular)
-                        }.frame(height: 42)
+                    }.frame(height: 42)
                     NavigationLink(destination: ToplistContentView()) {
                         Text("Toplist").font(.system(size: 20)).fontWeight(.regular)
                     }.frame(height: 42)
                     NavigationLink(destination: RandomContentView()) {
                         Text("Random").font(.system(size: 20)).fontWeight(.regular)
-                        }.frame(height: 42)
+                    }.frame(height: 42)
                     NavigationLink(destination: UploadContentView()) {
-                        Text("Upload").font(.system(size: 20)).fontWeight(.regular)
+                        Text("Upload").font(.system(size:20)).fontWeight(.regular)
                     }.frame(height: 42)
                     NavigationLink(destination: DesignContentView()) {
                         Text("Design").font(.system(size: 20)).fontWeight(.regular)
                     }.frame(height: 42)
                     NavigationLink(destination: AdvanceContentView()) {
                         Text("Advance").font(.system(size: 20)).fontWeight(.regular)
-                        }.frame(height: 42)
+                    }.frame(height: 42)
                     }
                 .listStyle(SidebarListStyle())
-            }.frame(minWidth: 220, maxWidth: 220)
-            //.accentColor(.gray)
-            //TODO how can i deal with it
-            //1. 'accentColor' has been explicitly marked unavailable here (SwiftUI.View)
-            //Need macOS 11+
-            //Desktop maybe delay
-            }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        
+            }.frame(minWidth: 220, maxWidth: 220, maxHeight: .infinity)
+        }.navigationViewStyle(DoubleColumnNavigationViewStyle())
     }
 }
 

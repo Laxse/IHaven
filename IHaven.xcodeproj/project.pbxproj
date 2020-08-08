@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		CE357BF024D4592900D55B3E /* DownloadState.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE357BEF24D4592900D55B3E /* DownloadState.swift */; };
+		CE7EC86224DB07A4009CE7D7 /* Pagination.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7EC86124DB07A4009CE7D7 /* Pagination.swift */; };
 		CE8176D32493CD50002565B0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8176D22493CD50002565B0 /* AppDelegate.swift */; };
 		CE8176D52493CD50002565B0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8176D42493CD50002565B0 /* ContentView.swift */; };
 		CE8176D72493CD51002565B0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE8176D62493CD51002565B0 /* Assets.xcassets */; };
@@ -51,6 +52,7 @@
 
 /* Begin PBXFileReference section */
 		CE357BEF24D4592900D55B3E /* DownloadState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadState.swift; sourceTree = "<group>"; };
+		CE7EC86124DB07A4009CE7D7 /* Pagination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pagination.swift; sourceTree = "<group>"; };
 		CE8176CF2493CD50002565B0 /* IHaven.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IHaven.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE8176D22493CD50002565B0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		CE8176D42493CD50002565B0 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -113,6 +115,13 @@
 				CE85F26424AB8C57001BEC83 /* Color.swift */,
 			);
 			path = Extend;
+			sourceTree = "<group>";
+		};
+		CE0ABAD824DEA90000D110AE /* Pagination */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Pagination;
 			sourceTree = "<group>";
 		};
 		CE8176C62493CD50002565B0 = {
@@ -222,10 +231,12 @@
 		CEDCABF12498E3D1003609C1 /* Panel */ = {
 			isa = PBXGroup;
 			children = (
+				CE0ABAD824DEA90000D110AE /* Pagination */,
 				CEDCABF22498E3F2003609C1 /* ImagePanel.swift */,
 				CEDCAC1B249F1E2D003609C1 /* ImageLine.swift */,
 				CEFE28CC24A2486800BBFBAC /* ImageRepository.swift */,
 				CEFE28D024A4B9EC00BBFBAC /* LoadingPanel.swift */,
+				CE7EC86124DB07A4009CE7D7 /* Pagination.swift */,
 			);
 			path = Panel;
 			sourceTree = "<group>";
@@ -418,6 +429,7 @@
 				CEDCAC10249D114A003609C1 /* WallHavenMeta.swift in Sources */,
 				CEFE28D124A4B9EC00BBFBAC /* LoadingPanel.swift in Sources */,
 				CEF82BDA2494E3DC00610250 /* FilterContentView.swift in Sources */,
+				CE7EC86224DB07A4009CE7D7 /* Pagination.swift in Sources */,
 				CEFE28D324A8F31C00BBFBAC /* CheckableButton.swift in Sources */,
 				CEAA57BC24C86CD200FA3E00 /* AdvanceContentView.swift in Sources */,
 				CEDCAC11249D114A003609C1 /* WallHavenImage.swift in Sources */,

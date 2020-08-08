@@ -22,7 +22,11 @@ class DesktopWindowController: NSWindowController{
         let iHavenToolbar = NSToolbar()
         iHavenToolbar.showsBaselineSeparator = false
         iHavenDesktop.toolbar = iHavenToolbar
-        iHavenDesktop.contentView = NSHostingView(rootView: DesktopContentView().environmentObject(AppDelegate.shared!.iHavenContext).edgesIgnoringSafeArea(.all).frame(maxWidth: .infinity, maxHeight: .infinity))
+        iHavenDesktop.contentView = NSHostingView(rootView: DesktopContentView()
+            .environmentObject(AppDelegate.shared!.iHavenContext)
+            .edgesIgnoringSafeArea(.all)
+            .frame(minWidth: 1000, minHeight: 630)
+            .frame(maxWidth: .infinity,maxHeight:.infinity))
         
 
 //      窗口关闭通知，隐藏Dock的图标，程序转变为Anent //暂不隐藏
