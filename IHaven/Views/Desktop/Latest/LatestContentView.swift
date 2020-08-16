@@ -9,7 +9,6 @@
 import SwiftUI
 
 struct LatestContentView: View {
-    @State var txt:String = "123"
     var body: some View {
             ZStack(content: {
                 HStack(alignment: .center) {
@@ -17,7 +16,6 @@ struct LatestContentView: View {
                     Pagination(count: 5000, size: 24, active: 1)
                         .padding(.trailing, 10)
                         .frame(maxHeight: .infinity)
-                    
                 }
             }).frame(maxWidth: .infinity, maxHeight: .infinity) .edgesIgnoringSafeArea(.all)
     }

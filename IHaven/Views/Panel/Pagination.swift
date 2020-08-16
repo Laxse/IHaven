@@ -20,12 +20,13 @@ struct Pagination: View {
                 .onTapGesture {
                     self.move(distance: -1)
             }
-            Text("#"+String(active)).font(Font.system(size: 28))
+                Text("#"+String(active))
                 .font(.title)
                 .fontWeight(.ultraLight)
                 .foregroundColor(Color.purple)
                 .multilineTextAlignment(.trailing)
-                .padding(.all)
+                    .padding(.horizontal)
+            
             Spacer()
             Text("Next")
                 .font(Font.system(size: 18))
@@ -52,7 +53,10 @@ extension Pagination {
         }
         
         if(to > 0 && to < Int(ceil(Double(count)/Double(size)))){
-            self.active = to
+//            withAnimation(.easeInOut) {
+                self.active = to
+//            }
+            
         }
     }
     

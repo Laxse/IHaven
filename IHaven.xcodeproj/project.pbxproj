@@ -117,13 +117,6 @@
 			path = Extend;
 			sourceTree = "<group>";
 		};
-		CE0ABAD824DEA90000D110AE /* Pagination */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Pagination;
-			sourceTree = "<group>";
-		};
 		CE8176C62493CD50002565B0 = {
 			isa = PBXGroup;
 			children = (
@@ -231,7 +224,6 @@
 		CEDCABF12498E3D1003609C1 /* Panel */ = {
 			isa = PBXGroup;
 			children = (
-				CE0ABAD824DEA90000D110AE /* Pagination */,
 				CEDCABF22498E3F2003609C1 /* ImagePanel.swift */,
 				CEDCAC1B249F1E2D003609C1 /* ImageLine.swift */,
 				CEFE28CC24A2486800BBFBAC /* ImageRepository.swift */,
