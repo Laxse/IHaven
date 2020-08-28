@@ -13,32 +13,30 @@ struct Pagination: View {
     @State var size: Int
     @State var active: Int
     var body: some View {
-        VStack(alignment: .trailing) {
-            Text("Last").font(Font.system(size: 18))
-                .fontWeight(.ultraLight)
-                .padding()
-                .onTapGesture {
-                    self.move(distance: -1)
+            VStack(alignment: .trailing) {
+                Text("Last").font(Font.system(size: 18))
+                    .fontWeight(.ultraLight)
+                    .padding()
+                    .onTapGesture {
+                        self.move(distance: -1)
+                }
+                    Text("#"+String(active))
+                    .font(.title)
+                    .fontWeight(.ultraLight)
+                    .foregroundColor(Color.purple)
+                    .multilineTextAlignment(.trailing)
+                        .padding(.horizontal)
+                
+                Spacer()
+                Text("Next")
+                    .font(Font.system(size: 18))
+                    .fontWeight(.ultraLight)
+                    .padding()
+                    .onTapGesture {
+                        self.move(distance: 1)
+                }
+                
             }
-                Text("#"+String(active))
-                .font(.title)
-                .fontWeight(.ultraLight)
-                .foregroundColor(Color.purple)
-                .multilineTextAlignment(.trailing)
-                    .padding(.horizontal)
-            
-            Spacer()
-            Text("Next")
-                .font(Font.system(size: 18))
-                .fontWeight(.ultraLight)
-                .padding()
-                .onTapGesture {
-                    self.move(distance: 1)
-            }
-            
-        }
-        
-        
     }
 }
 extension Pagination {

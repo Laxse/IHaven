@@ -7,8 +7,19 @@
 //
 
 import SwiftUI
+import SDWebImageSwiftUI
 
 struct LatestContentView: View {
+    @ObservedObject var imageRepository: DImageRepository = DImageRepository()
+    
+    init() {
+        imageRepository.load(succCallBack: {
+            
+        }) {
+            
+        }
+    }
+    
     var body: some View {
             ZStack(content: {
                 HStack(alignment: .center) {
@@ -17,6 +28,27 @@ struct LatestContentView: View {
                         .padding(.trailing, 10)
                         .frame(maxHeight: .infinity)
                 }
+                ScrollView{
+                    VStack(alignment: .center, spacing: 10) {
+                                        ForEach(imageRepository.images) { image in
+                                           WebImage(url: image.thumbs.small)
+                                             .onFailure(perform: { (Error) in
+                                                
+                                             })
+                                             .onSuccess(perform: { _ in
+                                              
+                                             })
+                                             .resizable()
+                                             .frame(width:180,height: 120)
+                                             .scaledToFill()
+                                             .clipped()
+                                             .cornerRadius(2.0)
+                                       }
+                                       
+                                       Spacer()
+                                   }.background(Color.yellow)
+                }
+               
             }).frame(maxWidth: .infinity, maxHeight: .infinity) .edgesIgnoringSafeArea(.all)
     }
 }

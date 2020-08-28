@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CE3277DC24EC10D800CCA6DC /* DImageRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3277DB24EC10D800CCA6DC /* DImageRepository.swift */; };
 		CE357BF024D4592900D55B3E /* DownloadState.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE357BEF24D4592900D55B3E /* DownloadState.swift */; };
 		CE7EC86224DB07A4009CE7D7 /* Pagination.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7EC86124DB07A4009CE7D7 /* Pagination.swift */; };
 		CE8176D32493CD50002565B0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8176D22493CD50002565B0 /* AppDelegate.swift */; };
@@ -51,6 +52,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		CE3277DB24EC10D800CCA6DC /* DImageRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DImageRepository.swift; sourceTree = "<group>"; };
 		CE357BEF24D4592900D55B3E /* DownloadState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadState.swift; sourceTree = "<group>"; };
 		CE7EC86124DB07A4009CE7D7 /* Pagination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pagination.swift; sourceTree = "<group>"; };
 		CE8176CF2493CD50002565B0 /* IHaven.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IHaven.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -115,6 +117,14 @@
 				CE85F26424AB8C57001BEC83 /* Color.swift */,
 			);
 			path = Extend;
+			sourceTree = "<group>";
+		};
+		CE3277DA24EC108E00CCA6DC /* Widget */ = {
+			isa = PBXGroup;
+			children = (
+				CE3277DB24EC10D800CCA6DC /* DImageRepository.swift */,
+			);
+			path = Widget;
 			sourceTree = "<group>";
 		};
 		CE8176C62493CD50002565B0 = {
@@ -312,6 +322,7 @@
 		CEF82BE62495314200610250 /* Desktop */ = {
 			isa = PBXGroup;
 			children = (
+				CE3277DA24EC108E00CCA6DC /* Widget */,
 				CEAA57AB24C86B0F00FA3E00 /* Latest */,
 				CEAA57AC24C86B2B00FA3E00 /* Toplist */,
 				CEAA57AD24C86C1400FA3E00 /* Random */,
@@ -424,6 +435,7 @@
 				CE7EC86224DB07A4009CE7D7 /* Pagination.swift in Sources */,
 				CEFE28D324A8F31C00BBFBAC /* CheckableButton.swift in Sources */,
 				CEAA57BC24C86CD200FA3E00 /* AdvanceContentView.swift in Sources */,
+				CE3277DC24EC10D800CCA6DC /* DImageRepository.swift in Sources */,
 				CEDCAC11249D114A003609C1 /* WallHavenImage.swift in Sources */,
 				CEF82BE32495136100610250 /* ViewState.swift in Sources */,
 				CEF82BE82495316400610250 /* QueryContentView.swift in Sources */,
