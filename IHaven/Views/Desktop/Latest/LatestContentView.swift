@@ -24,10 +24,16 @@ struct LatestContentView: View {
             ZStack(content: {
                 HStack(alignment: .center) {
                     Spacer()
-                    Pagination(count: 5000, size: 24, active: 1)
+                    Pagination(count: 5000, size: 24, active: 1,changeFunc: { page in
+                        self.imageRepository.jump(to: page, succCallBack: {
+                            // success
+                        }) {
+                            // error
+                        }
+                        })
                         .padding(.trailing, 10)
                         .frame(maxHeight: .infinity)
-                }
+                }.edgesIgnoringSafeArea(.all)
                 ScrollView{
                     VStack(alignment: .center, spacing: 10) {
                                         ForEach(imageRepository.images) { image in
@@ -48,8 +54,7 @@ struct LatestContentView: View {
                                        Spacer()
                                    }.background(Color.yellow)
                 }
-               
-            }).frame(maxWidth: .infinity, maxHeight: .infinity) .edgesIgnoringSafeArea(.all)
+            }).frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

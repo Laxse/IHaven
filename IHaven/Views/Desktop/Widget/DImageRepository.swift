@@ -10,15 +10,12 @@ import Foundation
 class DImageRepository: ObservableObject {
     @Published var images:[WallHavenImage] = []
     @Published var query:QueryParameter = QueryParameter()
-
+    
     func clean() {
         self.images.removeAll()
     }
     func reset() -> Void {
         query.page = 1;
-        load()
-    }
-    private func load() {
         self.load(succCallBack: {
             //成功
         }) {
@@ -26,15 +23,20 @@ class DImageRepository: ObservableObject {
         }
     }
     
+    func jump(to: Int, succCallBack: @escaping () -> Swift.Void,errorCallBack:  @escaping () -> Swift.Void) {
+        query.page = to
+        self.load(succCallBack: succCallBack, errorCallBack: errorCallBack)
+    }
     func load(succCallBack: @escaping () -> Swift.Void,errorCallBack:  @escaping () -> Swift.Void) {
         WallHavenImageRepository.shared.query(parameters: query.toDictionary()) { result in
             switch result{
-            case let .success(data):
-                self.images.append(contentsOf: data.data)
-                succCallBack()
-            case let .failure(error):
-                print(error.localizedDescription)
-                errorCallBack()
+                case let .success(data):
+                    self.images.removeAll()
+                    self.images.append(contentsOf: data.data)
+                    succCallBack()
+                case let .failure(error):
+                    print(error.localizedDescription)
+                    errorCallBack()
             }
         }
     }

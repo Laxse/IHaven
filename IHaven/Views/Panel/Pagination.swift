@@ -12,6 +12,8 @@ struct Pagination: View {
     @State var count:Int
     @State var size: Int
     @State var active: Int
+    var changeFunc:(Int) -> Swift.Void
+    
     var body: some View {
             VStack(alignment: .trailing) {
                 Text("Last").font(Font.system(size: 18))
@@ -53,6 +55,7 @@ extension Pagination {
         if(to > 0 && to < Int(ceil(Double(count)/Double(size)))){
 //            withAnimation(.easeInOut) {
                 self.active = to
+            changeFunc(self.active)
 //            }
             
         }
@@ -62,6 +65,8 @@ extension Pagination {
 
 struct Pagination_Previews: PreviewProvider {
     static var previews: some View {
-        Pagination(count: 500, size: 25, active: 5)
+        Pagination(count: 500, size: 25, active: 5, changeFunc: { page in 
+        
+            })
     }
 }
