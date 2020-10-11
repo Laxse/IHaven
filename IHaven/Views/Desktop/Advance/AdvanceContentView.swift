@@ -10,8 +10,19 @@ import SwiftUI
 
 struct AdvanceContentView: View {
     var body: some View {
-        VStack {
-            Text("Hello, World! AdvanceContentView")
+        ZStack {
+//            VStack {
+//                HStack(alignment: .center) {
+//                    Rectangle().frame(width: 300, height: 300).background(Color.green)
+//                    Spacer()
+//                }
+//                Spacer()
+//                HStack {
+//                    Spacer()
+//                    Rectangle().frame(width: 300, height: 300).background(Color.yellow)
+//                }
+//            }
+              Rectangle().frame(width: 300, height: 300).background(Color.green)
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

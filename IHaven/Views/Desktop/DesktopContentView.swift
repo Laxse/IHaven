@@ -21,6 +21,7 @@ struct DesktopContentView: View {
                 }.padding(.horizontal, 20).padding(.vertical, 15)
                 List() {
                     // 保留空白区域
+                    
                     NavigationLink(destination: LatestContentView()) {
                         Text("Latest").font(.system(size: 20)).fontWeight(.regular)
                     }.frame(height: 42)
