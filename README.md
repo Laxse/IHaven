@@ -38,12 +38,12 @@
 # Screenshots
  - v1
 <p align="center">
-<img src="screenshots/v1.png" alt="ADPlayer" width="600">
+<img src="screenshots/v1.png" alt="IHaven" width="600">
 </p>
 
  - v2
 <p align="center">
-<img src="screenshots/v2.png" alt="ADPlayer" width="600">
+<img src="screenshots/v2.png" alt="IHaven" width="600">
 </p>
 
 # Future
