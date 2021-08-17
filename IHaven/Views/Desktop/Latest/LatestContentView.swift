@@ -26,7 +26,7 @@ struct LatestContentView: View {
             ScrollView{
                 GeometryReader { geometry in
                               self.generateContent(in: geometry)
-                          }
+                }.frame(width: 600, height: 300, alignment: .center)
             }
           
             HStack(alignment: .center) {

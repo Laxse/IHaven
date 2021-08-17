@@ -44,7 +44,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             button.image = NSImage(named: "MenuBarIcon")
             button.action = #selector(togglePopover(_:))
         }
-        NSApp.activate(ignoringOtherApps: true)
+//        NSApp.activate(ignoringOtherApps: true)
     }
     
     
