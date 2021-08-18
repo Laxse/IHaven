@@ -13,7 +13,7 @@ class DesktopWindowController: NSWindowController{
         
     init() {
         
-        let iHavenDesktop = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1000, height: 630), styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
+        let iHavenDesktop = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1000, height: 640), styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
         iHavenDesktop.center()
         iHavenDesktop.isOpaque = false
         iHavenDesktop.titlebarAppearsTransparent = true
@@ -25,13 +25,13 @@ class DesktopWindowController: NSWindowController{
         iHavenDesktop.contentView = NSHostingView(rootView: DesktopContentView()
             .environmentObject(AppDelegate.shared!.iHavenContext)
             .edgesIgnoringSafeArea(.all)
-            .frame(minWidth: 1000, minHeight: 630)
+            .frame(minWidth: 1000, minHeight: 640)
             .frame(maxWidth: .infinity,maxHeight:.infinity))
         
 
 //      窗口关闭通知，隐藏Dock的图标，程序转变为Anent //暂不隐藏
         NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: iHavenDesktop, queue: OperationQueue.main, using: { note in
-//            NSApp.setActivationPolicy(.accessory)
+            NSApp.setActivationPolicy(.accessory)
         })
         super.init(window: iHavenDesktop)
     }

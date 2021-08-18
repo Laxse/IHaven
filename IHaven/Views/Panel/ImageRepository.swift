@@ -33,7 +33,8 @@ class ImageRepository: ObservableObject {
         if(self.loading){
             return
         }
-        if(true){
+        // Mark TestPoint
+        if(false){
             self.loading = true
             do {
                 if let bundlePath = Bundle.main.path(forResource: "data",ofType: "json"),
