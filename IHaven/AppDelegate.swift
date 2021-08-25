@@ -36,15 +36,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         iHavenPopover.contentSize = NSSize(width: popoverWidth, height: popoverHeight)
         iHavenPopover.behavior = .transient
         iHavenPopover.contentViewController = NSHostingController(rootView: ContentView().environmentObject(iHavenContext))
-        
+
         // Create the status item
         self.iHavenBarItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
-        
+
         if let button = self.iHavenBarItem.button {
             button.image = NSImage(named: "MenuBarIcon")
             button.action = #selector(togglePopover(_:))
         }
-//        NSApp.activate(ignoringOtherApps: true)
+        // MARK 
+//        desktopWindowController.showWindow(nil)
+        
     }
     
     

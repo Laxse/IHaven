@@ -23,12 +23,12 @@ struct LatestContentView: View {
     var body: some View {
         ZStack(content: {
             
-            ScrollView{
-                GeometryReader { geometry in
-                              self.generateContent(in: geometry)
-                }.frame(width: 600, height: 300, alignment: .center)
-            }
-          
+//            ScrollView{
+//                GeometryReader { geometry in
+//                              self.generateContent(in: geometry)
+//                }.frame(width: 900, height: 100, alignment: .center)
+//            }
+            generateContent()
             HStack(alignment: .center) {
                 Spacer()
                 Pagination(count: 5000, size: 24, active: self.imageRepository.query.page,changeFunc: { page in
@@ -78,6 +78,22 @@ struct LatestContentView: View {
         }
     }
     
+    private func generateContent( ) -> some View {
+        let layout = [
+            GridItem(.adaptive(minimum:240), spacing: 10)
+        ]
+
+        return
+            ScrollView{
+                LazyVGrid(columns: layout, spacing: 10){
+                    ForEach(self.imageRepository.images, id: \.self) { platform in
+                        self.item(for: platform)
+                            .padding([.horizontal, .vertical], 10)
+                    }
+                }
+            }
+    }
+
     func item(for image: WallHavenImage) -> some View {
         WebImage(url: image.thumbs.small)
             .onFailure(perform: { (Error) in
@@ -99,3 +115,5 @@ struct LatestContentView_Previews: PreviewProvider {
         LatestContentView()
     }
 }
+
+

@@ -15,7 +15,7 @@ struct DesktopContentView: View {
     var body: some View {
         NavigationView {
             SideBar().frame(minWidth: 200, maxWidth: 200)
-            DesktopMainView()
+            LatestContentView()
         }
     }
 }
