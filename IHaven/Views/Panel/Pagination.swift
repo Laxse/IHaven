@@ -27,7 +27,7 @@ struct Pagination: View {
                     .fontWeight(.ultraLight)
                     .foregroundColor(Color.purple)
                     .multilineTextAlignment(.trailing)
-                        .padding(.horizontal)
+                        .padding()
                 
                 Spacer()
                 Text("Next")
