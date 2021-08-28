@@ -28,8 +28,7 @@ class DesktopWindowController: NSWindowController{
             .frame(minWidth: 1000, minHeight: 640)
             .frame(maxWidth: .infinity,maxHeight:.infinity))
         
-
-//      窗口关闭通知，隐藏Dock的图标，程序转变为Anent //暂不隐藏
+        //      窗口关闭通知，隐藏Dock的图标，程序转变为Anent //暂不隐藏
         NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: iHavenDesktop, queue: OperationQueue.main, using: { note in
             NSApp.setActivationPolicy(.accessory)
         })
