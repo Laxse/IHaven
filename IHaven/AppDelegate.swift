@@ -61,7 +61,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     func showDesktopWindow() {
         desktopWindowController.showWindow(nil)
-        NSApplication.shared.activate(ignoringOtherApps: true)
+        // this line may set Toolbar cannot click
+//        NSApplication.shared.activate(ignoringOtherApps: true)
+        
         //default mode is Agent（info.plist）
         //when show Desktop window Dynactic change to show icon on dock
         NSApp.setActivationPolicy(.regular)
