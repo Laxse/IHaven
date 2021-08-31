@@ -19,8 +19,8 @@ struct MainContentView: View {
             List() {
                 ForEach(imageRepository.images) { imageLine in
                     HStack(spacing: 10){
-                        ImagePanel(image: imageLine.left).frame(maxWidth: .infinity)
-                        ImagePanel(image: imageLine.right).frame(maxWidth: .infinity)
+                        ImagePanel(image: imageLine.left,imageWidth: 175).frame(maxWidth: .infinity)
+                        ImagePanel(image: imageLine.right,imageWidth: 175).frame(maxWidth: .infinity)
                     }.onAppear {
                         self.imageRepository.lastImageLineAppear(currentItem: imageLine)
                     }
