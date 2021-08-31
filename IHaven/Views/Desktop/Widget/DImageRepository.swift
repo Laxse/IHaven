@@ -11,9 +11,18 @@ class DImageRepository: ObservableObject {
     @Published var images:[WallHavenImage] = []
     @Published var query:QueryParameter = QueryParameter()
     
+    init() {
+    }
+    init(query: QueryParameter) {
+        self.query = query;
+    }
+    /**
+     clear image array
+     */
     func clean() {
         self.images.removeAll()
     }
+    
     func reset() -> Void {
         query.page = 1;
         self.load(succCallBack: {
@@ -27,6 +36,7 @@ class DImageRepository: ObservableObject {
         query.page = to
         self.load(succCallBack: succCallBack, errorCallBack: errorCallBack)
     }
+    
     func load(succCallBack: @escaping () -> Swift.Void,errorCallBack:  @escaping () -> Swift.Void) {
         WallHavenImageRepository.shared.query(parameters: query.toDictionary()) { result in
             switch result{

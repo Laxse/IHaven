@@ -29,18 +29,17 @@ struct DesktopContentView: View {
                 NavigationLink(destination: DesignContentView()) {
                     Label("Design", systemImage:"wand.and.stars")
                 }.frame(height: 28)
-//                Spacer()
-//                Divider()
+                Spacer()
+                Divider()
                 NavigationLink(destination: AdvanceContentView()) {
                     Label("Advance", systemImage:"hammer")
-                }
-                .frame(height: 28)
+                }.frame(height: 28)
                
-            }.listStyle(SidebarListStyle())
+            }
+            .listStyle(SidebarListStyle())
+            .frame(minWidth:200, maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea(edges: .all)
-            .frame(minWidth: 200, maxWidth: 200,  alignment: .leading)
-            LatestContentView()
-        }
+        }.frame(maxWidth: .infinity, maxHeight: .infinity)
         
     }
 }

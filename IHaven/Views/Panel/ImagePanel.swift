@@ -20,6 +20,11 @@ struct ImagePanel: View {
     @State var downloadState: DownloadState = .Nope
     // 下载进度
     @State var downloadProgress: Double = 0.0
+    
+    @State var imageWidth: CGFloat = 180
+    
+    @State var imageHeight: CGFloat = 120
+    
     var body: some View {
         ZStack(alignment: .center){
             WebImage(url: image?.thumbs.small)
@@ -39,7 +44,7 @@ struct ImagePanel: View {
                 })
                 .placeholder(placeholderFor(status:status))
                 .resizable()
-                .frame(width:180,height: 120)
+                .frame(width: imageWidth,height: imageHeight)
                 .scaledToFill()
                 .border(colorFor(purity: image?.purity ?? "sfw"),width: 2.0)
                 .clipped()
@@ -87,7 +92,7 @@ struct ImagePanel: View {
                     
                 }
                 .border(colorFor(purity: image?.purity ?? "sfw"),width: 2.0)
-                .frame(width:180,height: 120)
+                .frame(width: imageWidth,height: imageHeight)
             }
             
             if downloadState == .Doing {

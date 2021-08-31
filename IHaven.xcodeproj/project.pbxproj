@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CE1FB589255FDAFF00BAD801 /* DesktopMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1FB588255FDAFF00BAD801 /* DesktopMainView.swift */; };
 		CE3277DC24EC10D800CCA6DC /* DImageRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3277DB24EC10D800CCA6DC /* DImageRepository.swift */; };
 		CE357BF024D4592900D55B3E /* DownloadState.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE357BEF24D4592900D55B3E /* DownloadState.swift */; };
 		CE7EC86224DB07A4009CE7D7 /* Pagination.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7EC86124DB07A4009CE7D7 /* Pagination.swift */; };
@@ -53,7 +52,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		CE1FB588255FDAFF00BAD801 /* DesktopMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopMainView.swift; sourceTree = "<group>"; };
 		CE3277DB24EC10D800CCA6DC /* DImageRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DImageRepository.swift; sourceTree = "<group>"; };
 		CE357BEF24D4592900D55B3E /* DownloadState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadState.swift; sourceTree = "<group>"; };
 		CE7EC86124DB07A4009CE7D7 /* Pagination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pagination.swift; sourceTree = "<group>"; };
@@ -333,7 +331,6 @@
 				CEAA57B024C86C2E00FA3E00 /* Advance */,
 				CEF82BE92495317300610250 /* DesktopContentView.swift */,
 				CEAA57A524C1D65100FA3E00 /* DesktopWindowController.swift */,
-				CE1FB588255FDAFF00BAD801 /* DesktopMainView.swift */,
 			);
 			path = Desktop;
 			sourceTree = "<group>";
@@ -421,7 +418,6 @@
 				CE8176D52493CD50002565B0 /* ContentView.swift in Sources */,
 				CEDCABF32498E3F2003609C1 /* ImagePanel.swift in Sources */,
 				CEAA57BA24C86CBF00FA3E00 /* DesignContentView.swift in Sources */,
-				CE1FB589255FDAFF00BAD801 /* DesktopMainView.swift in Sources */,
 				CEDCAC0F249D114A003609C1 /* QueryResponse.swift in Sources */,
 				CEF82BEA2495317300610250 /* DesktopContentView.swift in Sources */,
 				CEDCAC13249D114A003609C1 /* WallHavenImageRepository.swift in Sources */,

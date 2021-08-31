@@ -14,21 +14,19 @@ struct LatestContentView: View {
     
     init() {
         imageRepository.load(succCallBack: {
-            
+            print("Latest loaded")
         }) {
             
         }
     }
     var body: some View {
         ZStack(content: {
-            
             ScrollView{
                 LazyVGrid(columns: [
                     GridItem(.adaptive(minimum:240,maximum:240), spacing: 15)
                 ], spacing: 15){
                     ForEach(self.imageRepository.images, id: \.self) { platform in
-                        self.item(for: platform)
-                            
+                        ImagePanel(image: platform,imageWidth: 240,imageHeight: 160);
                     }
                 }
                 .padding(.all, 20)
@@ -47,29 +45,8 @@ struct LatestContentView: View {
                     .frame(maxHeight: .infinity)
             }.edgesIgnoringSafeArea(.all)
         }).frame(maxWidth: .infinity, maxHeight: .infinity)
+        
     }
     
-  
-    func item(for image: WallHavenImage) -> some View {
-        WebImage(url: image.thumbs.small)
-            .onFailure(perform: { (Error) in
-                
-            })
-            .onSuccess(perform: { _ in
-                
-            })
-            .resizable()
-            .frame(width:240,height: 160)
-            .scaledToFill()
-            .clipped()
-            .cornerRadius(2.0)
-    }
 }
-
-struct LatestContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        LatestContentView()
-    }
-}
-
 

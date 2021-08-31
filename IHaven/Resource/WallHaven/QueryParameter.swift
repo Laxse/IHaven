@@ -54,6 +54,12 @@ class QueryParameter {
     
     let apikey = "vp1ZWXq92VMfjgBIGejfUgHQCXnw88HF"
 
+    init() {
+        
+    }
+    init(sorting:String) {
+        self.sorting = sorting
+    }
     func _isUnset(param:String) -> Bool {
         if(param == QueryParameter.UNSET || param == ""){
             return true
