@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		CE3277DC24EC10D800CCA6DC /* DImageRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3277DB24EC10D800CCA6DC /* DImageRepository.swift */; };
 		CE357BF024D4592900D55B3E /* DownloadState.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE357BEF24D4592900D55B3E /* DownloadState.swift */; };
+		CE63696926DFE737004B5F9E /* QueryParameterContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE63696826DFE737004B5F9E /* QueryParameterContentView.swift */; };
 		CE7EC86224DB07A4009CE7D7 /* Pagination.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7EC86124DB07A4009CE7D7 /* Pagination.swift */; };
 		CE8176D32493CD50002565B0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8176D22493CD50002565B0 /* AppDelegate.swift */; };
 		CE8176D52493CD50002565B0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8176D42493CD50002565B0 /* ContentView.swift */; };
@@ -54,6 +55,7 @@
 /* Begin PBXFileReference section */
 		CE3277DB24EC10D800CCA6DC /* DImageRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DImageRepository.swift; sourceTree = "<group>"; };
 		CE357BEF24D4592900D55B3E /* DownloadState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadState.swift; sourceTree = "<group>"; };
+		CE63696826DFE737004B5F9E /* QueryParameterContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryParameterContentView.swift; sourceTree = "<group>"; };
 		CE7EC86124DB07A4009CE7D7 /* Pagination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pagination.swift; sourceTree = "<group>"; };
 		CE8176CF2493CD50002565B0 /* IHaven.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IHaven.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE8176D22493CD50002565B0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -123,6 +125,7 @@
 			isa = PBXGroup;
 			children = (
 				CE3277DB24EC10D800CCA6DC /* DImageRepository.swift */,
+				CE63696826DFE737004B5F9E /* QueryParameterContentView.swift */,
 			);
 			path = Widget;
 			sourceTree = "<group>";
@@ -427,6 +430,7 @@
 				CEDCAC1A249F016A003609C1 /* RandomAccessCollection.swift in Sources */,
 				CEF82BD82494CA4900610250 /* MainFooter.swift in Sources */,
 				CE8176D32493CD50002565B0 /* AppDelegate.swift in Sources */,
+				CE63696926DFE737004B5F9E /* QueryParameterContentView.swift in Sources */,
 				CEF82BDE2494FD7800610250 /* FilterHeader.swift in Sources */,
 				CE357BF024D4592900D55B3E /* DownloadState.swift in Sources */,
 				CEDCAC10249D114A003609C1 /* WallHavenMeta.swift in Sources */,

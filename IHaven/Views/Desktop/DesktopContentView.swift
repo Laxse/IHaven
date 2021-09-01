@@ -29,8 +29,8 @@ struct DesktopContentView: View {
                 NavigationLink(destination: DesignContentView()) {
                     Label("Design", systemImage:"wand.and.stars")
                 }.frame(height: 28)
-                Spacer()
-                Divider()
+//                Spacer()
+//                Divider()
                 NavigationLink(destination: AdvanceContentView()) {
                     Label("Advance", systemImage:"hammer")
                 }.frame(height: 28)
