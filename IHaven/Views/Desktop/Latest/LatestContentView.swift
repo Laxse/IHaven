@@ -10,8 +10,10 @@ import SwiftUI
 import SDWebImageSwiftUI
 
 struct LatestContentView: View {
+    var repo = DImageRepository()
+  
     var body: some View {
-       QueryParameterContentView(repo: DImageRepository())
+       QueryParameterContentView(repo:repo)
     }
     
 }

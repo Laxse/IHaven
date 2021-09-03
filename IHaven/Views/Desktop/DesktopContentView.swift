@@ -10,15 +10,14 @@
 import SwiftUI
 
 struct DesktopContentView: View {
-    
     var body: some View {
         NavigationView {
-            List{
+            List(){
                 NavigationLink(destination: LatestContentView() ) {
                     Label("Latest", systemImage:"timer")
                 }.frame(height: 28)
                 NavigationLink(destination: ToplistContentView()) {
-                   Label("Toplist", systemImage:"rosette")
+                    Label("Toplist", systemImage:"rosette")
                 }.frame(height: 28)
                 NavigationLink(destination: RandomContentView()) {
                     Label("Random", systemImage:"arrow.branch")
@@ -29,8 +28,6 @@ struct DesktopContentView: View {
                 NavigationLink(destination: DesignContentView()) {
                     Label("Design", systemImage:"wand.and.stars")
                 }.frame(height: 28)
-//                Spacer()
-//                Divider()
                 NavigationLink(destination: AdvanceContentView()) {
                     Label("Advance", systemImage:"hammer")
                 }.frame(height: 28)
@@ -39,6 +36,9 @@ struct DesktopContentView: View {
             .listStyle(SidebarListStyle())
             .frame(minWidth:200, maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea(edges: .all)
+            .onAppear(perform: {
+                
+            })
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
         
     }

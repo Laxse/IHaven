@@ -10,15 +10,18 @@ import Foundation
 class DImageRepository: ObservableObject {
     @Published var images:[WallHavenImage] = []
     @Published var query:QueryParameter = QueryParameter()
+    var loaded = false
     
     init() {
     }
+    
     init(query: QueryParameter) {
         self.query = query;
     }
-    /**
-     clear image array
-     */
+    
+    func isLoaded() -> Bool {
+        return self.loaded;
+    }
     func clean() {
         self.images.removeAll()
     }
@@ -43,6 +46,7 @@ class DImageRepository: ObservableObject {
                 case let .success(data):
                     self.images.removeAll()
                     self.images.append(contentsOf: data.data)
+                    self.loaded = true
                     succCallBack()
                 case let .failure(error):
                     print(error.localizedDescription)

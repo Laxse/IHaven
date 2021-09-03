@@ -11,12 +11,15 @@ struct QueryParameterContentView: View {
     @ObservedObject var imageRepository: DImageRepository
     init(repo:DImageRepository) {
         self.imageRepository = repo
-        imageRepository.load(succCallBack: {
-            print("Random loaded")
-        }) {
-            
+        if(!repo.isLoaded()){
+            repo.load {
+                print("loaded")
+            } errorCallBack: {
+                
+            }
         }
     }
+    
     var body: some View {
         ZStack(content: {
             ScrollView{

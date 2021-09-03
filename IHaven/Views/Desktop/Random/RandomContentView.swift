@@ -9,7 +9,8 @@
 import SwiftUI
 
 struct RandomContentView: View {
+    var repo = DImageRepository(query: QueryParameter(sorting: "random"))
     var body: some View {
-        QueryParameterContentView(repo: DImageRepository(query: QueryParameter(sorting: "random")))
+        QueryParameterContentView(repo: repo)
     }
 }
