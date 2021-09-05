@@ -22,7 +22,7 @@ struct DesktopContentView: View {
                 NavigationLink(destination: RandomContentView()) {
                     Label("Random", systemImage:"arrow.branch")
                 }.frame(height: 28)
-                NavigationLink(destination: UploadContentView()) {
+                NavigationLink(destination: TagsContentView()) {
                     Label("Tags", systemImage:"tag")
                 }.frame(height: 28)
                 NavigationLink(destination: DesignContentView()) {

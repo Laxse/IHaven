@@ -22,7 +22,7 @@
 		CEAA57B224C86C6E00FA3E00 /* LatestContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEAA57B124C86C6E00FA3E00 /* LatestContentView.swift */; };
 		CEAA57B424C86C8500FA3E00 /* ToplistContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEAA57B324C86C8500FA3E00 /* ToplistContentView.swift */; };
 		CEAA57B624C86C9700FA3E00 /* RandomContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEAA57B524C86C9700FA3E00 /* RandomContentView.swift */; };
-		CEAA57B824C86CAF00FA3E00 /* UploadContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEAA57B724C86CAF00FA3E00 /* UploadContentView.swift */; };
+		CEAA57B824C86CAF00FA3E00 /* TagsContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEAA57B724C86CAF00FA3E00 /* TagsContentView.swift */; };
 		CEAA57BA24C86CBF00FA3E00 /* DesignContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEAA57B924C86CBF00FA3E00 /* DesignContentView.swift */; };
 		CEAA57BC24C86CD200FA3E00 /* AdvanceContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEAA57BB24C86CD200FA3E00 /* AdvanceContentView.swift */; };
 		CEDCABF02498E3A7003609C1 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = CEDCABEF2498E3A7003609C1 /* SDWebImageSwiftUI */; };
@@ -71,7 +71,7 @@
 		CEAA57B124C86C6E00FA3E00 /* LatestContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatestContentView.swift; sourceTree = "<group>"; };
 		CEAA57B324C86C8500FA3E00 /* ToplistContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToplistContentView.swift; sourceTree = "<group>"; };
 		CEAA57B524C86C9700FA3E00 /* RandomContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomContentView.swift; sourceTree = "<group>"; };
-		CEAA57B724C86CAF00FA3E00 /* UploadContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadContentView.swift; sourceTree = "<group>"; };
+		CEAA57B724C86CAF00FA3E00 /* TagsContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagsContentView.swift; sourceTree = "<group>"; };
 		CEAA57B924C86CBF00FA3E00 /* DesignContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignContentView.swift; sourceTree = "<group>"; };
 		CEAA57BB24C86CD200FA3E00 /* AdvanceContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvanceContentView.swift; sourceTree = "<group>"; };
 		CEDCABF22498E3F2003609C1 /* ImagePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePanel.swift; sourceTree = "<group>"; };
@@ -210,12 +210,12 @@
 			path = Random;
 			sourceTree = "<group>";
 		};
-		CEAA57AE24C86C1F00FA3E00 /* Upload */ = {
+		CEAA57AE24C86C1F00FA3E00 /* Tags */ = {
 			isa = PBXGroup;
 			children = (
-				CEAA57B724C86CAF00FA3E00 /* UploadContentView.swift */,
+				CEAA57B724C86CAF00FA3E00 /* TagsContentView.swift */,
 			);
-			path = Upload;
+			path = Tags;
 			sourceTree = "<group>";
 		};
 		CEAA57AF24C86C2800FA3E00 /* Design */ = {
@@ -329,7 +329,7 @@
 				CEAA57AB24C86B0F00FA3E00 /* Latest */,
 				CEAA57AC24C86B2B00FA3E00 /* Toplist */,
 				CEAA57AD24C86C1400FA3E00 /* Random */,
-				CEAA57AE24C86C1F00FA3E00 /* Upload */,
+				CEAA57AE24C86C1F00FA3E00 /* Tags */,
 				CEAA57AF24C86C2800FA3E00 /* Design */,
 				CEAA57B024C86C2E00FA3E00 /* Advance */,
 				CEF82BE92495317300610250 /* DesktopContentView.swift */,
@@ -444,7 +444,7 @@
 				CEF82BE32495136100610250 /* ViewState.swift in Sources */,
 				CEF82BE82495316400610250 /* QueryContentView.swift in Sources */,
 				CE85F26524AB8C57001BEC83 /* Color.swift in Sources */,
-				CEAA57B824C86CAF00FA3E00 /* UploadContentView.swift in Sources */,
+				CEAA57B824C86CAF00FA3E00 /* TagsContentView.swift in Sources */,
 				CEDCAC22249F8A8C003609C1 /* ImageState.swift in Sources */,
 				CEF82BE02495125B00610250 /* MainContentView.swift in Sources */,
 				CEDCAC2724A0F7BE003609C1 /* AboutContentView.swift in Sources */,
