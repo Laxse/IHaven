@@ -12,7 +12,7 @@ import SwiftUI
 struct DesktopContentView: View {
     var body: some View {
         NavigationView {
-            List(){
+            List(content: {
                 NavigationLink(destination: LatestContentView() ) {
                     Label("Latest", systemImage:"timer")
                 }.frame(height: 28)
@@ -23,23 +23,24 @@ struct DesktopContentView: View {
                     Label("Random", systemImage:"arrow.branch")
                 }.frame(height: 28)
                 NavigationLink(destination: UploadContentView()) {
-                    Label("Upload", systemImage:"icloud.and.arrow.up")
+                    Label("Tags", systemImage:"tag")
                 }.frame(height: 28)
                 NavigationLink(destination: DesignContentView()) {
                     Label("Design", systemImage:"wand.and.stars")
                 }.frame(height: 28)
+                Divider()
                 NavigationLink(destination: AdvanceContentView()) {
                     Label("Advance", systemImage:"hammer")
                 }.frame(height: 28)
                
-            }
+            })
             .listStyle(SidebarListStyle())
             .frame(minWidth:200, maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea(edges: .all)
             .onAppear(perform: {
                 
             })
-        }.frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
         
     }
 }
