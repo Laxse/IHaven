@@ -11,6 +11,6 @@ import SwiftUI
 struct RandomContentView: View {
     var repo = DImageRepository(query: QueryParameter(sorting: "random"))
     var body: some View {
-        QueryParameterContentView(repo: repo)
+        QueryParameterContentView(repo: repo,message: "Try your luck!",themeColor: Color.green)
     }
 }

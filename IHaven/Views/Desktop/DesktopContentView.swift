@@ -16,6 +16,9 @@ struct DesktopContentView: View {
                 NavigationLink(destination: LatestContentView() ) {
                     Label("Latest", systemImage:"timer")
                 }.frame(height: 28)
+                NavigationLink(destination: HotContentView() ) {
+                    Label("Hot", systemImage:"flame")
+                }.frame(height: 28)
                 NavigationLink(destination: ToplistContentView()) {
                     Label("Toplist", systemImage:"rosette")
                 }.frame(height: 28)

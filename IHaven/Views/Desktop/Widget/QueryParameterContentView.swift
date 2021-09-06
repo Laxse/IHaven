@@ -9,8 +9,12 @@
 import SwiftUI
 struct QueryParameterContentView: View {
     @ObservedObject var imageRepository: DImageRepository
-    init(repo:DImageRepository) {
+    var message: String
+    var themeColor: Color
+    init(repo:DImageRepository,message:String,themeColor:Color) {
         self.imageRepository = repo
+        self.message = message
+        self.themeColor = themeColor
         if(!repo.isLoaded()){
             repo.load {
                 print("loaded")
@@ -23,6 +27,17 @@ struct QueryParameterContentView: View {
     var body: some View {
         ZStack(content: {
             ScrollView{
+                HStack{
+                    Text(message)
+                        .fontWeight(.ultraLight)
+                        .foregroundColor(themeColor)
+                        .multilineTextAlignment(.leading)
+                        .padding(.top, 10)
+                        .padding(.leading, 20)
+                    Spacer()
+                }.frame(minHeight: 30, idealHeight: 30, maxHeight: 30)
+                
+                    
                 LazyVGrid(columns: [
                     GridItem(.adaptive(minimum:240,maximum:240), spacing: 15)
                 ], spacing: 15){
@@ -30,8 +45,9 @@ struct QueryParameterContentView: View {
                         ImagePanel(image: platform,imageWidth: 240,imageHeight: 160);
                     }
                 }
-                .padding(.all, 20)
-                .padding(.top, 20)
+                .padding(.horizontal, 20)
+                .padding(.top, 0)
+                .padding(.bottom, 20)
             }.edgesIgnoringSafeArea(.all)
             HStack(alignment: .center) {
                 Spacer()
@@ -50,3 +66,11 @@ struct QueryParameterContentView: View {
     
     
 }
+
+
+//
+//struct SwiftUIView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        QueryParameterContentView(repo: DImageRepository(query: QueryParameter()))
+//    }
+//}

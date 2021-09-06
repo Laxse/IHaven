@@ -11,6 +11,6 @@ import SwiftUI
 struct ToplistContentView: View {
     var repo = DImageRepository(query: QueryParameter(sorting: "toplist"))
     var body: some View {
-        QueryParameterContentView(repo: repo)
+        QueryParameterContentView(repo: repo,message: "Here are the most popular walls uploaded within the last month",themeColor: Color.green)
     }
 }

@@ -13,7 +13,7 @@ struct LatestContentView: View {
     var repo = DImageRepository()
   
     var body: some View {
-       QueryParameterContentView(repo:repo)
+        QueryParameterContentView(repo:repo,message: "The latest wallpapers uploaded by our awesome community!",themeColor: Color.green)
     }
     
 }
