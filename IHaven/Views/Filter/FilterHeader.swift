@@ -29,7 +29,8 @@ struct FilterBackBtn: View {
         Button(action: {
             withAnimation(.easeOut(duration: 0.3)) {
                 self.iHavenContext.currentState = .Main
-                ImageRepository.shared.clean();
+                ImageRepository.shared.clean()
+                ImageRepository.shared.query.page = 1
                 ImageRepository.shared.load(succCallBack: {}) {}
             }
         }){

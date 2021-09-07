@@ -9,6 +9,7 @@
 import Foundation
 class QueryParameter {
     static let UNSET = "UNSET"
+    static let NULL = "NULL"
     let q:String = ""
     
     /** 100/101/111/etc.. (general/anime/people) */
@@ -61,7 +62,7 @@ class QueryParameter {
         self.sorting = sorting
     }
     func _isUnset(param:String) -> Bool {
-        if(param == QueryParameter.UNSET || param == ""){
+        if(param == QueryParameter.UNSET || param == QueryParameter.NULL  || param == ""){
             return true
         }
         return false
@@ -82,20 +83,22 @@ class QueryParameter {
         
         result["topPange"] = topPange;
         
-        if(_isUnset(param: atleast)){
+        if(!_isUnset(param: atleast)){
             result["atleast"] = atleast;
         }
-        if(_isUnset(param: atleast)){
+        if(!_isUnset(param: atleast)){
             result["resolutions"] = resolutions;
         }
-        if(_isUnset(param: ratios)){
+        if(!_isUnset(param: ratios)){
             result["ratios"] = ratios;
         }
-        if(_isUnset(param: color)){
+        if(!_isUnset(param: color)){
             result["color"] = color;
         }
         result["page"] = page;
-        result["seed"] = seed;
+        if(seed != ""){
+            result["seed"] = seed;
+        }
         result["apikey"] = apikey;
         return result
     }
