@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import SDWebImageSwiftUI
 struct QueryParameterContentView: View {
     @ObservedObject var imageRepository: DImageRepository
     var message: String
@@ -61,6 +62,18 @@ struct QueryParameterContentView: View {
                     .padding(.trailing, 10)
                     .frame(maxHeight: .infinity)
             }.edgesIgnoringSafeArea(.all)
+           
+            HStack(alignment: .center, content: {
+                Spacer()
+                VStack(alignment: .center, content: {
+                    Spacer()
+                    WebImage(url:URL(string: "") )
+                    Spacer()
+                })
+                Spacer()
+            })
+            .padding(.all, 20.0)
+            .edgesIgnoringSafeArea(.all)
         }).frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
@@ -68,9 +81,11 @@ struct QueryParameterContentView: View {
 }
 
 
-//
-//struct SwiftUIView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        QueryParameterContentView(repo: DImageRepository(query: QueryParameter()))
-//    }
-//}
+
+struct SwiftUIView_Previews: PreviewProvider {
+    
+    static var previews: some View {
+        QueryParameterContentView(repo:DImageRepository(),message: "The latest wallpapers uploaded by our awesome community!",themeColor: Color.green)
+
+    }
+}
