@@ -67,12 +67,21 @@ struct QueryParameterContentView: View {
                 Spacer()
                 VStack(alignment: .center, content: {
                     Spacer()
-                    WebImage(url:URL(string: "") )
+//                    WebImage(url:URL(string: "https://w.wallhaven.cc/full/g7/wallhaven-g75r7d.jpg") )
+//                        .resizable()
+//                        .scaledToFill()
+//                        .clipped()
+//                        .cornerRadius(2.0)
+                    Label(
+                        title: { Text("Label") },
+                        icon: { Image(systemName: "42.circle") })
                     Spacer()
                 })
                 Spacer()
             })
-            .padding(.all, 20.0)
+            .background(Color.red)
+            .padding(.horizontal, 50)
+            .padding(.vertical, 100)
             .edgesIgnoringSafeArea(.all)
         }).frame(maxWidth: .infinity, maxHeight: .infinity)
     }
