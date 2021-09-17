@@ -25,6 +25,7 @@ struct ImagePanel: View {
     
     @State var imageHeight: CGFloat = 120
     
+    @State var clickEvent: (() -> Void)?
     var body: some View {
         ZStack(alignment: .center){
             WebImage(url: image?.thumbs.small)
@@ -55,7 +56,13 @@ struct ImagePanel: View {
                     }
             }.onTapGesture {
                 // image not well
-                self.downloadImage()
+                if clickEvent == nil{
+                    self.downloadImage()
+                }else{
+                    clickEvent!()
+                }
+                // self.downloadImage()
+                
             }
             
             //图片上层悬浮信息
