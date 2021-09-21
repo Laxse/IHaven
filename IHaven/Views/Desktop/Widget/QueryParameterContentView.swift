@@ -52,7 +52,8 @@ struct QueryParameterContentView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 0)
                 .padding(.bottom, 20)
-            }.edgesIgnoringSafeArea(.all).blur(radius: 3.0)
+            }.edgesIgnoringSafeArea(.all)
+            .blur(radius: blurForBackground(focus: self.focus) )
             HStack(alignment: .center) {
                 Spacer()
                 Pagination(count: 5000, size: 24, active: self.imageRepository.query.page,changeFunc: { page in
@@ -125,7 +126,9 @@ struct QueryParameterContentView: View {
                         Spacer()
                         Label(
                             title: { Text("Label") },
-                            icon: { Image(systemName: "42.circle") })
+                            icon: { Image(systemName: "42.circle") }).onTapGesture {
+                                self.focus = false
+                            }
                         Spacer()
                     })
                     Spacer()
@@ -140,7 +143,21 @@ struct QueryParameterContentView: View {
         }).frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    
+    func blurForBackground(focus: Bool) -> CGFloat {
+        if focus {
+            return 3.0
+        }else{
+            return 0
+        }
+    }
+    //显示png标签
+    func typeTextFor(image:WallHavenImage?) -> Bool {
+        if(image!.fileType.hasSuffix("png")){
+            return true
+        }else{
+            return false
+        }
+    }
 }
 
 
