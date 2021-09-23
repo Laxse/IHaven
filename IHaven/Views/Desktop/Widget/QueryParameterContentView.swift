@@ -117,18 +117,23 @@ struct QueryParameterContentView: View {
                             .frame(width: 200)
                             .border(Color.gray)
                         Spacer()
-                        // tags
-                        // user info
                     })
                     .frame(minWidth: 200,idealWidth: 200,maxWidth: 200,maxHeight: .infinity, alignment: .center)
                     .background(Color.black)
                     VStack(alignment: .center, content: {
+                        HStack{
+                            Spacer()
+                            Image(systemName: "xmark.circle")
+                                .resizable(resizingMode: .stretch)
+                                .foregroundColor(Color.red)
+                                .frame(width: 15.0, height: 15.0).onTapGesture {
+                                    self.focus = false
+                                }
+                        }.padding([.top,.trailing], 10)
                         Spacer()
                         Label(
                             title: { Text("Label") },
-                            icon: { Image(systemName: "42.circle") }).onTapGesture {
-                                self.focus = false
-                            }
+                            icon: { Image(systemName: "42.circle") })
                         Spacer()
                     })
                     Spacer()
