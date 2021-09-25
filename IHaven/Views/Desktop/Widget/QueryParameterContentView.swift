@@ -131,9 +131,8 @@ struct QueryParameterContentView: View {
                                 }
                         }.padding([.top,.trailing], 10)
                         Spacer()
-                        Label(
-                            title: { Text("Label") },
-                            icon: { Image(systemName: "42.circle") })
+                       
+                        WebImage(url: URL(string: "https://th.wallhaven.cc/lg/72/72rxqo.jpg")).resizable().scaledToFit().clipped()
                         Spacer()
                     })
                     Spacer()
