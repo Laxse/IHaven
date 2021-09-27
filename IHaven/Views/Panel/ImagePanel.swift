@@ -25,7 +25,7 @@ struct ImagePanel: View {
     
     @State var imageHeight: CGFloat = 120
     
-    @State var clickEvent: (() -> Void)?
+    @State var clickEvent: ((WallHavenImage) -> Void)?
     var body: some View {
         ZStack(alignment: .center){
             WebImage(url: image?.thumbs.small)
@@ -59,7 +59,7 @@ struct ImagePanel: View {
                 if clickEvent == nil{
                     self.downloadImage()
                 }else{
-                    clickEvent!()
+                    clickEvent!(image!)
                 }
                 // self.downloadImage()
                 

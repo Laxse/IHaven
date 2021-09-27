@@ -11,6 +11,7 @@ import SDWebImageSwiftUI
 struct QueryParameterContentView: View {
     @ObservedObject var imageRepository: DImageRepository
     @State var focus: Bool = false
+    
     var message: String
     var themeColor: Color
     init(repo:DImageRepository,message:String,themeColor:Color) {
@@ -27,6 +28,7 @@ struct QueryParameterContentView: View {
     }
     
     var body: some View {
+        
         ZStack(content: {
             ScrollView{
                 HStack{
@@ -44,9 +46,12 @@ struct QueryParameterContentView: View {
                     GridItem(.adaptive(minimum:240,maximum:240), spacing: 15)
                 ], spacing: 15){
                     ForEach(self.imageRepository.images, id: \.self) { platform in
-                        ImagePanel(image: platform,imageWidth: 240,imageHeight: 160) {
+                        ImagePanel(image: platform,imageWidth: 240,imageHeight: 160) {image in
                             focus = true
+                            print(image)
                         };
+                      
+                       
                     }
                 }
                 .padding(.horizontal, 20)
@@ -145,6 +150,8 @@ struct QueryParameterContentView: View {
             }
            
         }).frame(maxWidth: .infinity, maxHeight: .infinity)
+       
+       
     }
     
     func blurForBackground(focus: Bool) -> CGFloat {
