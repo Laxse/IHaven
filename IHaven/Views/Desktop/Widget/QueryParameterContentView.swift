@@ -11,7 +11,7 @@ import SDWebImageSwiftUI
 struct QueryParameterContentView: View {
     @ObservedObject var imageRepository: DImageRepository
     @State var focus: Bool = false
-    
+    @State var image: URL?
     var message: String
     var themeColor: Color
     init(repo:DImageRepository,message:String,themeColor:Color) {
@@ -26,7 +26,6 @@ struct QueryParameterContentView: View {
             }
         }
     }
-    
     var body: some View {
         
         ZStack(content: {
@@ -46,9 +45,9 @@ struct QueryParameterContentView: View {
                     GridItem(.adaptive(minimum:240,maximum:240), spacing: 15)
                 ], spacing: 15){
                     ForEach(self.imageRepository.images, id: \.self) { platform in
-                        ImagePanel(image: platform,imageWidth: 240,imageHeight: 160) {image in
+                        ImagePanel(image: platform,imageWidth: 240,imageHeight: 160) {_image in
+                            self.image = _image.path
                             focus = true
-                            print(image)
                         };
                       
                        
@@ -137,7 +136,7 @@ struct QueryParameterContentView: View {
                         }.padding([.top,.trailing], 10)
                         Spacer()
                        
-                        WebImage(url: URL(string: "https://th.wallhaven.cc/lg/72/72rxqo.jpg")).resizable().scaledToFit().clipped()
+                        WebImage(url: self.image).resizable().scaledToFit().clipped()
                         Spacer()
                     })
                     Spacer()
