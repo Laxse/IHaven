@@ -16,7 +16,7 @@ class QueryParameter {
     var categories:String = "011"
     
     /** 100* /110/111/etc (sfw/sketchy/nsfw)  */
-    var purity:String = "110"
+    var purity:String = "100"
     
     static let sortingArray = [UNSET,"date_added","relevance","random","views","favorites","toplist"]
     /** date_added* , relevance, random, views, favorites, toplist */
