@@ -11,7 +11,7 @@ import SDWebImageSwiftUI
 struct QueryParameterContentView: View {
     @ObservedObject var imageRepository: DImageRepository
     @State var focus: Bool = false
-    @State var image: URL?
+    @State var image: WallHavenImage?
     var message: String
     var themeColor: Color
     init(repo:DImageRepository,message:String,themeColor:Color) {
@@ -46,7 +46,7 @@ struct QueryParameterContentView: View {
                 ], spacing: 15){
                     ForEach(self.imageRepository.images, id: \.self) { platform in
                         ImagePanel(image: platform,imageWidth: 240,imageHeight: 160) {_image in
-                            self.image = _image.path
+                            self.image = _image
                             focus = true
                         };
                       
@@ -73,23 +73,18 @@ struct QueryParameterContentView: View {
             if focus == true {
                 HStack(alignment: .center, content: {
                     VStack(alignment: .leading, spacing: 0,content: {
-                        Text("1920 x 1080")
+                        Text(self.image!.resolution)
                             .font(.title)
                             .fontWeight(.ultraLight)
                             .padding(.vertical, 20.0)
                             .frame(width: 200, height: 50, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
                         HStack(alignment: .center, spacing: 0.0, content: {
-                            Rectangle().fill(Color.red)
-                                .frame(width: 30, height: 10, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
-                            Rectangle().fill(Color.blue)
-                                .frame(width: 30, height: 10, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
-                            Rectangle().fill(Color.gray)
-                                .frame(width: 30, height: 10, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
-                            Rectangle().fill(Color.pink)
-                                .frame(width: 30, height: 10, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
-                            Rectangle().fill(Color.purple)
-                                .frame(width: 30, height: 10, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
-                        }).frame(width: 200, height: 50, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
+                            
+                            ForEach(self.image!.colors, id: \.self) { i in
+                                Rectangle().fill(Color(hex: i))
+                                    .frame(width: 30, height: 10, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
+                            }
+                        }).frame(width: 200, height: 30, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
                         Divider()
                         Text("TAGS")
                             .font(.callout)
@@ -98,10 +93,32 @@ struct QueryParameterContentView: View {
                             .padding(.top,20)
                             .padding(.leading, /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
                             .padding(.bottom,10)
-                        HStack(content: {
-                            Text("Uploader")
-                            Text("Uploader")
-                        })
+                        VStack{
+                            HStack(content: {
+                                Text("Uploader")
+                                Text(self.image!.id)
+                            })
+                            HStack(content: {
+                                Text("Category")
+                                Text(self.image!.category)
+                            })
+                            HStack(content: {
+                                Text("Purity")
+                                Text(self.image!.purity)
+                            })
+                            HStack(content: {
+                                Text("Size")
+                                Text(String(self.image!.fileSize))
+                            })
+                            HStack(content: {
+                                Text("Favorites")
+                                Text(String(self.image!.favorites))
+                            })
+                            HStack(content: {
+                                Text("Views")
+                                Text(String(self.image!.views))
+                            })
+                        }
                         Divider()
                         Text("PROPERTIES")
                             .font(.callout)
@@ -136,7 +153,7 @@ struct QueryParameterContentView: View {
                         }.padding([.top,.trailing], 10)
                         Spacer()
                        
-                        WebImage(url: self.image).resizable().scaledToFit().clipped()
+                        WebImage(url: self.image?.path).resizable().scaledToFit().clipped()
                         Spacer()
                     })
                     Spacer()
