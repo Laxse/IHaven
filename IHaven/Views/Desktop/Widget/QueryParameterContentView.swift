@@ -93,51 +93,30 @@ struct QueryParameterContentView: View {
                             .padding(.top,20)
                             .padding(.leading, /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
                             .padding(.bottom,10)
-                        VStack{
-                            HStack(content: {
+                        HStack(content: {
+                            Spacer()
+                            VStack(alignment: .trailing, content: {
                                 Text("Uploader")
-                                    .multilineTextAlignment(.trailing)
-                                    .frame(width: 100.0)
-                                    .padding(.trailing, 10)
-                                Text(self.image!.id)
-                                    .multilineTextAlignment(.leading)
-                            })
-                            HStack(content: {
                                 Text("Category")
-                                    .multilineTextAlignment(.trailing)
-                                    .frame(width: 100.0)
-                                    .padding(.trailing, 10)
-                                Text(self.image!.category)  .multilineTextAlignment(.leading)
-                            })
-                            HStack(content: {
                                 Text("Purity")
-                                    .multilineTextAlignment(.trailing)
-                                    .frame(width: 100.0)
-                                    .padding(.trailing, 10)
-                                Text(self.image!.purity)  .multilineTextAlignment(.leading)
-                            })
-                            HStack(content: {
                                 Text("Size")
-                                    .multilineTextAlignment(.trailing)
-                                    .frame(width: 100.0)
-                                    .padding(.trailing, 10)
-                                Text(String(self.image!.fileSize))  .multilineTextAlignment(.leading)
-                            })
-                            HStack(content: {
                                 Text("Favorites")
-                                    .multilineTextAlignment(.trailing)
-                                    .frame(width: 100.0)
-                                    .padding(.trailing, 10)
-                                Text(String(self.image!.favorites))  .multilineTextAlignment(.leading)
-                            })
-                            HStack(content: {
                                 Text("Views")
-                                    .multilineTextAlignment(.trailing)
-                                    .frame(width: 100.0)
-                                    .padding(.trailing, 10)
-                                Text(String(self.image!.views))  .multilineTextAlignment(.leading)
                             })
-                        }
+                            Spacer()
+                            VStack(alignment: .leading, content: {
+                                Text(self.image!.id)
+                                Text(self.image!.category).foregroundColor(Color.green)
+                                Text(self.image!.purity)
+                                Text(String(self.image!.fileSize))
+                                Text(String(self.image!.favorites)).foregroundColor(Color.blue)
+                                    
+                                    
+                                Text(String(self.image!.views))
+                            })
+                            Spacer()
+                        })
+                      
                         Divider()
                         Text("PROPERTIES")
                             .font(.callout)
@@ -207,11 +186,3 @@ struct QueryParameterContentView: View {
 }
 
 
-
-struct SwiftUIView_Previews: PreviewProvider {
-    
-    static var previews: some View {
-        QueryParameterContentView(repo:DImageRepository(),message: "The latest wallpapers uploaded by our awesome community!",themeColor: Color.green)
-
-    }
-}
