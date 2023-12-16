@@ -37,7 +37,7 @@ struct ImagePanel: View {
                     }
                     
                 })
-                .onSuccess(perform: { _ in
+                .onSuccess(perform: { _,_,_  in
                     DispatchQueue.main.async {
                         self.status = .Success
                     }

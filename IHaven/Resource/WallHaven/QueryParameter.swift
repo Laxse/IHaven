@@ -53,7 +53,7 @@ class QueryParameter {
     /**  */
     var seed:String = ""
     
-    let apikey = "vp1ZWXq92VMfjgBIGejfUgHQCXnw88HF"
+    let apikey = "CmQyjMpXsdgTlyoME98eaf64cbJCRzac"
 
     init() {
         

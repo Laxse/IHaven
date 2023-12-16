@@ -126,12 +126,12 @@ struct PuritySection:View {
                     CheckableButton(lable: "SFW", unclickFontColor: Color.init(hex: "AAAAAA"), clickFontColor: Color.init(hex: "99FF99"), unclickBackColor: Color.init(hex: "5E5E5E"), clickBackColor: Color.init(hex: "447744"), clickCallBack: {boolean in
                         self.query.setPurity(i: 0, v: boolean)
                     }, checked: self.query.getPurity(i: 0))
-                    CheckableButton(lable: "Sketchy", unclickFontColor: Color.init(hex: "AAAAAA"), clickFontColor: Color.init(hex: "FFFF99"), unclickBackColor: Color.init(hex: "5E5E5E"), clickBackColor: Color.init(hex: "777744"), clickCallBack: {boolean in
-                        self.query.setPurity(i: 1, v: boolean)
-                    }, checked: self.query.getPurity(i: 1))
-                    CheckableButton(lable: "NSFW", unclickFontColor: Color.init(hex: "AAAAAA"), clickFontColor: Color.init(hex: "FF9999"), unclickBackColor: Color.init(hex: "5E5E5E"), clickBackColor: Color.init(hex: "774444"), clickCallBack: {boolean in
-                        self.query.setPurity(i: 2, v: boolean)
-                    }, checked: self.query.getPurity(i: 2))
+//                    CheckableButton(lable: "Sketchy", unclickFontColor: Color.init(hex: "AAAAAA"), clickFontColor: Color.init(hex: "FFFF99"), unclickBackColor: Color.init(hex: "5E5E5E"), clickBackColor: Color.init(hex: "777744"), clickCallBack: {boolean in
+//                        self.query.setPurity(i: 1, v: boolean)
+//                    }, checked: self.query.getPurity(i: 1))
+//                    CheckableButton(lable: "NSFW", unclickFontColor: Color.init(hex: "AAAAAA"), clickFontColor: Color.init(hex: "FF9999"), unclickBackColor: Color.init(hex: "5E5E5E"), clickBackColor: Color.init(hex: "774444"), clickCallBack: {boolean in
+//                        self.query.setPurity(i: 2, v: boolean)
+//                    }, checked: self.query.getPurity(i: 2))
                 }.padding(.horizontal, 5).padding(.vertical, 5).background(Color.black)
             }.padding(.top, 10)
             
