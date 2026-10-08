@@ -870,12 +870,34 @@
         },
         "emptyKeyGuard": {
           "severity": "critical",
-          "problem": "/search 对空 apikey= 与纯空格 apikey=%20 均返回 200 —— 服务端把空 Key 当匿名请求。若用户输入空 Key 或纯空格，会被误判「Key 有效」并保存空 Key，而浏览行为与未配置完全一致（wallhaven 本就允许匿名浏览）",
+          "problem": "/search 对空 apikey= 、纯空格 %20、Tab %09、换行 %0A、混合空白均返回 200 —— 服务端把空 Key 当匿名请求。若用户输入空 Key 或纯空白，会被误判「Key 有效」并保存空 Key，而浏览行为与未配置完全一致（wallhaven 本就允许匿名浏览）",
           "rule": "[!] 绝不能靠服务端 200 判断「Key 有效」",
-          "localPrecheck": "请求发出前判断：去除首尾空白后长度 < 8 → 直接判为「请输入 API Key」，不发请求",
-          "minLength": 8,
+          "correctLogic": {
+            "statement": "必须是「非空 → 看 401/200」，而不是「看 200 就认为有效」",
+            "why": "200 只能作为「非空前提下的结论」，不是「Key 有效」的充分条件",
+            "proposedBy": "PM 提出，设计师认可并复现确认",
+            "replacesMyOriginal": "初版写的「trim 后长度 >= 8 才放行」是错的"
+          },
+          "lengthIsIrrelevant": {
+            "verified": true,
+            "measured": { "1": 401, "2": 401, "3": 401, "5": 401, "8": 401, "10": 401, "32": 401, "64": 401 },
+            "conclusion": "唯一分界线是「非空 vs 空」，长度完全无关",
+            "whyMyOriginalWasWrong": "用户输入 \"a\" 会因长度不足被拦截，但服务端其实会返回 401 明确告知无效 —— 预校验反而掩盖了服务端能提供的准确信息",
+            "ifLengthKeptAsDefense": "[!] 不得替代非空判断。若采用，不得因长度不足而拒绝一个服务端本可准确判定的输入"
+          },
+          "localPrecheck": "trim 后判空。为空 → 直接判为「请输入 API Key」，不发请求",
+          "guardLayers": [
+            { "layer": 1, "rule": "非空判断（唯一实质判断）", "required": true },
+            { "layer": 2, "rule": "长度下限（可选防御）", "required": false, "mustNotReplace": "非空判断" }
+          ],
+          "trimScope": {
+            "rule": "必须覆盖所有 Unicode 空白：空格、Tab、换行及混合",
+            "mustNotTrimSpacesOnly": "[!] 用户从网页复制、终端、编辑器粘贴时带入的 Tab 与换行同样会导致误判",
+            "measured": { "单空格%20": 200, "多空格%20%20%20": 200, "Tab%09": 200, "换行%0A": 200, "空格+Tab%20%09%20": 200, "单点号.": 401 },
+            "conclusion": "whitespacesAndNewlines 的 trim 是必要的但不能只 trim 空格"
+          },
           "saveButton": "输入框为空或仅空白时，「保存」保持 disabled",
-          "interactsWith": "与「粘贴自动去空格」配合：去空格后必须再判空，否则纯空格输入会被 trim 成空串然后被误判"
+          "interactsWith": "与「粘贴自动去空格」配合：去空格后必须再判空，否则纯空白输入会被 trim 成空串然后被误判"
         },
         "neverCoOccursWith": {
           "errorInvalidParams": "服务端先校验认证、再校验参数，无条件 401 优先。但参数非法的请求根本不会发出（被本地预校验拦截），因此 401 只会在「参数合法但 Key 无效」时出现 —— 两者互斥，不会同时出现"

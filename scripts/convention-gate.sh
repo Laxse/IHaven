@@ -39,5 +39,16 @@ if [ -f App/IHavenApp.swift ]; then
   fi
 fi
 
+# F9 依赖方向：动态壁纸不得依赖 API 层（ARCHITECTURE.md 5.0.2 依赖方向声明）
+# F9 素材只来自 F8 本地导入，不存在「从 API 拉取动态壁纸」这条路径。
+echo "[gate] 检查 F9 依赖方向（不得引用 API 层）..."
+if [ -d Features/DynamicWallpaper ]; then
+  HITS=$(grep -rnE 'import[[:space:]]+Infrastructure\.Network|WallhavenClient|Features/Browse' \
+         Features/DynamicWallpaper 2>/dev/null | grep -v '\.build')
+  if [ -n "$HITS" ]; then
+    echo "[gate] FAIL F9 依赖方向错误（动态壁纸只能消费本地库，不得依赖 API/浏览层）:"; echo "$HITS"; FAIL=1
+  fi
+fi
+
 if [ "$FAIL" -eq 0 ]; then echo "[gate] PASS 规范门禁通过"; else echo "[gate] FAIL 规范门禁未通过"; fi
 exit $FAIL
