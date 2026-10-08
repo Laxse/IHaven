@@ -1,0 +1,981 @@
+{
+  "$schema": "https://design-tokens.org/2025.standard.schema.json",
+  "$description": "IHaven Design Tokens v2.0 — macOS 壁纸客户端 | Designer: 颜好看 | Target: SwiftUI + macOS 26+ Liquid Glass | 四层架构 A1/A2/B/C",
+
+  "meta": {
+    "product": "IHaven",
+    "version": "2.0.0",
+    "platform": "macOS",
+    "minimumOS": "26.0",
+    "framework": "SwiftUI",
+    "register": "Product",
+    "designRegister": "Product — 设计服务产品而非产品本身（仪表板/工具型）",
+    "variance": 5,
+    "motionIntensity": 4,
+    "visualDensity": 5,
+    "benchmarkBrands": ["Apple Photos", "Raycast", "Craft"],
+    "cssCompanion": "./design-tokens.css",
+    "designDoc": "./DESIGN.md"
+  },
+
+  "color": {
+    "primitive": {
+      "void":          { "value": "#0B0D10", "type": "color", "layer": "A1-identity", "note": "最深底色，图片占位兜底" },
+      "surfaceSunken": { "value": "#101317", "type": "color", "layer": "A1-identity", "note": "侧栏/工具栏底" },
+      "surfaceBase":   { "value": "#16191E", "type": "color", "layer": "A1-identity" },
+      "surfaceRaised": { "value": "#1D2128", "type": "color", "layer": "A1-identity" },
+      "surfaceOverlay":{ "value": "#252A32", "type": "color", "layer": "A1-identity" },
+
+      "fgPrimary":     { "value": "#F2F5F8", "type": "color", "layer": "A1-identity", "contrastOn": "surfaceBase", "contrastRatio": "14.2:1" },
+      "fgSecondary":   { "value": "#B6BEC9", "type": "color", "layer": "A1-identity", "contrastOn": "surfaceBase", "contrastRatio": "8.6:1" },
+      "fgTertiary":    { "value": "#7E8794", "type": "color", "layer": "A1-identity", "contrastOn": "surfaceBase", "contrastRatio": "4.7:1" },
+      "fgQuaternary":  { "value": "#5A626D", "type": "color", "layer": "A1-identity", "note": "仅装饰性文字，不承载语义" },
+
+      "borderSubtle":  { "value": "rgba(255,255,255,0.06)", "type": "color", "layer": "A1-identity" },
+      "borderStrong":  { "value": "rgba(255,255,255,0.12)", "type": "color", "layer": "A1-identity" },
+
+      "accentAmber":   { "value": "#E8A33D", "type": "color", "layer": "A1-identity", "note": "琥珀主强调，纯色使用，禁止参与任何渐变" },
+      "accentAmberDark":{ "value": "#C4842A", "type": "color", "layer": "A1-identity" },
+      "accentAmberLight":{ "value": "#F2C177", "type": "color", "layer": "A1-identity" },
+
+      "success":       { "value": "#4FA85C", "type": "color", "layer": "A1-identity" },
+      "warning":       { "value": "#D9A441", "type": "color", "layer": "A1-identity" },
+      "danger":        { "value": "#D8574B", "type": "color", "layer": "A1-identity" },
+
+      "focus":         { "value": "#7FB8E8", "type": "color", "layer": "A1-identity", "note": "焦点环专用，与 accent 区分避免混淆" }
+    },
+
+    "semantic": {
+      "bg":                { "value": "{color.primitive.surfaceBase}",   "type": "color", "layer": "A2" },
+      "bgChrome":          { "value": "{color.primitive.surfaceSunken}", "type": "color", "layer": "A2", "note": "工具栏/侧栏/菜单栏面板专用玻璃基底" },
+      "surface":           { "value": "{color.primitive.surfaceRaised}", "type": "color", "layer": "A2" },
+      "surfaceOverlay":    { "value": "{color.primitive.surfaceOverlay}","type": "color", "layer": "A2" },
+      "surfaceSunken":     { "value": "{color.primitive.surfaceSunken}", "type": "color", "layer": "A2" },
+      "surfaceImageGap":   { "value": "{color.primitive.void}",          "type": "color", "layer": "A2", "note": "瀑布流沟槽底色" },
+
+      "fg":        { "value": "{color.primitive.fgPrimary}",   "type": "color", "layer": "A2" },
+      "fg2":       { "value": "{color.primitive.fgSecondary}", "type": "color", "layer": "B-slot" },
+      "muted":     { "value": "{color.primitive.fgTertiary}",  "type": "color", "layer": "A2" },
+      "meta":      { "value": "{color.primitive.fgQuaternary}","type": "color", "layer": "B-slot" },
+      "fgOnAccent":{ "value": "#16120A", "type": "color", "layer": "A2", "note": "琥珀底上的前景，深棕黑确保 4.5:1+" },
+
+      "border":        { "value": "{color.primitive.borderStrong}", "type": "color", "layer": "A2" },
+      "borderSoft":    { "value": "{color.primitive.borderSubtle}", "type": "color", "layer": "B-slot" },
+      "borderAccent":  { "value": "{color.primitive.accentAmber}",  "type": "color", "layer": "B-slot" },
+
+      "accent":       { "value": "{color.primitive.accentAmber}",      "type": "color", "layer": "A1", "usageConstraint": "每屏可见使用 ≤ 2 处" },
+      "accentHover":  { "value": "{color.primitive.accentAmberDark}",  "type": "color", "layer": "A2" },
+      "accentActive": { "value": "{color.primitive.accentAmberLight}", "type": "color", "layer": "A2" },
+      "accentOn":     { "value": "{color.fgOnAccent}",                "type": "color", "layer": "A2" },
+
+      "success": { "value": "{color.primitive.success}", "type": "color", "layer": "A2" },
+      "warn":    { "value": "{color.primitive.warning}", "type": "color", "layer": "A2" },
+      "danger":  { "value": "{color.primitive.danger}",  "type": "color", "layer": "A2" },
+      "info":    { "value": "{color.primitive.focus}",   "type": "color", "layer": "A2" }
+    },
+
+    "slot": {
+      "btnPrimaryBg":        { "value": "{color.semantic.accent}",        "type": "color", "layer": "B-slot" },
+      "btnPrimaryBgHover":   { "value": "{color.semantic.accentHover}",   "type": "color", "layer": "B-slot" },
+      "btnPrimaryBgActive":  { "value": "{color.semantic.accentActive}",  "type": "color", "layer": "B-slot" },
+      "btnPrimaryFg":        { "value": "{color.semantic.accentOn}",      "type": "color", "layer": "B-slot" },
+      "btnSecondaryBorder":  { "value": "{color.semantic.border}",       "type": "color", "layer": "B-slot" },
+      "btnSecondaryFg":      { "value": "{color.semantic.fg}",           "type": "color", "layer": "B-slot" },
+      "btnDangerBg":         { "value": "{color.semantic.danger}",       "type": "color", "layer": "B-slot" },
+      "btnDangerFg":         { "value": "#ffffff",                       "type": "color", "layer": "B-slot" },
+
+      "inputBg":           { "value": "{color.semantic.surface}",        "type": "color", "layer": "B-slot" },
+      "inputFg":           { "value": "{color.semantic.fg}",             "type": "color", "layer": "B-slot" },
+      "inputPlaceholder":  { "value": "{color.semantic.meta}",           "type": "color", "layer": "B-slot" },
+      "inputBorderFocus":  { "value": "{color.primitive.focus}",         "type": "color", "layer": "B-slot" },
+      "inputBorderInvalid":{ "value": "{color.semantic.danger}",         "type": "color", "layer": "B-slot" },
+
+      "cardBorder":          { "value": "{color.semantic.borderSoft}",    "type": "color", "layer": "B-slot" },
+      "cardBorderHover":     { "value": "color-mix(in srgb, {color.semantic.fg} 22%, transparent)", "type": "color", "layer": "B-slot" },
+      "cardSkeleton":        { "value": "{color.semantic.surfaceSunken}","type": "color", "layer": "B-slot" },
+
+      "segmentBg":          { "value": "color-mix(in srgb, {color.semantic.fg} 6%, transparent)", "type": "color", "layer": "B-slot" },
+      "segmentBgActive":    { "value": "{color.semantic.surface}",       "type": "color", "layer": "B-slot" },
+      "segmentFg":          { "value": "{color.semantic.fg2}",           "type": "color", "layer": "B-slot" },
+      "segmentFgActive":    { "value": "{color.semantic.fg}",             "type": "color", "layer": "B-slot" },
+
+      "chipBg":             { "value": "color-mix(in srgb, {color.semantic.accent} 12%, transparent)", "type": "color", "layer": "B-slot" },
+      "chipBorder":         { "value": "color-mix(in srgb, {color.semantic.accent} 34%, transparent)", "type": "color", "layer": "B-slot" },
+      "chipFg":             { "value": "{color.semantic.accent}",        "type": "color", "layer": "B-slot" },
+
+      "badgeBg":            { "value": "color-mix(in srgb, {color.semantic.fg} 12%, transparent)", "type": "color", "layer": "B-slot" },
+      "badgeFg":            { "value": "{color.semantic.fg2}",           "type": "color", "layer": "B-slot" },
+
+      "hudBg":              { "value": "{color.semantic.surfaceOverlay}","type": "color", "layer": "B-slot" },
+      "hudFg":              { "value": "{color.semantic.fg}",            "type": "color", "layer": "B-slot" },
+
+      "menuBg":             { "value": "{color.semantic.surfaceOverlay}","type": "color", "layer": "B-slot" },
+      "menuItemHover":      { "value": "color-mix(in srgb, {color.semantic.accent} 16%, transparent)", "type": "color", "layer": "B-slot" },
+      "menuItemFg":         { "value": "{color.semantic.fg}",            "type": "color", "layer": "B-slot" }
+    },
+
+    "extension": {
+      "displayCardBg":           { "value": "{color.semantic.surface}",      "type": "color", "layer": "C", "note": "多屏分配卡片" },
+      "displayCardBorderActive": { "value": "{color.semantic.accent}",       "type": "color", "layer": "C" },
+      "displayCardBgActive":     { "value": "color-mix(in srgb, {color.semantic.accent} 12%, transparent)", "type": "color", "layer": "C" },
+      "displayThumbnailBg":      { "value": "{color.semantic.surfaceSunken}","type": "color", "layer": "C" },
+      "liveIndicator":           { "value": "{color.semantic.danger}",       "type": "color", "layer": "C", "note": "录制/播放中红点，macOS 通用语义" },
+      "liveIndicatorHalo":       { "value": "color-mix(in srgb, {color.semantic.danger} 22%, transparent)", "type": "color", "layer": "C" },
+      "playbackScrubBg":         { "value": "color-mix(in srgb, {color.semantic.fg} 16%, transparent)", "type": "color", "layer": "C" },
+      "sfwBadgeBg":              { "value": "color-mix(in srgb, {color.semantic.success} 14%, transparent)", "type": "color", "layer": "C" },
+      "sfwBadgeFg":              { "value": "{color.semantic.success}",      "type": "color", "layer": "C" },
+
+      "nsfwPlaceholderBg":     { "value": "{color.semantic.surface}",     "type": "color", "layer": "C", "note": "完全不透明。严禁模糊/半透明：壁纸识别特征是构图，模糊轮廓仍可辨且给出虚假安全感（DESIGN.md §4.8.3）" },
+      "nsfwPlaceholderBorder": { "value": "{color.semantic.border}",      "type": "color", "layer": "C" },
+      "nsfwPlaceholderFg":     { "value": "{color.semantic.meta}",        "type": "color", "layer": "C", "note": "shield 图标与「NSFW 内容」文案" },
+      "nsfwGatePromptBg":      { "value": "{color.semantic.surface}",     "type": "color", "layer": "C", "note": "L3 关闭且有隐藏结果时的显式提示容器" },
+      "nsfwGatePromptBorder":  { "value": "{color.semantic.borderSoft}",  "type": "color", "layer": "C" },
+      "cropOutline":             { "value": "#ffffff",                      "type": "color", "layer": "C", "note": "裁剪选区必须对任意壁纸可见" },
+      "cropHandleFill":          { "value": "#ffffff",                      "type": "color", "layer": "C" },
+      "cropRuleLine":            { "value": "rgb(255,255,255,0.60)",        "type": "color", "layer": "C", "note": "三分构图辅助线" },
+      "cropSafeArea":            { "value": "rgb(255,255,255,0.14)",        "type": "color", "layer": "C", "note": "安全区边界（避开 Dock/菜单栏）" },
+      "scrimImage":              { "value": "linear-gradient(180deg, rgb(0 0 0 / 0) 40%, rgb(0 0 0 / 0.55) 78%, rgb(0 0 0 / 0.78) 100%)", "type": "other", "layer": "B-slot", "note": "图片上元信息的可读性遮罩，从底部起" },
+      "scrimModal":              { "value": "rgb(0 0 0 / 0.42)",             "type": "other", "layer": "B-slot" },
+      "ambientTintMaxOpacity":   { "value": "0.10",                          "type": "other", "layer": "C", "note": "图片主色提取用于窗口底衬的透明度上限" }
+    },
+
+    "lightThemeOverrides": {
+      "note": "跟随系统外观时的覆盖集。SwiftUI 中用 NSColor(name:dynamicProvider:) 或 Color 资产集 dark variant 实现，不在代码里写 if/else。",
+      "surfaceSunken": { "value": "#ECEEF1" },
+      "surfaceBase":   { "value": "#F5F6F8" },
+      "surfaceRaised": { "value": "#FFFFFF" },
+      "surfaceOverlay":{ "value": "#FFFFFF" },
+      "void":          { "value": "#E4E6EA" },
+      "fgPrimary":     { "value": "#12151A" },
+      "fgSecondary":   { "value": "#414852" },
+      "fgTertiary":    { "value": "#6B7480" },
+      "fgQuaternary":  { "value": "#9AA2AD" },
+      "accentAmber":   { "value": "#B06A10" },
+      "accentAmberDark":{ "value": "#8E5309" },
+      "accentAmberLight":{ "value": "#C8801F" },
+      "success":       { "value": "#2F7A3D" },
+      "warning":       { "value": "#9A6B12" },
+      "danger":        { "value": "#B3382C" },
+      "focus":         { "value": "#1B6FC4" }
+    }
+  },
+
+  "typography": {
+    "family": {
+      "display": { "value": "-apple-system, 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', sans-serif", "type": "fontFamily", "layer": "A1", "note": "不打包字体文件，使用系统字体是 Apple HIG 要求" },
+      "body":    { "value": "-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif", "type": "fontFamily", "layer": "A1" },
+      "mono":    { "value": "ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace", "type": "fontFamily", "layer": "A2", "note": "仅用于分辨率数值、快捷键、API Key" }
+    },
+    "size": {
+      "2xs": { "value": "10px", "type": "dimension", "layer": "A1-structure", "usage": "角标、快捷键芯片" },
+      "xs":  { "value": "11px", "type": "dimension", "layer": "A1-structure", "usage": "辅助说明、筛选组标签" },
+      "sm":  { "value": "12px", "type": "dimension", "layer": "A1-structure", "usage": "图片元数据、chip" },
+      "md":  { "value": "13px", "type": "dimension", "layer": "A1-structure", "usage": "基准正文（macOS 基准字号，非 16px）" },
+      "lg":  { "value": "15px", "type": "dimension", "layer": "A1-structure", "usage": "列表主行" },
+      "xl":  { "value": "17px", "type": "dimension", "layer": "A1-structure", "usage": "区块标题" },
+      "2xl": { "value": "22px", "type": "dimension", "layer": "A1-structure", "usage": "详情页标题" },
+      "3xl": { "value": "28px", "type": "dimension", "layer": "A1-structure", "usage": "页面主标题" }
+    },
+    "weight": {
+      "read":      { "value": 400, "type": "fontWeight", "layer": "A1-structure", "usage": "正文" },
+      "emphasize": { "value": 510, "type": "fontWeight", "layer": "A1-structure", "usage": "按钮文字、小标题" },
+      "announce":  { "value": 590, "type": "fontWeight", "layer": "A1-structure", "usage": "主标题、关键数值" }
+    },
+    "lineHeight": {
+      "2xs": { "value": "1.20", "type": "number", "layer": "A1-structure" },
+      "sm":  { "value": "1.30", "type": "number", "layer": "A1-structure" },
+      "body":{ "value": "1.45", "type": "number", "layer": "A1-structure" },
+      "tight":{ "value": "1.20", "type": "number", "layer": "A1-structure" }
+    },
+    "tracking": {
+      "caps":     { "value": "0.06em", "type": "dimension", "layer": "A1-structure", "note": "ALL CAPS 组标题最小值" },
+      "2xs":      { "value": "0.04em", "type": "dimension", "layer": "A1-structure" },
+      "xs":       { "value": "0.02em", "type": "dimension", "layer": "A1-structure" },
+      "md":       { "value": "0em",    "type": "dimension", "layer": "A1-structure" },
+      "heading":  { "value": "-0.015em","type": "dimension", "layer": "A1-structure", "note": "≥22px 标题负字距" }
+    }
+  },
+
+  "space": {
+    "0":  { "value": "0px",  "type": "dimension", "layer": "A1-structure" },
+    "1":  { "value": "2px",  "type": "dimension", "layer": "A1-structure", "note": "图标基线微调" },
+    "2":  { "value": "4px",  "type": "dimension", "layer": "A1-structure" },
+    "3":  { "value": "6px",  "type": "dimension", "layer": "A1-structure" },
+    "4":  { "value": "8px",  "type": "dimension", "layer": "A1-structure" },
+    "5":  { "value": "12px", "type": "dimension", "layer": "A1-structure" },
+    "6":  { "value": "16px", "type": "dimension", "layer": "A1-structure" },
+    "7":  { "value": "20px", "type": "dimension", "layer": "A1-structure" },
+    "8":  { "value": "24px", "type": "dimension", "layer": "A1-structure" },
+    "10": { "value": "32px", "type": "dimension", "layer": "A1-structure" },
+    "12": { "value": "40px", "type": "dimension", "layer": "A1-structure" },
+    "16": { "value": "64px", "type": "dimension", "layer": "A1-structure", "note": "空态垂直留白上限" }
+  },
+
+  "radius": {
+    "xs":   { "value": "4px",    "type": "dimension", "layer": "A1-structure" },
+    "sm":   { "value": "6px",    "type": "dimension", "layer": "A1-structure" },
+    "md":   { "value": "8px",    "type": "dimension", "layer": "A1-structure" },
+    "lg":   { "value": "10px",   "type": "dimension", "layer": "A1-structure", "note": "图片卡片圆角" },
+    "xl":   { "value": "12px",   "type": "dimension", "layer": "A1-structure", "note": "面板/sheet，上限，禁止 ≥24px" },
+    "pill": { "value": "9999px", "type": "dimension", "layer": "A1-structure" }
+  },
+
+  "shadow": {
+    "flat":    { "value": "none",   "type": "boxShadow", "layer": "A1-structure", "note": "默认态，层级靠亮度递进而非阴影" },
+    "ring":    { "value": "0 0 0 1px {color.semantic.borderSoft}", "type": "boxShadow", "layer": "A1-structure" },
+    "lift":    { "value": "0 0 0 0.5px {color.semantic.borderSoft}, 0 4px 12px rgb(0 0 0 / 0.30)", "type": "boxShadow", "layer": "B-slot", "note": "图片卡片 hover 抬升，克制" },
+    "raised":  { "value": "0 0 0 0.5px {color.semantic.borderSoft}, 0 2px 6px rgb(0 0 0 / 0.28), 0 12px 32px rgb(0 0 0 / 0.36)", "type": "boxShadow", "layer": "B-slot", "note": "菜单/popover" },
+    "overlay": { "value": "0 0 0 0.5px {color.semantic.borderSoft}, 0 8px 24px rgb(0 0 0 / 0.34), 0 32px 64px rgb(0 0 0 / 0.42)", "type": "boxShadow", "layer": "B-slot", "note": "sheet/HUD" }
+  },
+
+  "motion": {
+    "duration": {
+      "instant": { "value": "80ms",  "type": "duration", "layer": "A1-structure", "usage": "按下反馈", "swiftui": "nil（立即）" },
+      "fast":    { "value": "150ms", "type": "duration", "layer": "A1-structure", "usage": "hover / 状态确认", "swiftui": ".easeOut(0.15)" },
+      "base":    { "value": "220ms", "type": "duration", "layer": "A1-structure", "usage": "面板展开 / 浮层出现", "swiftui": ".spring(response: 0.30, dampingFraction: 1.00)" },
+      "slow":    { "value": "320ms", "type": "duration", "layer": "A1-structure", "usage": "跨屏过渡 / sheet", "swiftui": ".spring(response: 0.36, dampingFraction: 1.00)" },
+      "cascade": { "value": "420ms", "type": "duration", "layer": "A1-structure", "usage": "瀑布流分批入场上限", "swiftui": ".spring(response: 0.42, dampingFraction: 1.00)" }
+    },
+    "easing": {
+      "standard": { "value": "cubic-bezier(0.2, 0, 0, 1)",    "type": "cubicBezier", "layer": "A1-structure" },
+      "out":      { "value": "cubic-bezier(0.16, 1, 0.3, 1)",  "type": "cubicBezier", "layer": "A1-structure" },
+      "in":       { "value": "cubic-bezier(0.5, 0, 0.75, 0)",  "type": "cubicBezier", "layer": "A1-structure" },
+      "linear":   { "value": "linear",                          "type": "cubicBezier", "layer": "A1-structure" }
+    },
+    "spring": {
+      "response":        { "value": "0.30", "type": "duration", "layer": "A1-structure" },
+      "dampingFraction": { "value": "1.00", "type": "number",   "layer": "A1-structure", "note": "临界阻尼 = 零过冲，硬性要求。禁止 < 0.7（会产生弹跳）" },
+      "snappyResponse":  { "value": "0.22", "type": "duration", "layer": "A1-structure" }
+    },
+    "reducedMotion": {
+      "value": "1ms",
+      "note": "prefers-reduced-motion / accessibilityReduceMotion 生效时，全部动效收敛至 1ms，功能不受影响"
+    },
+    "forbidden": {
+      "bouncyEasing": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+      "swiftuiBouncy": ".bouncy",
+      "reason": "P0 红线：弹跳缓动在桌面端显得廉价，破坏 macOS 的沉稳感"
+    }
+  },
+
+  "layout": {
+    "chrome": {
+      "titlebarHeight":  { "value": "38px", "type": "dimension", "layer": "A1-structure" },
+      "toolbarHeight":   { "value": "52px", "type": "dimension", "layer": "A1-structure" },
+      "rowHeight":       { "value": "32px", "type": "dimension", "layer": "A1-structure" },
+      "rowHeightCompact":{ "value": "26px", "type": "dimension", "layer": "A1-structure" },
+      "sidebarWidth":    { "value": "208px","type": "dimension", "layer": "A1-structure" },
+      "inspectorWidth":  { "value": "300px","type": "dimension", "layer": "A1-structure" },
+      "menubarPanelWidth":  { "value": "400px", "type": "dimension", "layer": "A1-structure", "note": "规格锁定，可在 380-420 范围自适应" },
+      "menubarPanelHeight": { "value": "500px", "type": "dimension", "layer": "A1-structure", "note": "规格锁定，可在 440-560 范围自适应" }
+    },
+    "grid": {
+      "masonryColMin": { "value": "240px", "type": "dimension", "layer": "A1-structure" },
+      "masonryColMax": { "value": "340px", "type": "dimension", "layer": "A1-structure" },
+      "masonryGap":    { "value": "8px",   "type": "dimension", "layer": "A1-structure", "note": "沟槽取小值，让图片成为主角" },
+      "containerMax":  { "value": "1600px","type": "dimension", "layer": "A1-structure" }
+    },
+    "hitTarget": {
+      "pointerMin": { "value": "28px", "type": "dimension", "layer": "A1-structure", "note": "macOS 指针目标下限" },
+      "touchMin":   { "value": "44px", "type": "dimension", "layer": "A1-structure", "note": "触屏目标下限" },
+      "gapMin":     { "value": "8px",  "type": "dimension", "layer": "A1-structure", "note": "相邻可点击元素最小间距" }
+    }
+  },
+
+  "icon": {
+    "library": {
+      "value": "SF Symbols",
+      "version": "macOS 26 SDK 内置",
+      "fallback": "无备用图标库 — 若 SF Symbols 缺口无法用系统图标拼装，改用自绘 Shape 而非引入第二套图标库",
+      "license": "Apple SDK 附带，禁止重绘/改形/导出为 PNG 资产"
+    },
+    "size": {
+      "sm": { "value": "16px", "type": "dimension", "layer": "A1-structure", "usage": "行内、菜单项、chip" },
+      "md": { "value": "20px", "type": "dimension", "layer": "A1-structure", "usage": "按钮内、工具栏" },
+      "lg": { "value": "24px", "type": "dimension", "layer": "A1-structure", "usage": "独立图标、空态、详情页" }
+    },
+    "stroke": {
+      "value": "SF Symbols 原生描边权重，不覆写 symbolWeight",
+      "mapping": {
+        "regular": "对应 Regular 字重，用于次要信息",
+        "medium":  "对应 Medium 字重，用于按钮与工具栏",
+        "semibold":"对应 Semibold 字重，仅用于选中态"
+      }
+    },
+    "rule": {
+      "emojiForbidden": true,
+      "note": "P0 红线：任何位置（含文案、菜单、空态、菜单栏图标）禁止使用 emoji 作为功能图标"
+    }
+  },
+
+  "liquidGlass": {
+    "policy": "chrome-only",
+    "rationale": "Apple HIG 明确规定 Liquid Glass 仅用于功能层/导航层，禁止用于内容层。壁纸是高饱和高频视觉内容，玻璃的动态折射会持续改变图片呈现的色彩与清晰度判读，且玻璃采样壁纸主色会导致 chrome 色相漂移。",
+    "allowedSurfaces": [
+      { "id": "G1", "surface": "主窗口工具栏", "api": "toolbar + ToolbarItem", "variant": "regular" },
+      { "id": "G2", "surface": "侧边栏", "api": "NavigationSplitView sidebar", "variant": "regular" },
+      { "id": "G3", "surface": "菜单栏面板", "api": "glassEffect(.regular)", "variant": "regular", "note": "面板浮在壁纸之上，是 chrome 而非内容" },
+      { "id": "G4", "surface": "操作确认 HUD", "api": "glassEffect(.regular.tint(accent))", "variant": "tinted-regular" },
+      { "id": "G5", "surface": "Sheet / Popover / Menu", "api": "presentationBackground / glassEffect", "variant": "regular" }
+    ],
+    "forbiddenSurfaces": [
+      { "id": "F1", "surface": "瀑布流图片卡片", "reason": "内容层；玻璃会折射干扰图片判读" },
+      { "id": "F2", "surface": "壁纸详情大图", "reason": "内容层；图片是主角，任何叠加都会降低画质判读" },
+      { "id": "F3", "surface": "筛选面板输入框与表单控件", "reason": "玻璃不可用于表单（对比度不可控）" },
+      { "id": "F4", "surface": "动态壁纸编辑器画布", "reason": "需要精确判断裁剪区域，玻璃会引入边缘畸变" },
+      { "id": "F5", "surface": "窗口背景 / 瀑布流沟槽底", "reason": "系统明确规定禁止" },
+      { "id": "F6", "surface": "玻璃之上再叠玻璃", "reason": "GlassEffectContainer 共享采样，嵌套会导致渲染错误与不一致" }
+    ],
+    "constraints": [
+      "多个玻璃元素必须包裹在同一 GlassEffectContainer 中，spacing 与实际间距一致",
+      "禁止手写 CGAffineTransform 或 layer 特效模拟玻璃",
+      "禁止自行指定 blur radius / saturation — Apple 未公布可移植数值，使用系统渲染",
+      "优先 .regular；.clear 仅可用于覆盖在媒体内容上的小浮动控件，且必须配合 dim 层",
+      "reduceTransparency 开启时降级为不透明 surface-raised（系统已自动降级 vibrancy，不与之对抗）"
+    ],
+    "budget": { "maxLiveBlurredSurfacesPerPane": 6 }
+  },
+
+  "component": {
+    "button": {
+      "variants": ["primary", "secondary", "ghost", "destructive"],
+      "sizes": { "sm": "24px", "md": "28px", "lg": "32px" },
+      "radius": "{radius.sm}",
+      "paddingX": "{space.5}",
+      "states": ["default", "hover", "active", "focusVisible", "disabled", "loading"],
+      "stateTimings": { "hover": "150ms", "active": "80ms", "focusRing": "0ms（即时）" },
+      "iconSizes": { "sm": "16px", "md": "16px", "lg": "20px" }
+    },
+    "imageCard": {
+      "radius": "{radius.lg}",
+      "border": "1px {color.slot.cardBorder}",
+      "states": ["loading", "loaded", "selected", "hover", "error", "downloading"],
+      "hoverReveal": "底部 scrim + 元信息行 + 快捷动作",
+      "hoverRevealDelayMs": 90,
+      "selectionRing": "2px {color.semantic.accent} + 4px 内缩",
+      "ratioPolicy": "始终按图片真实宽高比展示，禁止裁切成固定 3:2"
+    },
+    "segmentedControl": {
+      "role": "筛选主控件（替代 Slider）",
+      "radius": "{radius.sm}",
+      "height": "24px",
+      "itemPaddingX": "10px",
+      "animation": "选中滑块位移 spring(response:0.22, dampingFraction:1.00)"
+    },
+    "filterPanel": {
+      "presentation": "工具栏下 popover（非侧栏常驻）",
+      "width": "320px",
+      "maxHeight": "560px",
+      "groups": ["category", "purity", "resolution", "ratio", "color", "sorting"],
+      "groupSpacing": "{space.6}",
+      "summaryBar": "工具栏 chip 摘要 + 单个「清除全部」"
+    },
+    "detailView": {
+      "layout": "左侧大图自适应 + 右侧 300px inspector",
+      "infoHierarchy": ["大图", "标题 + 上传者", "核心元数据表", "操作组", "标签", "相关壁纸"],
+      "metadataRowHeight": "28px",
+      "tagsWrap": "flow layout，chip 形态"
+    },
+    "displayAssignment": {
+      "presentation": "sheet，主区为屏幕缩略图矩阵",
+      "cardAspect": "按各屏物理像素分辨率比绘制缩略图（frame.size × backingScaleFactor）",
+      "states": ["idle", "active"],
+      "supportsSpanning": false,
+      "spanningNote": "跨屏拼接为 V2 功能，MVP 不渲染该选项（不做置灰占位）。技术原因：macOS 无原生跨屏语义，需自行切图，且 Retina/非 Retina 混用会导致接缝错位，失败模式是「看起来坏了」而非「用不了」",
+      "showsScaleFactor": true,
+      "scaleFactorNote": "每块屏下方标注 2x / 1x，让用户理解为何同一张图在两屏清晰度不同",
+      "fillModes": ["fitFullyVisible", "fillScreen"],
+      "fillModesNote": "仅两个真实语义，对应 NSWorkspace 的 AllowClipping BOOL。语义边界：「平铺」无法实现（NSImageScaling 四种取值中无平铺语义）；「居中」不是独立选项（填满时系统永远居中裁切）；「拉伸」会忽略裁切设置导致变形。UI 与文案中不得出现这三词",
+      "fillModeLabels": { "fitFullyVisible": "完整可见", "fillScreen": "填满" },
+      "fillColor": {
+        "strategy": "autoDerive",
+        "source": "wallhaven colors[] 数组主色",
+        "userSelectable": false,
+        "rationale": "Apple 官方建议（NSWorkspace.h:225）不为此呈现 UI，直接选合适默认值让用户在系统设置中调整。自动派生也是差异化——竞品交给系统默认色，通常与壁纸不协调",
+        "ui": "只读 24×24 色块 + 「自动派生」文字 + arrow.counterclockwise 16px 重置按钮",
+        "resetActionLabel": "恢复自动派生",
+        "fallback": "colors 为空或无法解析时静默回退系统默认填充色，不报错不阻塞设置",
+        "predictability": "详情页可显示「填充色将取自此壁纸的主色」，让自动行为可预期",
+        "colorSpaceChain": {
+          "targetSpace": "NSCalibratedRGBColorSpace",
+          "chain": "wallhaven hex -> NSColor(hex:) [sRGB] -> usingColorSpace(.calibratedRGB) [返回 Bool] -> 成功则作为 NSWorkspaceDesktopImageFillColorKey 写入；失败则完全不传该 key，系统用默认色",
+          "usingColorSpaceReturns": "Bool",
+          "neverThrows": true,
+          "noFallbackApproximation": "转换失败不要临时换近似色——近似色可能与壁纸更不协调，整体回退系统默认更可靠",
+          "alphaIgnored": true,
+          "multiColorPolicy": "colors 数组有多值时取第一个可成功转换的；全部失败则整体回退",
+          "mustNotBlock": "无论成功与否，壁纸设置主流程必须走完。填充色是修饰项不是前置条件"
+        }
+      },
+      "cropFocus": {
+        "gridPoints": 9,
+        "default": "center",
+        "memoryScope": "perDisplay",
+        "keyRule": "必须用稳定显示器标识（NSScreen.displayID），禁止用数组下标——拔插外接屏后屏序会变导致焦点串屏",
+        "implementation": "clientSidePrecrop",
+        "implementationNote": "系统 AllowClipping 只是 BOOL 且永远居中，无指定裁切侧能力。焦点由客户端用 Core Image 按目标屏物理像素预裁切，再把裁好的成品图写入系统，系统不再二次裁切",
+        "productRedLine": "预览渲染的必须就是将写入系统的成品图（预览即所得）。若技术无法保证，砍掉此功能而非做折扣版——一次不一致会让用户对所有预览失去信任。允许误差仅限抗锯齿级别",
+        "artifactContract": {
+          "singleArtifact": "预裁切模块输出一个产物对象（含裁切后图像 + 尺寸 + 缓存 key），预览与写入共用同一对象",
+          "forbidden": "不允许各自实现一套——预览不得另写模拟裁切逻辑，写入不得绕过产物直接裁图",
+          "cacheKey": "hash(壁纸ID, 屏displayID, 填充模式, 焦点, 缩放倍率)",
+          "executionTiming": "仅在「设为壁纸」时预裁切；浏览瀑布流/详情页时不预裁切，避免拖慢滚动",
+          "needsLoadingState": true,
+          "whyPreviewExact": "因为写入的是已裁好的成品图，预览只要渲染同一份裁切产物就天然一致。真正的风险是预览另写一套渲染逻辑"
+        }
+      },
+      "lowResolutionWarning": {
+        "trigger": "目标屏物理像素 > 壁纸物理像素 且 填充模式为「填满」",
+        "recomputeScope": "perScreen",
+        "recomputeRule": "预警文案与倍数必须按当前选中屏幕独立计算。切换屏幕时必须全部重算，禁止沿用上一次的 {factor}/{screenW}/{screenH}/{scaleFactor}。同一张壁纸在 4K 屏够用、在 5K 屏不足——倍率与屏尺寸都必须随屏变化",
+        "recomputeOn": ["切换选中屏幕", "切换填充模式", "显示器热插拔", "缩放倍率变化"],
+        "silentErrorRisk": "倍数是上次的但当前屏不同——用户会以为系统算错了。这是跨屏场景的静默错误来源，必须在测试中覆盖「同一壁纸 + 三块不同分辨率屏」用例",
+        "neverCacheAcrossScreens": {
+          "rule": "放大倍数 = 屏物理像素 / 壁纸物理像素，是 (壁纸, 屏幕) 这一对的关系量，不是壁纸的固有属性",
+          "forbidden": ["把倍数作为壁纸的持久化字段", "缓存跨屏的倍数结果", "在壁纸详情页显示一个与屏无关的「放大倍数」"],
+          "cacheKeyMustContain": "目标屏标识（displayID + backingScaleFactor）",
+          "concreteExamples": [
+            "同一张 3840×2160 在 5120×2880 屏上是 1.33 倍",
+            "同一张 3840×2160 在 2560×1440 屏上完全无需放大（不显示预警）",
+            "用户拔掉外接屏、或把壁纸从副屏拖到主屏，倍数立即改变"
+          ],
+          "copyImpact": "若 UI 标签来自缓存值，多屏场景下用户会看到张冠李戴的数字——与「预览正确但实际错位」是同一类静默错误，只是发生在文案上"
+        },
+        "systemFact": "系统会放大过小图片，且 NSImageScaleProportionallyDown（只缩小不放大）在壁纸 API 中不被支持，因此该行为无法通过参数关闭",
+        "presentation": "分配器内内联显示，不弹模态——这是常规信息不是错误",
+        "hideWhen": "切换到「完整可见」时自动消失（不放大不模糊）",
+        "icon": { "symbol": "exclamationmark.triangle", "size": "24px", "color": "{color.semantic.warn}" },
+        "title": "该壁纸分辨率低于屏幕",
+        "mustShowSpecificNumbers": true,
+        "numberFormat": "壁纸 {imageW} × {imageH} / 屏幕 {screenW} × {screenH}（{scaleFactor}x）/ 放大约 {factor} 倍",
+        "numberRationale": "模糊倍数可感知，「可能模糊」太模糊。用户要数字不要形容词",
+        "dataFont": "mono",
+        "primaryAction": "在主窗口查看",
+        "primaryActionBehavior": "jumpToMainWindowDetail",
+        "primaryActionRationale": "MVP 不做动态分辨率档位（屏幕尺寸为连续值会造成无限组合）。跳转主窗口详情页，那里已有筛选入口",
+        "secondaryAction": "仍要使用",
+        "neverBlocks": true,
+        "consistencyRequirement": "预警中的壁纸尺寸/屏幕尺寸/倍率必须与 hover 浮层、缩略图标签同源于一份计算结果",
+        "primaryActionResolution": {
+          "decision": "MVP 不做动态分辨率档位，低分辨率预警主操作降级为「在主窗口查看」（跳详情页，那里已有筛选入口）",
+          "dataEvidence": "curl wallhaven.cc/api/v1/search?atleast=5120x2880&sorting=date_added → total 22728 张, last_page 947。atleast 支持任意分辨率，5K 档有 2.2 万张可用，数据基础充足",
+          "rationale": "正因充足才更不该做动态档位——屏幕尺寸是连续值（5120×2880/6016×2160/5120×3200…），动态生成会产生无限组合。固定 5 档已是合理抽象，再动态化属过度设计",
+          "v2Trigger": "若数据显示大量用户是 5K/6K 屏，再做「以当前屏为基准的智能筛选」",
+          "rationaleBasis": "实测数据，非工程量考虑"
+        }
+      }
+    },
+    "nsfwGate": {
+      "model": "threeTier",
+      "tiers": {
+        "L1": { "name": "能力层", "condition": "API Key 有效 且 wallhaven 账号已开启 NSFW", "default": "userConfigured", "uiWhenFailed": "none", "uiWhenFailedNote": "不渲染任何 NSFW UI，不做置灰开关——置灰会让用户反复点击找原因" },
+        "L2": { "name": "应用层", "condition": "应用内 NSFW 总开关，需显式操作 + 年龄确认", "default": false, "scope": "allSurfaces", "presentIn": ["mainWindowSettings", "menubarPanel"] },
+        "L3": { "name": "场景层", "condition": "菜单栏面板 NSFW 独立开关", "default": false, "scope": "menubarPanelOnly", "presentIn": ["menubarPanel"], "note": "主窗口是主动打开的私密场景，不再加一层，避免过度设计" }
+      },
+      "switchVisualHierarchy": {
+        "L2Label": "应用内 NSFW",
+        "L3Label": "本面板显示 NSFW",
+        "rule": "文案必须带作用域词，不用「全局/局部」术语；每行配 --text-2xs --meta 辅助说明说明影响范围；两开关间用 --divider-hairline 分隔",
+        "L2TextColor": "{color.semantic.fg}",
+        "L3TextColor": "{color.semantic.fg2}",
+        "noWarningColorWhenOn": "L3 开启是用户自主决定，不用 danger/warn 色——会暗示产品不支持且让用户不敢用"
+      },
+      "panelDegradation": {
+        "strategy": "opaquePlaceholder",
+        "blurAllowed": false,
+        "thumbnail": "不透明 --nsfw-placeholder-bg 占位块 + checkmark.shield 24px + 「NSFW 内容」标签",
+        "hiddenMetadata": ["resolution", "favorites", "tags", "uploader", "purityBadge", "hoverOverlay"],
+        "onlyAction": { "icon": "arrow.up.forward.app", "label": "在主窗口查看", "behavior": "navigateToMainWindow", "rationale": "把敏感内容的完整查看迁移到私密场景，而非在公开场景半允许" },
+        "voiceOverLabel": "NSFW 内容，已在公开场景隐藏预览",
+        "voiceOverHint": "在主窗口中查看完整内容",
+        "appliesTo": "menubarPanelOnly",
+        "mainWindowBehavior": "L2 开启后正常展示完整内容"
+      },
+      "silentFilterGuard": {
+        "trigger": "L3 关闭 且 结果为空 且 移除门禁后有结果",
+        "mustShow": "显式提示「当前搜索「{query}」有 {count} 张 NSFW 结果未显示」",
+        "mustNotShow": "标准空态「没有匹配的壁纸」",
+        "reason": "静默过滤会让用户误判内容库规模，误以为 wallhaven 上没有这张图",
+        "countMustBeSpecific": true,
+        "actions": ["开启本面板 NSFW", "在主窗口打开"],
+        "keyboard": { "return": "开启本面板 NSFW", "shiftReturn": "在主窗口打开" }
+      }
+    },
+    "liveEditor": {
+      "layout": "左源素材 / 右预览，双栏 1:1",
+      "sourceType": "localImportedVideo",
+      "sourceNote": "源素材是本地导入的视频文件，不是网络图片。布局图中的「源图」应理解为视频首帧或选区内画面",
+      "perScreenCrop": {
+        "capability": "同一段视频按每块屏物理像素分别裁切播放（21:9 副屏不裁切、16:10 主屏按焦点裁切）",
+        "whyStaticCantDo": "这是静态壁纸做不到的能力 —— 静态壁纸一套图铺所有屏，动态壁纸可以每屏一套裁切",
+        "assignmentUi": "复用 displayAssignment 的屏幕缩略图矩阵，但每块屏内显示该屏实际裁切后的画面（非原始首帧）",
+        "cropDifferenceNote": "若各屏裁切区域不同，在缩略图下方标注「已按此屏比例裁切」",
+        "focusIndependence": "每块屏的裁切焦点独立记忆，复用 cropFocus.memoryScope=perDisplay",
+        "consistency": "预览渲染的必须就是各屏将写入的裁切产物，复用 cropFocus.artifactContract，禁止为不同屏写不同裁切逻辑",
+        "riskIfOmitted": "若分配界面只显示「这张视频已分配到 3 块屏」，用户无法理解为什么每屏看到的内容不同，会以为播放异常"
+      },
+      "cropHandles": 8,
+      "handleSize": "{extension.cropHandleSize}",
+      "speedControl": "slider 0.25x–3.0x（非枚举连续量，Slider 适用）",
+      "previewShows": ["dockSafeArea", "menuBarSafeArea"]
+    },
+    "liveWallpaperImport": {
+      "sourceOfMaterial": "localImportOnly",
+      "apiEvidence": {
+        "sampleSize": 120,
+        "videoCount": 0,
+        "breakdown": ["random 第1页: jpeg 18 / png 6", "q=+video&sorting=toplist: png 14 / jpeg 10", "favorites 第1-3页: jpeg 55 / png 17"],
+        "endpointProbe": "/api/v1/video 返回 404",
+        "docSearch": "官方文档全文检索 video/webm/gif/animated 零命中",
+        "typeParamCorrection": {
+          "correctedBy": "架构师更正，team-lead 先前的「无效证据」判断有误",
+          "truth": "type: 不是独立参数，而是 q= 内部的前缀语法。两种形式结果完全不同",
+          "forms": {
+            "independentParam": { "request": "/search?type:video", "total": 501656, "note": "被服务端忽略，返回全库" },
+            "insideQuery": { "request": "/search?q=type%3Avideo", "total": 0, "note": "真实过滤生效" }
+          },
+          "evidenceStrengthUpgrade": {
+            "before": "采样没抽到视频（可能只是运气）",
+            "after": "服务端精确匹配下视频总量为 0（确定性结论）",
+            "nature": "服务端权威过滤，取代采样成为主要依据"
+          },
+          "verificationRule": "若后续仍要引用 type: 做验证，必须使用 q=type%3A 形式。独立参数形式会给出「返回全库」这个看似合理实则完全误导的结果"
+        },
+        "fullLibraryFormatAudit": {
+          "verifiedBy": "设计师独立实测（curl 直连）",
+          "totals": {
+            "全库": 501656,
+            "q=type:png": 115989,
+            "q=type:jpg": 385667,
+            "q=type:video": 0,
+            "q=type:gif": 0,
+            "q=type:webm": 0
+          },
+          "mathCloses": "115989 + 385667 = 501656 恰好等于全库总数",
+          "conclusion": "全库只有 PNG 与 JPEG 两种格式",
+          "uiImplications": [
+            "不需要「格式」筛选维度 —— 只有两种格式且浏览器场景下几乎无差别",
+            "hover 浮层与详情页的 PNG/JPEG 格式徽标价值极低可考虑移除（74% 是 JPEG，且 JPEG 内部还有质量档差异）",
+            "若需向用户解释「为什么没有动图」，可用「wallhaven 为静态图片库」作为空态兜底话术"
+          ]
+        }
+      },
+      "designImplication": "F9 定位从「浏览到动态壁纸→播放」变为「把用户已有的视频素材变成动态壁纸」。入口挂在本地库/导入之后，不是瀑布流卡片的下游",
+      "noDynamicBadgeOnCards": {
+        "forbidden": ["播放标记", "动效徽标", "时长标签", "任何暗示该卡是动态壁纸的视觉标识"],
+        "why": "网络内容里不存在动态壁纸卡片，加了就是永不出现的假功能"
+      },
+      "supportedFormats": ["mp4", "mov"],
+      "supportedCodecs": ["h264", "hevc"],
+      "unsupportedFormats": ["webm", "mkv", "gif"],
+      "unsupportedReason": {
+        "webm": "此容器不受支持，无法解码。",
+        "mkv": "此容器不受支持，无法解码。",
+        "gif": "GIF 需要逐帧解码，功耗较高，不适合作为动态壁纸。",
+        "sharedRationale": "GIF 与 WEBM/MKV 虽然都是导入失败，但用户可采取的行动不同：前者可转换、后者只能换素材。合并成一个「格式不支持」会让用户不知道该怎么办"
+      },
+      "importProbeStates": {
+        "note": "架构侧约束：格式探测在导入时做一次（不在播放时做）。因此错误提示出现在「拖入文件」这一刻，不是「点播放」时。不静默转换、不静默跳过 —— 失败必须显式告知",
+        "probeTiming": "atImport",
+        "states": [
+          {
+            "id": "supported",
+            "condition": "MP4 / MOV（H.264 / HEVC）",
+            "treatment": "导入成功，可播放",
+            "ui": "成功态",
+            "visual": "正常卡片入场"
+          },
+          {
+            "id": "convertRequired",
+            "condition": "GIF",
+            "treatment": "明确拒绝，提示可转换",
+            "ui": "引导转换态",
+            "visual": "exclamationmark.triangle + --warn",
+            "copy": "macOS 不支持 GIF 作为动态壁纸，请转换为 MP4",
+            "reason": "GIF 需要逐帧解码，功耗较高",
+            "actions": ["转换为 MP4 后重试", "重新选择"],
+            "userCanAct": true,
+            "actionNature": "convert"
+          },
+          {
+            "id": "unsupported",
+            "condition": "WEBM / MKV / 其他",
+            "treatment": "不支持，提示该格式无硬件解码",
+            "ui": "不支持态",
+            "visual": "exclamationmark.triangle + --warn（与转换态同一图标，但文案与操作明确不同）",
+            "copy": "此格式无硬件解码，无法作为动态壁纸",
+            "reason": "该容器不受支持",
+            "actions": ["重新选择"],
+            "userCanAct": false,
+            "actionNature": "replaceMaterial",
+            "mustNotOffer": "不要提供「转换为 MP4」作为主要操作 —— WEBM/MKV 转 MP4 通常需要重编码（耗时且质量损失），说「换个素材」更诚实"
+          },
+          {
+            "id": "corrupted",
+            "condition": "损坏 / 无法解析",
+            "treatment": "报错，不静默跳过",
+            "ui": "损坏态",
+            "visual": "exclamationmark.triangle + --danger",
+            "copy": "无法读取这个文件，文件可能已损坏",
+            "reason": "文件无法解码",
+            "actions": ["重新选择", "查看详情"],
+            "userCanAct": true,
+            "actionNature": "getDifferentFile"
+          }
+        ],
+        "mustBeVisuallyDistinct": "四态的文案与操作必须可区分。GIF 需转换 vs WEBM 不支持尤其重要 —— 前者用户能行动（转），后者只能换素材。若合并为一个「格式不支持」，用户会不知道该怎么办"
+      },
+      "unsupportedFormatGuidance": {
+        "isBlocking": true,
+        "mustContain": ["文件名（mono）", "为什么不支持（该格式的具体理由）", "可执行的出路"],
+        "mustNot": ["静默失败", "黑屏", "只说「不支持该格式」", "笼统的「导入失败」"],
+        "rationale": "用户导入失败却只看到黑屏或笼统报错，会归因为「这个应用播放能力不行」而不是「格式不支持」。必须指向可执行的下一步",
+        "icon": "exclamationmark.triangle",
+        "actions": ["重新选择", "查看转换方法"]
+      },
+      "loopSeamNotice": {
+        "when": "导入时检测首尾帧差异，导入后一次性提示",
+        "copy": "此视频首尾帧不连续，循环时可能有明显跳变",
+        "nonBlocking": true,
+        "showOnce": true,
+        "skipIfSeamless": true,
+        "skipReason": "不要对所有视频都显示这个提示，那会变成噪声"
+      }
+    },
+    "menubarPanel": {
+      "width": "{layout.chrome.menubarPanelWidth}",
+      "height": "{layout.chrome.menubarPanelHeight}",
+      "layoutOrder": ["searchField", "currentPreview", "primaryActions", "nsfwGate", "recentStrip", "footerActions"],
+      "maxVisibleResults": 6,
+      "searchFieldSharesRowWith": "filterButton",
+      "spaceBudget": {
+        "baseOccupancy": "400px (+ dividers & safe area ≈ 460px)",
+        "nsfwGateHeight": "52px",
+        "sacrificeOrder": ["recentStrip(可折叠)", "currentPreview(缩至160px)", "primaryActions(压至44px)"],
+        "neverSacrifice": ["NSFW 开关可见性", "primaryActions", "searchField"]
+      }
+    },
+    "toast": {
+      "autoDismissMs": 2000,
+      "maxWidth": "320px",
+      "position": "窗口底部居中 / 菜单栏面板底部",
+      "variants": ["info", "success", "warning", "error"]
+    }
+  },
+
+  "zIndex": {
+    "base": 0, "card": 10, "chrome": 100, "sticky": 200,
+    "popover": 300, "hud": 400, "sheet": 500, "modal": 600
+  },
+
+  "accessibility": {
+    "contrast": { "bodyMin": "4.5:1", "largeTextMin": "3:1", "uiMin": "3:1", "note": "--p-fg-tertiary 4.7:1 达标；--p-fg-quaternary 不承载语义仅装饰" },
+    "focusVisible": { "width": "3px", "offset": "2px", "color": "{color.primitive.focus}", "neverRemoveOutline": true },
+    "keyboard": {
+      "global": ["⌘F 聚焦搜索", "⌘, 设置", "⌘1–⌘6 切换侧栏", "⌘⌥1–⌘⌥9 分配到第 N 屏", "空格 上一张/下一张", "⌘⏎ 设为壁纸", "⌘D 收藏", "⌘⇧D 编辑动态壁纸", "⌘R 随机", "⌘⌫ 清除筛选"],
+      "gridNavigation": "瀑布流支持方向键漫游 + Home/End + PageUp/PageDown",
+      "focusOrder": "工具栏 → 侧栏 → 内容区 → inspector"
+    },
+    "voiceOver": {
+      "imageCardLabel": "{title}，{width}×{height}，{favorites} 次收藏，{categoryLabel}",
+      "imageCardHint": "双击设为壁纸。按住 Option 双击编辑为动态壁纸",
+      "imageCardValue": "已收藏 / 未收藏",
+      "filterGroupLabel": "{groupName} 筛选组，{selectedCount} 项已选",
+      "liveToggleLabel": "动态壁纸播放，{状态}",
+      "speedControlLabel": "播放速度，{value} 倍",
+      "cropControlLabel": "裁剪区域，{width}×{height}",
+      "displayCardLabel": "显示器 {index}，{resolution}，{scaleFactor}x，{isPrimary}",
+      "nsfwPlaceholderLabel": "NSFW 内容，已在公开场景隐藏预览",
+      "nsfwPlaceholderHint": "在主窗口中查看完整内容",
+      "nsfwGateSwitchLabel": "{scope}NSFW 内容开关",
+      "nsfwGateSwitchValue": "已开启 / 已关闭",
+      "nsfwGateSwitchHint": "{scopeHelp}",
+      "nsfwGatePromptLabel": "面板已隐藏 NSFW 内容。当前搜索有 {count} 张 NSFW 结果未显示",
+      "requiredTraits": ["按钮加 isSelected trait 表示已分配", "进度加 accessibilityValue 更新频率"]
+    },
+    "reducedMotion": { "honorsSystem": true, "fallbackDuration": "1ms", "note": "同时关闭 symbolEffect 的 symbolAnimation 替换为静态 glyph" },
+    "reducedTransparency": { "honorsSystem": true, "fallback": "不透明 surface-raised" },
+    "increasedContrast": { "honorsSystem": true, "fallback": "border → fgTertiary，muted → fgSecondary" },
+    "motionCues": { "note": "所有状态切换必须有非动效替代（颜色/形状/文本），不依赖动画传达唯一信息" }
+  },
+
+  "content": {
+    "voice": {
+      "tone": "克制、具体、像工具说明书而非广告文案",
+      "forbidden": ["Welcome to", "Lorem ipsum", "Sign up today", "Get started", "Elevate", "Seamless", "Unleash", "Next-Gen", "一站式", "无缝", "开启新篇章"],
+      "rules": [
+        "按钮写具体动词：设为壁纸 / 分配到显示器 / 裁剪并播放，不用「确定」",
+        "空态给出下一步动作，不用「暂无数据」",
+        "错误说清原因与出路：API 密钥无效，请在「设置 › 密钥」中重新填入",
+        "不使用感叹号做视觉强调"
+      ]
+    },
+    "microCopy": {
+      "searchPlaceholder": "搜索壁纸、标签、上传者",
+      "emptyNoKey": {
+        "title": "还没有可用的图片源",
+        "body": "IHaven 使用 Wallhaven API 获取壁纸。在「设置 › 密钥」填入 API Key 后即可开始浏览。",
+        "action": "打开密钥设置"
+      },
+      "emptyNoResult": {
+        "title": "没有匹配的壁纸",
+        "body": "当前筛选组合下没有结果。放宽分辨率或比例通常能找到更多。",
+        "action": "清除全部筛选"
+      },
+      "emptyNoFavorite": {
+        "title": "还没有收藏",
+        "body": "在瀑布流中悬停任意壁纸并点亮星标，或按 ⌘D。",
+        "action": "去发现壁纸"
+      },
+      "resolutionPreset": {
+        "note": "5 档是 UI 预设，非 API 枚举。wallhaven atleast 接受任意 WIDTHxHEIGHT 字符串，新增档位只加 UI 选项不改数据结构（架构师核实）",
+        "presets": [
+          { "id": "any",       "label": "不限",   "atleast": null },
+          { "id": "fhd",      "label": "≥1080p", "atleast": "1920x1080", "approxTotal": 388406 },
+          { "id": "qhd",      "label": "≥1440p", "atleast": "2560x1440", "approxTotal": 160732 },
+          { "id": "uhd",      "label": "≥4K",    "atleast": "3840x2160", "approxTotal": 80905 },
+          { "id": "fiveK",    "label": "≥5K",    "atleast": "5120x2880", "approxTotal": 22728 },
+          { "id": "ultrawide","label": "超宽",   "ratios": "21x9,32x9,48x9", "approxTotal": null }
+        ],
+        "extendability": "加 8K 档只需加一条预设 {id:\"8k\", atleast:\"7680x4320\"}，UI 与数据结构均不变"
+      },
+      "resultCountFormat": {
+        "rule": "筛选面板的结果数一律用中文紧凑格式，禁止显示原始千分位整数",
+        "format": { "10000": "1万", "22728": "2.2万", "388406": "38.8万", "999": "999" },
+        "why": "atleast 各档结果数差异达 17 倍（5K 档 2.2 万 vs 1080p 档 38.8 万，架构师实测）。显示「388,406」这类原始数字会让用户以为高分辨率档「筛选坏了」或「内容库太小」",
+        "sample": "≥5K（2.2万） / ≥1080p（38.8万）",
+        "alternative": "若空间不足，优先选择不在筛选面板显示总数——档位标签本身已足够表达条件"
+      },
+      "emptySemanticNoMatch": {
+        "title": "没有符合此组合的壁纸",
+        "body": "筛选条件本身有效，但 wallhaven 上没有同时满足这些条件的图片。",
+        "action": "清除全部筛选",
+        "distinguishFrom": "emptyNoResult",
+        "whySeparate": "用户用「9999x9999」「99x99」这类格式合法但语义无效的参数时，wallhaven 返回 200 + 空数组而非错误（架构师实测）。若与错误态共用一个空态，用户会以为是自己操作错了，实际是内容库真的没这组合。语义上这是「条件有效但无匹配」，不是「条件无效」",
+        "visuallyIdenticalToEmptyNoResult": true,
+        "mustNotLookLikeError": true
+      },
+      "errorInvalidParams": {
+        "title": "筛选条件无效",
+        "body": "请求未发出：分辨率或比例的取值超出支持范围。请重新选择。",
+        "action": "检查筛选条件",
+        "apiErrorClass": "localValidationFailed",
+        "trigger": "本地校验未通过，请求根本没有发出",
+        "mustNotShow": "加载失败 / 加载中",
+        "icon": "exclamationmark.triangle"
+      },
+      "errorServiceUnavailable": {
+        "title": "wallhaven 服务暂时不可用",
+        "body": "服务端返回异常，请稍后重试。你的筛选条件没有问题。",
+        "action": "重试",
+        "apiErrorClass": "server5xx",
+        "trigger": "5xx 且本地参数合法",
+        "mustNotShow": "加载失败",
+        "whySeparate": "wallhaven 对非法参数返回 500 而非 4xx，且非法参数的 500 响应体与真实服务端故障完全相同（都是 {\"message\":\"Server Error\"}），无法靠响应区分。只能靠「本地参数是否合法」反推",
+        "icon": "exclamationmark.triangle"
+      },
+      "errorNetwork": {
+        "title": "网络不可用",
+        "body": "请检查网络连接后重试。",
+        "action": "重试",
+        "apiErrorClass": "urlError",
+        "trigger": "URLError 族（断网、DNS 失败、超时）",
+        "mustNotShow": "加载失败 / 服务暂时不可用",
+        "whySplitFromService": "原 errorNetwork 把断网和服务端故障合并成「图片加载失败，检查网络连接后重试。若持续失败，可能是 wallhaven 服务暂时不可用」——一句话同时说了两个原因，用户无法判断该检查网络还是该等待。合并两个不同原因的错误文案等于没说"
+      },
+      "errorRateLimit": {
+        "title": "请求过于频繁",
+        "body": "wallhaven 对调用有速率限制，将在 {seconds} 秒后自动重试。",
+        "bodyFallback": "wallhaven 对调用有速率限制，稍后会自动恢复。",
+        "action": "立即重试",
+        "apiErrorClass": "rateLimited429",
+        "trigger": "HTTP 429",
+        "mustNotShow": "静默失败",
+        "countdownRequired": true,
+        "countdownNote": "必须显示具体秒数（架构师实测可从响应头拿到重试时间）。不给数字的「稍后」等于没给信息"
+      },
+      "errorMalformedResponse": {
+        "title": "服务返回了无法解析的数据",
+        "body": "wallhaven 返回的内容无法解析。请稍后重试。",
+        "action": "重试",
+        "apiErrorClass": "decodeFailed2xx",
+        "trigger": "HTTP 2xx 但响应体解析失败",
+        "mustNotShow": "网络异常 / 网络不可用",
+        "rarity": "veryRare",
+        "rarityNote": "架构侧已确认携带 Accept: application/json 请求头时 5xx 响应体也是可解析的 JSON，该头为硬约束。因此解码失败实际很少发生 —— 文案应简洁",
+        "mustNotShowDetail": "不要写「可能是请求参数不被接受，或服务临时异常」这类推测性归因 —— 既然罕见且原因不确定，坦率告知无法解析 + 建议重试即可。推测会让用户去猜一个可能不存在的问题",
+        "simplificationRationale": "错误态可假定「拿到的状态码与消息可靠」，因此本态不需要承载过多推断",
+        "whySeparate": "仍需独立成态：万一发生，真实原因确实与网络无关，归入网络错误会让用户查错方向",
+        "icon": "exclamationmark.questionmark"
+      },
+      "errorKey": {
+        "title": "密钥无效",
+        "body": "请检查后重新输入。确认复制时没有包含前后空格。",
+        "apiErrorClass": "unauthorized401",
+        "trigger": "HTTP 401",
+        "mustNotShow": "加载失败 / 请求失败 / 网络不可用",
+        "whyIndependent": "用户输入 Key 是在做一个明确操作（粘贴一个字符串）。失败时他需要知道是「这个字符串不对」而非「应用或网络有问题」—— 这两种归因导致完全不同的后续动作（检查 Key vs 检查网络）。给错归因会让用户做无用功",
+        "contexts": {
+          "inlineInSettings": {
+            "presentation": "内联在密钥输入框下方，紧贴字段",
+            "title": "密钥无效",
+            "body": "请检查后重新输入。确认复制时没有包含前后空格。",
+            "icon": "exclamationmark.triangle",
+            "color": "{color.semantic.danger}",
+            "placement": "输入框正下方，8px 间距，不弹 toast",
+            "mustNot": "不要跳转到「设置 › 密钥」—— 用户已经在这个页面，跳转是荒谬的",
+            "inputState": "输入框边框转 danger，focus 时保留 danger 而非 info蓝",
+            "action": "用户直接修改输入框内容，不需要额外按钮",
+            "clearOnEdit": true,
+            "rationale": "这是 PM 特别指出的设计点：错误提示出现在用户操作的位置，且不要求额外动作"
+          },
+          "globalElsewhere": {
+            "presentation": "全局提示（HUD 或结果区错误态）",
+            "title": "API 密钥无效",
+            "body": "wallhaven 返回 401。请在「设置 › 密钥」中检查密钥是否复制完整。",
+            "action": "打开密钥设置",
+            "rationale": "此时用户在其他界面（如浏览瀑布流），需要引导他到设置页"
+          }
+        },
+        "neverCoOccursWith": {
+          "errorInvalidParams": "服务端先校验认证、再校验参数，无条件 401 优先。但参数非法的请求根本不会发出（被本地预校验拦截），因此 401 只会在「参数合法但 Key 无效」时出现 —— 两者互斥，不会同时出现"
+        }
+      },
+      "errorStatesMustNotMerge": {
+        "count": 6,
+        "classes": ["errorInvalidParams", "errorServiceUnavailable", "errorNetwork", "errorRateLimit", "errorMalformedResponse", "errorKey"],
+        "reason": "六类触发条件互斥且用户可自行区分（改筛选条件 / 等重试 / 检查网络 / 等倒计时 / 重试 / 检查 Key）。统一显示「加载失败」会让用户无法判断是自己的筛选条件错了还是 wallhaven 挂了，等于把排查成本转嫁给用户",
+        "implementationRule": "APIError 六类不可合并，每类独立文案 + 独立 icon + 独立 action。errorKey 另按上下文分内联/全局两套（见 errorKey.contexts）",
+        "emptyStateNotAnError": "「请求已发出且 200 + 空数组」是空态而非第七类错误，唯一区分信号是「请求是否发出」。空态必须完全中性，无警示色无错误图标 —— 否则用户会反复重试"
+      },
+      "hudSetWallpaper": "已设为壁纸",
+      "hudAssigned": "已分配到显示器 {n}",
+      "hudRemoved": "已从显示器移除",
+
+      "nsfwGate": {
+        "sectionTitle": "NSFW 内容",
+        "l2SwitchLabel": "应用内 NSFW",
+        "l2SwitchHelp": "影响全部界面，需年龄确认",
+        "l3SwitchLabel": "本面板显示 NSFW",
+        "l3SwitchHelp": "仅菜单栏弹出时生效，不影响主窗口",
+        "l2EnableConfirmTitle": "开启 NSFW 内容",
+        "l2EnableConfirmBody": "开启后应用内可浏览 NSFW 壁纸。请确认你已年满所在地区的法定年龄。",
+        "l2EnableConfirmAction": "我已年满，开启",
+        "l2EnableCancelAction": "保持关闭",
+        "placeholderLabel": "NSFW 内容",
+        "placeholderAction": "在主窗口查看"
+      },
+      "nsfwGatePrompt": {
+        "title": "面板已隐藏 NSFW 内容",
+        "bodyTemplate": "当前搜索「{query}」有 {count} 张 NSFW 结果，未在此显示。",
+        "primaryAction": "开启本面板 NSFW",
+        "secondaryAction": "在主窗口打开"
+      },
+      "displayAssignment": {
+        "title": "分配到显示器",
+        "doneAction": "完成",
+        "primaryScreenMarker": "主显示器",
+        "scaleFactorSuffix": "{scale}x",
+        "fillModes": { "fitFullyVisible": "完整可见", "fillScreen": "填满" },
+        "fillColorLabel": "填充色",
+        "fillColorValue": "自动派生",
+        "fillColorResetAction": "恢复自动派生",
+        "fillColorDeriveNote": "取自此壁纸的主色",
+        "cropFocusLabel": "裁切焦点",
+        "cropFocusHelp": "决定填满模式裁掉哪一部分，按屏独立记忆",
+        "cropFocusRedLine": "预览即写入系统的成品图，做不到则不提供此功能",
+        "lowResWarning": {
+          "title": "该壁纸分辨率低于屏幕",
+          "lineFormat": "壁纸 {imageW} × {imageH}",
+          "screenFormat": "屏幕 {screenW} × {screenH}（{scaleFactor}x）",
+          "factorFormat": "填满模式下会放大约 {factor} 倍，画面可能模糊",
+          "primaryAction": "在主窗口查看",
+          "primaryActionBehavior": "jumpToMainWindowDetail",
+          "secondaryAction": "仍要使用"
+        },
+        "hudAssigned": "已分配到显示器 {n}"
+      },
+      "liveEditor": {
+        "speedLabel": "播放速度",
+        "speedPresets": ["0.5×", "1.0×", "1.5×", "2.0×"],
+        "resetAction": "重置",
+        "performanceLabel": "性能预估",
+        "powerSavingMode": "省电模式",
+        "powerWarning": "功耗较高",
+        "lowFpsNotice": "已切换省电模式（15 fps）",
+        "loopSeamNotice": "此视频首尾帧不连续，循环时可能有明显跳变",
+        "loopSeamAction": "仍然使用"
+      },
+      "liveImport": {
+        "emptyTitle": "还没有动态壁纸",
+        "emptyBody": "从访达拖入你自己的视频文件，或点击选择。支持 MP4、MOV（含 HEVC、H.264）。",
+        "emptyBodyRationale": "入口文案必须明确指向本地素材 —— 不能暗示「有海量动态壁纸可选」，那是错误承诺（API 侧无视频内容）",
+        "emptyAction": "选择文件…",
+        "dropZoneLabel": "将视频文件拖到这里",
+        "dropZoneFormatsSupported": "支持 MP4、MOV（含 HEVC、H.264）",
+        "dropZoneFormatsUnsupported": "不支持 WEBM、MKV、GIF",
+        "unsupportedTitle": "无法导入这个文件",
+        "unsupportedBodyTemplate": "{filename}\n{reason}\n{action}",
+        "unsupportedTitle": "{reason}",
+        "unsupportedReasonGif": "macOS 不支持 GIF 作为动态壁纸",
+        "unsupportedReasonGifDetail": "GIF 需要逐帧解码，功耗较高，不适合作为动态壁纸。",
+        "unsupportedReasonGifAction": "建议转换为 MP4 后再导入。",
+        "unsupportedReasonWebm": "此格式无硬件解码",
+        "unsupportedReasonMkv": "此格式无硬件解码",
+        "unsupportedReasonWebmDetail": "该容器不受支持，无法解码。转换为 MP4 需重新编码，可能损失画质，建议选择其他素材。",
+        "unsupportedReasonWebmAction": "请选择其他素材。",
+        "corruptedTitle": "无法读取这个文件",
+        "corruptedDetail": "文件可能已损坏，或正在被其他应用占用。",
+        "corruptedAction": "重新选择",
+        "unsupportedPrimaryAction": "重新选择",
+        "unsupportedSecondaryAction": "查看转换方法",
+        "gifPrimaryAction": "转换为 MP4 后重试",
+        "gifSecondaryAction": "重新选择",
+        "webmPrimaryAction": "重新选择",
+        "mustNotOfferConvertForWebm": "不要给 WEBM/MKV 提供「转换为 MP4」作为主要操作 —— 会暗示一条其实很重的路（重编码耗时且损画质），说「换个素材」更诚实",
+        "unsupportedVoiceOverLabel": "无法导入 {filename}，{reason}，{action}",
+        "cardDurationFormat": "{seconds}s",
+        "removeAction": "从列表移除",
+        "removeConfirmTitle": "移除这个动态壁纸？",
+        "removeConfirmBodyInUse": "它当前正在作为壁纸播放，移除后桌面会回到静态壁纸。"
+      },
+      "forbiddenStrings": {
+        "加载失败": "五类错误各有独立文案。用户无法从统一文案判断是自己的筛选条件错了还是服务挂了——这四个字本质是把排查成本转嫁给用户",
+        "操作失败": "未说明原因，用户无法行动",
+        "出错了": "同上"
+      },
+      "errorCopyMustPointToAction": {
+        "rule": "每类错误文案必须能回答「用户现在该做什么」",
+        "mapping": {
+          "errorInvalidParams": "改参数",
+          "errorServiceUnavailable": "等重试",
+          "errorNetwork": "检查网络",
+          "errorRateLimit": "等倒计时",
+          "errorMalformedResponse": "重试 / 更新应用"
+        }
+      },
+      "distinguishableCopyRule": {
+        "statement": "任何写了「A 还是 B」的文案/分类，必须能回答「依据什么可观测信号区分 A 和 B」。答不出来，说明是把选择题丢给了用户",
+        "scope": "三方通用自查规则 —— PM 写验收标准、架构师定错误映射、设计写文案，均适用",
+        "selfExecuting": true,
+        "requiresNoReference": "不需要查文档或 SDK，靠自查即可执行",
+        "proposedBy": "设计师提出，team-lead 提议升级为 PRD 附录 A 团队级门禁",
+        "caughtInstances": [
+          {
+            "before": "检查网络连接后重试。若持续失败，可能是 wallhaven 服务暂时不可用",
+            "problem": "无法区分信号 —— 用户不知道该查网络还是该等待",
+            "after": "拆为 errorServiceUnavailable（5xx 且参数合法）与 errorNetwork（URLError 族）",
+            "discriminator": "本地参数是否合法"
+          },
+          {
+            "before": "服务异常（把「2xx 但解码失败」并入其中）",
+            "problem": "无法区分 —— HTML 错误页与真实服务故障响应体完全相同",
+            "after": "独立为 errorMalformedResponse",
+            "discriminator": "HTTP 状态码是否为 2xx"
+          }
+        ],
+        "selfCheck": "写完文案自问：如果这条是A、那条是B，UI 侧靠什么可观测信号判断当前是A 还是 B？答不出来说明合并过度，必须拆"
+      }
+    }
+  }
+}

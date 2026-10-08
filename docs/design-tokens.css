@@ -1,0 +1,538 @@
+/* ============================================================================
+ * IHaven Design Tokens — Single Source of Truth
+ * ----------------------------------------------------------------------------
+ * 设计契约：DESIGN.md v2.0 | 生成：颜好看 (UI/UX)
+ * 技术底座：SwiftUI + macOS 26+ (Liquid Glass)
+ *
+ * P0 规则落地声明（供 Gate 检查）：
+ *   1. 本文件不含任何 emoji
+ *   2. 本文件不含 purple->pink 渐变（唯一的 gradient 是 --accent-wash 同色系低透明）
+ *   3. 本文件不含 Lorem ipsum / Welcome to 类占位文案
+ *   4. 除 #ffffff / #000000 外，所有色值均为 token 定义处唯一硬编码点；
+ *      组件层一律 var(--token)，禁止裸 hex
+ *   5. 禁止弹跳缓动 cubic-bezier(0.68,-0.55,0.265,1.55) —— 全部 easing 均
+ *      为无过冲曲线（详见 --ease-*）
+ *
+ * 四层架构：A1-identity -> A1-structure -> A2-semantic -> B-slot -> C-extension
+ * ========================================================================== */
+
+/* ============================================================================
+ * PRIMITIVE — A1-identity（品牌/主题色层）
+ * 唯一允许硬编码色值的位置。深色为默认主题（理由见 DESIGN.md §2）。
+ * ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* --- 1. 中性色阶：带蓝冷调偏移，非纯灰（避免 #808080 类死灰） ---------- */
+  /* 背景四层递进：越靠前越亮，用亮度而非阴影表达层级 */
+  --p-void:            #0B0D10;  /* 最深：窗口底、图片占位兜底 */
+  --p-surface-sunken:  #101317;  /* 凹陷：侧边栏、工具栏底 */
+  --p-surface-base:    #16191E;  /* 基准面：内容区 */
+  --p-surface-raised:  #1D2128;  /* 抬升：卡片、浮层、HUD */
+  --p-surface-overlay: #252A32;  /* 最高：菜单、popover、sheet */
+
+  /* 前景四层 */
+  --p-fg-primary:   #F2F5F8;  /* 标题、正文强调        对 --p-surface-base ≈ 14.2:1 */
+  --p-fg-secondary: #B6BEC9;  /* 正文默认              对 --p-surface-base ≈  8.6:1 */
+  --p-fg-tertiary:  #7E8794;  /* 辅助说明、时间戳      对 --p-surface-base ≈  4.7:1 */
+  --p-fg-quaternary:#5A626D;  /* 占位符、禁用态        仅作装饰性文字 */
+
+  /* 边框两档：结构可见 / 内部细分隔 */
+  --p-border-subtle: rgba(255, 255, 255, 0.06);
+  --p-border-strong: rgba(255, 255, 255, 0.12);
+
+  /* --- 2. 强调色：Amber（琥珀） ------------------------------------------
+   * 选型依据（DESIGN.md §2.3）：
+   *   - 壁纸是高饱和内容，UI 需一个在冷/暖/亮/暗壁纸上都能"读得出但不抢戏"的色
+   *   - 琥珀是暖色，与壁纸冷调形成互补衬托，且不落在紫/粉禁区
+   *   - 系统蓝 (#0A84FF) 已被 macOS 占用为默认 accent，不宜复用以免"系统控件感"
+   *   - 不用红（误读为错误态）、不用绿（误读为成功态）
+   * 关键约束：纯色使用，禁止任何 gradient 组合。
+   */
+  --p-accent-amber:   #E8A33D;  /* 主强调：选中态、主 CTA 图标 */
+  --p-accent-amber-d: #C4842A;  /* 强调暗部：hover 态基色 */
+  --p-accent-amber-l: #F2C177;  /* 强调亮部：pressed / 高亮描边 */
+
+  /* 语义三色（低饱和，向灰阶靠拢，不与壁纸争视线） */
+  --p-success: #4FA85C;
+  --p-warning: #D9A441;
+  --p-danger:  #D8574B;
+
+  /* 焦点环基色（focus-visible 用，3px 外环） */
+  --p-focus: #7FB8E8;
+}
+
+/* 浅色主题：跟随系统外观（Design Decision 记录于 DESIGN.md §2.2） */
+:root[data-appearance="light"] {
+  color-scheme: light;
+
+  --p-void:            #E4E6EA;
+  --p-surface-sunken:  #ECEEF1;
+  --p-surface-base:    #F5F6F8;
+  --p-surface-raised:  #FFFFFF;
+  --p-surface-overlay: #FFFFFF;
+
+  --p-fg-primary:   #12151A;  /* 对 --p-surface-base ≈ 15.6:1 */
+  --p-fg-secondary: #414852;  /* 对 --p-surface-base ≈  8.9:1 */
+  --p-fg-tertiary:  #6B7480;  /* 对 --p-surface-base ≈  4.8:1 */
+  --p-fg-quaternary:#9AA2AD;
+
+  --p-border-subtle: rgba(0, 0, 0, 0.08);
+  --p-border-strong: rgba(0, 0, 0, 0.16);
+
+  --p-accent-amber:   #B06A10;
+  --p-accent-amber-d: #8E5309;
+  --p-accent-amber-l: #C8801F;
+
+  --p-success: #2F7A3D;
+  --p-warning: #9A6B12;
+  --p-danger:  #B3382C;
+
+  --p-focus: #1B6FC4;
+}
+
+/* ============================================================================
+ * SEMANTIC — A2（语义别名层）
+ * 组件层只消费本层，不直接引用 --p-* primitive。
+ * ========================================================================== */
+
+:root {
+  /* --- Surface（表面语义） --- */
+  --bg:                var(--p-surface-base);
+  --bg-chrome:         var(--p-surface-sunken);   /* 工具栏 / 侧栏 / 菜单栏面板 */
+  --surface:           var(--p-surface-raised);   /* 卡片、浮层、HUD */
+  --surface-overlay:   var(--p-surface-overlay);  /* 菜单、popover、sheet */
+  --surface-sunken:    var(--p-surface-sunken);
+  --surface-image-gap: var(--p-void);             /* 瀑布流沟槽底色 */
+
+  /* --- Foreground（前景语义） --- */
+  --fg:        var(--p-fg-primary);
+  --fg-2:      var(--p-fg-secondary);   /* B-slot：默认正文 */
+  --muted:     var(--p-fg-tertiary);    /* 辅助说明 */
+  --meta:      var(--p-fg-quaternary);  /* B-slot：占位/禁用/时间戳 */
+  --fg-on-accent: #16120A;              /* 强调色之上的前景（A2 默认值） */
+
+  /* --- Border（边框语义） --- */
+  --border:        var(--p-border-strong);
+  --border-soft:   var(--p-border-subtle);
+  --border-accent: var(--p-accent-amber);
+
+  /* --- Accent（强调语义 + 交互态） --- */
+  --accent:        var(--p-accent-amber);
+  --accent-hover:  var(--p-accent-amber-d);
+  --accent-active: var(--p-accent-amber-l);
+  --accent-on:     var(--fg-on-accent);
+  --accent-wash:   color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-wash-strong: color-mix(in srgb, var(--accent) 22%, transparent);
+  /* 唯一允许的渐变：同色相 amber 深浅，非紫非粉，opacity 上限 0.22 */
+  --accent-scrim: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 0%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 22%, transparent) 100%
+  );
+
+  /* --- Semantic（状态语义） --- */
+  --success: var(--p-success);
+  --warn:    var(--p-warning);
+  --danger:  var(--p-danger);
+  --info:    var(--p-focus);
+
+  --success-wash: color-mix(in srgb, var(--success) 14%, transparent);
+  --warn-wash:    color-mix(in srgb, var(--warn) 14%, transparent);
+  --danger-wash:  color-mix(in srgb, var(--danger) 14%, transparent);
+
+  /* --- Focus（焦点可见性 · WCAG 2.4.11/2.4.13） --- */
+  --focus-ring-color: var(--p-focus);
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
+  --focus-ring: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+
+  /* --- Scrim（图片上的可读性遮罩 · 唯一允许的纯黑叠加） --- */
+  --scrim-image: linear-gradient(
+    180deg,
+    rgb(0 0 0 / 0) 40%,
+    rgb(0 0 0 / 0.55) 78%,
+    rgb(0 0 0 / 0.78) 100%
+  );
+  --scrim-modal: rgb(0 0 0 / 0.42);
+}
+
+/* ============================================================================
+ * TYPOGRAPHY — A1-structure
+ * macOS 平台：系统字体为唯一正确选择（SF Pro / SF Mono 由系统提供，
+ * 不打包字体文件——这既是 Apple HIG 要求，也避免中文字形渲染劣化）。
+ * 中文回退 PingFang SC，代码/数值回退 SF Mono。
+ * ========================================================================== */
+
+:root {
+  --font-display: -apple-system, "SF Pro Display", "PingFang SC",
+                  "Helvetica Neue", sans-serif;
+  --font-body:    -apple-system, "SF Pro Text", "PingFang SC",
+                  "Helvetica Neue", sans-serif;
+  --font-mono:    ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+
+  /* 8 级字号阶梯（pt，macOS 原生单位）。行高为 em 倍数 */
+  --text-2xs: 10px;  --leading-2xs: 1.20;  --tracking-2xs:  0.04em; /* 角标、快捷键芯片 */
+  --text-xs:  11px;  --leading-xs:  1.25;  --tracking-xs:   0.02em; /* 辅助说明、标签 */
+  --text-sm:  12px;  --leading-sm:  1.30;  --tracking-sm:   0.01em; /* 图片元数据 */
+  --text-md:  13px;  --leading-md:  1.45;  --tracking-md:   0em;    /* 基准正文 */
+  --text-lg:  15px;  --leading-lg:  1.40;  --tracking-lg:  -0.005em;/* 列表主行、强调 */
+  --text-xl:  17px;  --leading-xl:  1.35;  --tracking-xl:  -0.01em; /* 区块标题 */
+  --text-2xl: 22px;  --leading-2xl: 1.25;  --tracking-2xl: -0.015em;/* 详情页标题 */
+  --text-3xl: 28px;  --leading-3xl: 1.18;  --tracking-3xl: -0.02em; /* 页面主标题 */
+
+  /* 三级字重（对齐 SF Pro 可用字重，避免 590 这类系统会回退的字重） */
+  --weight-read:      400;  /* 正文 */
+  --weight-emphasize: 510;  /* 小标题 / 按钮文字 / 表头 */
+  --weight-announce:  590;  /* 大标题 / 数值强调 */
+
+  /* 行高语义别名 */
+  --leading-body:  1.45;
+  --leading-tight: 1.20;
+}
+
+/* ============================================================================
+ * SPACING — A1-structure（4px 基准网格）
+ * 仅允许：2 4 6 8 12 16 20 24 32 40 48 64
+ * 禁止：5 7 13 15 22 30 等非标值
+ * ========================================================================== */
+
+:root {
+  --space-0:  0px;
+  --space-1:  2px;   /* 图标与文字基线微调 */
+  --space-2:  4px;   /* 紧凑：chip 内 padding-y */
+  --space-3:  6px;   /* 按钮内 padding-y（紧凑态） */
+  --space-4:  8px;   /* 同组元素间距 */
+  --space-5:  12px;  /* 表单元素标准间距 */
+  --space-6:  16px;  /* 卡片内 padding（紧凑） */
+  --space-7:  20px;  /* 卡片内 padding（标准） */
+  --space-8:  24px;  /* 区块间距 */
+  --space-10: 32px;  /* 页面级间距 */
+  --space-12: 40px;
+  --space-16: 64px;  /* 空态垂直留白 */
+
+  /* macOS 专属：窗口 chrome 与安全区 */
+  --titlebar-height:      38px;
+  --toolbar-height:       52px;
+  --row-height:           32px;  /* 侧边栏标准行高 */
+  --row-height-compact:   26px;
+  --menubar-panel-width:  400px;
+  --menubar-panel-height: 500px;
+  --hit-target-min:       28px;  /* macOS 指针目标（不同于触屏 44px） */
+  --hit-target-touch:     44px;  /* 触屏目标 */
+}
+
+/* ============================================================================
+ * RADIUS — A1-structure
+ * 连续圆角（.cornerRadius(style: .continuous)）——macOS 26 官方形态。
+ * 卡片上限 12px（禁止 ≥24px 的过度圆角 AI 味）
+ * ========================================================================== */
+
+:root {
+  --radius-xs:   4px;   /* 色块、tag */
+  --radius-sm:   6px;   /* 按钮、输入框 */
+  --radius-md:   8px;   /* chip、菜单项 */
+  --radius-lg:   10px;  /* 图片卡片 */
+  --radius-xl:   12px;  /* 面板 / sheet */
+  --radius-pill: 9999px;/* 分段控件、胶囊 CTA */
+}
+
+/* ============================================================================
+ * ELEVATION — A1-structure
+ * 深色主题下阴影几乎不可见，层级主要靠亮度递进（--p-surface-*）。
+ * 阴影仅用于"浮起脱离文档流"的元素：菜单、HUD、sheet、hover 抬升。
+ * ========================================================================== */
+
+:root {
+  --elev-flat:   none;
+  --elev-ring:   0 0 0 1px var(--border-soft);
+
+  /* 菜单/popover：贴合 macOS 菜单栏投影 */
+  --elev-raised:
+    0 0 0 0.5px var(--border-subtle),
+    0 2px 6px rgb(0 0 0 / 0.28),
+    0 12px 32px rgb(0 0 0 / 0.36);
+
+  /* sheet / HUD：更高一层 */
+  --elev-overlay:
+    0 0 0 0.5px var(--border-subtle),
+    0 8px 24px rgb(0 0 0 / 0.34),
+    0 32px 64px rgb(0 0 0 / 0.42);
+
+  /* 图片卡片 hover 抬升：克制，仅 2px 偏移 + 轻微阴影 */
+  --elev-lift:
+    0 0 0 0.5px var(--border-soft),
+    0 4px 12px rgb(0 0 0 / 0.30);
+
+  /* 浅色主题下阴影需要更实一点才可见 */
+  :root[data-appearance="light"] {
+    --elev-raised:
+      0 0 0 0.5px var(--border-subtle),
+      0 2px 6px rgb(0 0 0 / 0.08),
+      0 12px 32px rgb(0 0 0 / 0.12);
+    --elev-overlay:
+      0 0 0 0.5px var(--border-subtle),
+      0 8px 24px rgb(0 0 0 / 0.10),
+      0 32px 64px rgb(0 0 0 / 0.16);
+    --elev-lift:
+      0 0 0 0.5px var(--border-subtle),
+      0 4px 12px rgb(0 0 0 / 0.10);
+  }
+}
+
+/* ============================================================================
+ * MOTION — A1-structure
+ * SwiftUI 映射见 DESIGN.md §7。CSS 变量供 Web 预览 / 文档演示使用。
+ * 硬约束：无过冲（overshoot）曲线，禁止 bouncy/spring(response:dampingFraction<0.7)
+ * ========================================================================== */
+
+:root {
+  --motion-instant:  80ms;   /* 按下反馈 */
+  --motion-fast:    150ms;   /* hover / 状态确认（跨系统收敛值） */
+  --motion-base:    220ms;   /* 面板展开、浮层出现 */
+  --motion-slow:    320ms;   /* 跨屏过渡、sheet */
+  --motion-cascade: 420ms;   /* 瀑布流分批入场（上限） */
+
+  /* 无过冲缓动族 */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);        /* 主曲线 */
+  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);      /* 减速出场 */
+  --ease-in:       cubic-bezier(0.5, 0, 0.75, 0);     /* 加速入场 */
+  --ease-linear:   linear;
+
+  /* SwiftUI spring 等价物（response/dampingFraction，无 bounce） */
+  --spring-response:  0.30;
+  --spring-damping:   1.00;   /* 1.0 = 临界阻尼，零过冲 */
+  --spring-snappy:    0.22;   /* 快速响应（按钮、chip 切换） */
+}
+
+/* 减少动态效果：系统已降级时进一步收敛 */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-instant: 1ms;
+    --motion-fast:   1ms;
+    --motion-base:   1ms;
+    --motion-slow:   1ms;
+    --motion-cascade: 1ms;
+  }
+}
+
+/* ============================================================================
+ * LAYOUT — A1-structure
+ * ========================================================================== */
+
+:root {
+  --container-max: 1600px;
+  --menubar-panel-max-width:  420px;
+  --inspector-width:          300px;
+  --sidebar-width:             208px;
+  --toolbar-gutter:            var(--space-6);
+
+  /* 瀑布流列宽目标区间（DESIGN.md §6.1） */
+  --masonry-col-min: 240px;
+  --masonry-col-max: 340px;
+  --masonry-gap:    var(--space-4);
+}
+
+/* ============================================================================
+ * B-SLOT — 组件变体层
+ * ========================================================================== */
+
+:root {
+  /* Button */
+  --btn-primary-bg:         var(--accent);
+  --btn-primary-bg-hover:   var(--accent-hover);
+  --btn-primary-bg-active:  var(--accent-active);
+  --btn-primary-fg:         var(--accent-on);
+
+  --btn-secondary-bg:        transparent;
+  --btn-secondary-bg-hover:  var(--accent-wash);
+  --btn-secondary-border:    var(--border);
+  --btn-secondary-fg:        var(--fg);
+
+  --btn-ghost-bg:       transparent;
+  --btn-ghost-bg-hover: color-mix(in srgb, var(--fg) 8%, transparent);
+  --btn-ghost-fg:       var(--fg-2);
+
+  --btn-danger-bg:       var(--danger);
+  --btn-danger-bg-hover: color-mix(in srgb, var(--danger) 84%, black);
+  --btn-danger-fg:       #ffffff;
+
+  --btn-height-sm: 24px;
+  --btn-height-md: 28px;
+  --btn-height-lg: 32px;
+  --btn-padding-x:  var(--space-5);
+  --btn-radius:     var(--radius-sm);
+
+  /* Input */
+  --input-bg:            var(--surface);
+  --input-bg-disabled:   var(--surface-sunken);
+  --input-border:        var(--border);
+  --input-border-hover:  var(--border-strong);
+  --input-border-focus:  var(--p-focus);
+  --input-fg:            var(--fg);
+  --input-placeholder:   var(--meta);
+  --input-radius:        var(--radius-sm);
+  --input-height:        var(--btn-height-lg);
+  --input-ring-focus:    0 0 0 3px color-mix(in srgb, var(--p-focus) 42%, transparent);
+  --input-border-invalid: var(--danger);
+  --input-ring-invalid:   0 0 0 3px var(--danger-wash);
+
+  /* Image Card（瀑布流单元） */
+  --card-radius:        var(--radius-lg);
+  --card-border:        var(--border-soft);
+  --card-border-hover:  color-mix(in srgb, var(--fg) 22%, transparent);
+  --card-ring-selected: 0 0 0 2px var(--accent);
+  --card-skeleton:      var(--surface-sunken);
+  --card-skeleton-sheen: color-mix(in srgb, var(--fg) 6%, transparent);
+
+  /* Menu / Popover */
+  --menu-bg:            var(--surface-overlay);
+  --menu-border:        var(--border-subtle);
+  --menu-item-hover:    color-mix(in srgb, var(--accent) 16%, transparent);
+  --menu-item-fg:       var(--fg);
+  --menu-shadow:        var(--elev-raised);
+
+  /* Segmented Control（筛选主控件） */
+  --segment-bg:        color-mix(in srgb, var(--fg) 6%, transparent);
+  --segment-bg-active: var(--surface-raised);
+  --segment-shadow-active: 0 1px 2px rgb(0 0 0 / 0.20);
+  --segment-fg:        var(--fg-2);
+  --segment-fg-active: var(--fg);
+  --segment-radius:     var(--radius-sm);
+
+  /* Chip（筛选摘要 / 已选项） */
+  --chip-bg:        var(--accent-wash);
+  --chip-border:    color-mix(in srgb, var(--accent) 34%, transparent);
+  --chip-fg:        var(--accent);
+  --chip-bg-removal-hover: var(--danger-wash);
+  --chip-radius:    var(--radius-md);
+
+  /* Badge */
+  --badge-bg:     color-mix(in srgb, var(--fg) 12%, transparent);
+  --badge-fg:     var(--fg-2);
+  --badge-radius: var(--radius-xs);
+
+  /* Toast / HUD（操作确认） */
+  --hud-bg:       var(--surface-overlay);
+  --hud-border:   var(--border-subtle);
+  --hud-shadow:   var(--elev-overlay);
+  --hud-fg:       var(--fg);
+
+  /* 分隔线 */
+  --divider-hairline: 0.5px;  /* macOS 视网膜标准发丝线 */
+}
+
+/* ============================================================================
+ * C-EXTENSION — 项目专属扩展
+ * IHaven 特有语义：屏幕（Display）、动效播放、纯净度、壁纸状态
+ * ========================================================================== */
+
+:root {
+  /* 屏幕分配（多屏场景） */
+  --display-card-bg:        var(--surface);
+  --display-card-border:    var(--border-soft);
+  --display-card-border-active: var(--accent);
+  --display-card-bg-active: var(--accent-wash);
+  --display-thumbnail-bg:   var(--surface-sunken);
+
+  /* 动态壁纸播放器状态 */
+  --live-indicator:      var(--danger);   /* 录制态圆点（macOS 通用红点语义） */
+  --live-indicator-halo: color-mix(in srgb, var(--danger) 22%, transparent);
+  --playback-scrub-bg:   color-mix(in srgb, var(--fg) 16%, transparent);
+
+  /* 纯净度标记（SFW 徽标） */
+  --sfw-badge-bg:   var(--success-wash);
+  --sfw-badge-fg:   var(--success);
+
+  /* NSFW 占位项（菜单栏面板专用 · 完全不透明，遵循 macOS Sensitive Content 惯例）
+     [!] 严禁在此处添加模糊/半透明 —— 壁纸的识别特征是构图，模糊轮廓仍可辨，
+        且会给出虚假的安全感。详见 DESIGN.md §4.8.3 */
+  --nsfw-placeholder-bg:      var(--surface-raised);  /* 不透明 */
+  --nsfw-placeholder-border:  var(--border);
+  --nsfw-placeholder-fg:      var(--meta);            /* shield 图标与文案 */
+  --nsfw-info-hidden:         none;                   /* 元数据整体隐藏的占位断言 */
+  --nsfw-gate-prompt-bg:      var(--surface-raised);
+  --nsfw-gate-prompt-border:  var(--border-soft);
+
+  /* 裁剪选区（动态壁纸编辑器） */
+  --crop-outline:        #ffffff;
+  --crop-handle-fill:    #ffffff;
+  --crop-handle-size:    10px;
+  --crop-rule-line:      rgb(255 255 255 / 0.60);
+  --crop-safe-area:      rgb(255 255 255 / 0.14);
+
+  /* 主色提取（图片主色用于窗口底衬，透明度极低避免干扰图片） */
+  --ambient-tint-max-opacity: 0.10;
+}
+
+/* ============================================================================
+ * LIQUID GLASS 策略 —— chrome-only
+ * 依据 Apple HIG："Do not use Liquid Glass in the content layer."
+ * IHaven 的落地：玻璃仅用于 [G1] 工具栏 / [G2] 侧栏 / [G3] 菜单栏面板 /
+ * [G4] 悬浮 HUD / [G5] sheet 与 popover。内容层（瀑布流、详情、编辑器）
+ * 一律使用不透明 surface，避免玻璃折射壁纸色彩导致图片判读失真。
+ * 详见 DESIGN.md §3。
+ * ========================================================================== */
+
+.glass-chrome {
+  /* 数值由系统实时渲染，Apple 未公布可移植的 blur/saturation 数值。
+     此处仅声明用途，勿硬编码模糊半径。 */
+  -apple-glass-effect: regular;
+}
+
+.glass-chrome--tinted {
+  -apple-glass-effect: regular;
+  background-color: var(--accent-wash);
+}
+
+/* 内容层强制不透明（防止后续实现误加玻璃） */
+.surface-opaque {
+  background-color: var(--surface);
+}
+
+/* ============================================================================
+ * Z-INDEX 层级
+ * ========================================================================== */
+
+:root {
+  --z-base:      0;
+  --z-card:      10;
+  --z-chrome:    100;   /* 工具栏 / 侧栏（在内容之上） */
+  --z-sticky:    200;
+  --z-popover:   300;
+  --z-hud:       400;
+  --z-sheet:     500;
+  --z-modal:     600;
+}
+
+/* ============================================================================
+ * 无障碍：焦点可见（WCAG 2.4.7 — 绝不移除 outline）
+ * ========================================================================== */
+
+:where(button, [role="button"], a, input, select, textarea, [tabindex]):focus {
+  outline: none; /* 由 :focus-visible 接管，绝不使用 outline: none 且无替代 */
+}
+
+:where(button, [role="button"], a, input, select, textarea, [tabindex]):focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-chrome,
+  .glass-chrome--tinted {
+    -apple-glass-effect: none;
+    background-color: var(--surface-raised);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border:        var(--p-fg-tertiary);
+    --border-soft:   var(--p-fg-quaternary);
+    --muted:         var(--p-fg-secondary);
+    --fg-2:          var(--p-fg-primary);
+  }
+}

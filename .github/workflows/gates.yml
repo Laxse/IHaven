@@ -1,0 +1,41 @@
+name: IHaven Gates
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  gates:
+    runs-on: macos-27
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+
+      - name: Toolchain versions
+        run: |
+          xcodebuild -version
+          swift --version
+
+      # ADR-007: Apple API 存在性核验，防幻觉签名与静默失效
+      - name: API verification gate
+        run: bash scripts/api-gate.sh
+
+      # ADR-006 / ADR-008: 明文 Key、query 传 key、私有 API
+      - name: Security gate
+        run: bash scripts/security-gate.sh
+
+      # ADR-004 / ADR-009: 状态管理统一、单文件行数、分层依赖
+      - name: Convention gate
+        run: bash scripts/convention-gate.sh
+
+      - name: Build
+        run: |
+          xcodebuild build \
+            -scheme IHaven \
+            -destination 'platform=macOS,arch=arm64' \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
