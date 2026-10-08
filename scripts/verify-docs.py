@@ -295,6 +295,41 @@ def check_cjk_punctuation_spacing() -> None:
                      f"（{m.group()!r}）")
 
 
+# ---- 5e. 同一实测的结论一致性（作用域机制，ADR-007 机制三）----
+# 起因：客户端校验表写「ratios 非法值返回 200，不构成风险」，
+# 而同一文档的 Trap 13 写「ratios=99x99 静默匹配，返回 1:1」。
+# 同一实测、两处结论、且**表格里那版更显眼也更危险** ——
+# 实施者会照表格写代码。
+#
+# 机制三（作用域放大）最难靠人眼发现，因为症状是「我测了，测得也对」。
+# 因此对高风险参数做跨文档一致性抽查。
+def check_conclusion_consistency() -> None:
+    """检查已知高风险参数的结论表述是否跨文档一致。
+
+    不做全文语义比对（那需要 LLM），只检查「危险措辞」是否与已实测事实矛盾。
+    """
+    arch = DOCS / "ARCHITECTURE.md"
+    if not arch.exists():
+        return
+
+    text = arch.read_text(encoding="utf-8")
+
+    # 1. 不得声称 ratios/resolutions 非法值「不构成风险」
+    for lineno, line in enumerate(text.splitlines(), 1):
+        if re.search(r"`?(resolutions|ratios)`?[^\n|]*不构成风险", line):
+            fail("conclusion-drift",
+                 f"docs/ARCHITECTURE.md:{lineno} 声称非法值「不构成风险」，"
+                 f"与 Trap 13（静默匹配）矛盾 —— "
+                 f"200 只代表服务端没报错，不代表内容正确")
+
+    # 2. 不得声称 atleast 会被服务端当作有效筛选（它确实不是，但若与实测矛盾需更新）
+    for lineno, line in enumerate(text.splitlines(), 1):
+        if re.search(r"`atleast`[^\n]*会?被?服务端(?:接受|忽略)", line):
+            warn("conclusion-drift",
+                 f"docs/ARCHITECTURE.md:{lineno} 关于 atleast 服务端行为的表述，"
+                 f"请确认与 §6.2.3 实测矩阵一致")
+
+
 # ---- 6. 文件非空 ----
 def check_non_empty() -> None:
     for p in list(DOCS.glob("*.md")) + list((DOCS / "decisions").glob("*.md")):
@@ -322,7 +357,8 @@ def main() -> int:
     for fn in (check_emoji, check_purple_pink, check_json,
                check_section_numbering, check_cross_references,
                check_cross_document_refs, check_box_drawing,
-               check_cjk_punctuation_spacing, check_non_empty):
+               check_cjk_punctuation_spacing,
+               check_conclusion_consistency, check_non_empty):
         try:
             fn()
         except Exception as exc:                      # noqa: BLE001
