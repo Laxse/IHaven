@@ -1,0 +1,197 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <title>IHaven 筛选面板线框稿（浅色外观，工具栏下 popover）</title>
+  <rect width="1400" height="900" fill="#F5F6F8"/>
+  <rect x="0.0" y="0.0" width="1400.0" height="900.0" fill="#F5F6F8"/>
+  <rect x="0.0" y="12.0" width="1280.0" height="52.0" fill="#ECEEF1"/>
+  <line x1="0.0" y1="64.0" x2="1280.0" y2="64.0" stroke="#000000" stroke-width="1" stroke-opacity="0.1"/>
+  <circle cx="20" cy="26" r="6" fill="#FF5F57"/>
+  <circle cx="40" cy="26" r="6" fill="#FEBC2E"/>
+  <circle cx="60" cy="26" r="6" fill="#28C840"/>
+  <rect x="56.0" y="18.0" width="280.0" height="28.0" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1" stroke-opacity="0.14"/>
+  <circle cx="71.0" cy="31.0" r="4.8" fill="none" stroke="#9AA2AD" stroke-width="1.6"/><line x1="74.6" y1="34.6" x2="78.4" y2="38.4" stroke="#9AA2AD" stroke-width="1.6" stroke-linecap="round"/>
+  <text x="86.0" y="36.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="13" font-weight="400" fill="#9AA2AD" text-anchor="start">搜索壁纸、标签、上传者</text>
+  <rect x="1096.0" y="18.0" width="76.0" height="28.0" rx="6" fill="#B06A10" fill-opacity="0.12" stroke="#B06A10" stroke-width="1" stroke-opacity="0.34"/>
+  <line x1="1108.6" y1="28.8" x2="1119.4" y2="28.8" stroke="#8E5309" stroke-width="1.76" stroke-linecap="round"/><line x1="1108.6" y1="32.0" x2="1116.2" y2="32.0" stroke="#8E5309" stroke-width="1.76" stroke-linecap="round"/><line x1="1108.6" y1="35.2" x2="1113.4" y2="35.2" stroke="#8E5309" stroke-width="1.76" stroke-linecap="round"/>
+  <text x="1126.0" y="36.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="13" font-weight="510" fill="#8E5309" text-anchor="start">筛选</text>
+  <text x="1264.0" y="37.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#9AA2AD" text-anchor="end">工具栏（裁剪）</text>
+  <path d="M1126,52 L1142,52 L1134,64 Z" fill="#FFFFFF"/>
+  <rect x="960.0" y="64.0" width="320.0" height="730.0" rx="12" fill="#FFFFFF" stroke="#000000" stroke-width="1" stroke-opacity="0.14"/>
+  <rect x="1272.0" y="70.0" width="4.0" height="718.0" rx="2" fill="#000000" fill-opacity="0.14"/>
+  <text x="976.0" y="92.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="510" fill="#6B7480" text-anchor="start">分类</text>
+  <rect x="976.0" y="100.0" width="288.0" height="24.0" rx="6" fill="#12151A" fill-opacity="0.06"/>
+  <rect x="977.0" y="101.0" width="70.0" height="22.0" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <text x="1012.0" y="115.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="510" fill="#12151A" text-anchor="middle">全部</text>
+  <text x="1084.0" y="115.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#414852" text-anchor="middle">风景</text>
+  <text x="1156.0" y="115.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#414852" text-anchor="middle">动漫</text>
+  <text x="1228.0" y="115.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#414852" text-anchor="middle">人物</text>
+  <text x="976.0" y="152.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="510" fill="#6B7480" text-anchor="start">纯度</text>
+  <rect x="976.0" y="160.0" width="90.0" height="28.0" rx="6" fill="#B06A10" fill-opacity="0.12" stroke="#B06A10" stroke-width="1" stroke-opacity="0.34"/>
+  <text x="1021.0" y="178.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="510" fill="#8E5309" text-anchor="middle">全年龄</text>
+  <rect x="1075.0" y="160.0" width="90.0" height="28.0" rx="6" fill="#B06A10" fill-opacity="0.12" stroke="#B06A10" stroke-width="1" stroke-opacity="0.34"/>
+  <text x="1120.0" y="178.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="510" fill="#8E5309" text-anchor="middle">轻微暗示</text>
+  <rect x="1174.0" y="160.0" width="90.0" height="28.0" rx="6" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <path d="M1192.0,170.5 L1197.8,172.1 L1197.8,175.0 Q1197.8,177.5 1192.0,179.1 Q1186.2,177.5 1186.2,175.0 L1186.2,172.1 Z" fill="none" stroke="#9AA2AD" stroke-width="1.4" stroke-linejoin="round"/><path d="M1189.6,174.0 L1191.4,175.5 L1194.4,172.4" fill="none" stroke="#9AA2AD" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1204.0" y="178.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#9AA2AD" text-anchor="start">NSFW</text>
+  <rect x="978.0" y="202.0" width="288.0" height="126.0" rx="8" fill="#000000" fill-opacity="0.1"/>
+  <rect x="976.0" y="196.0" width="288.0" height="126.0" rx="8" fill="#FFFFFF" stroke="#000000" stroke-width="1" stroke-opacity="0.14"/>
+  <text x="988.0" y="218.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="510" fill="#12151A" text-anchor="start">NSFW 档位当前不可用</text>
+  <circle cx="996.0" cy="236.0" r="6.7" fill="#9AA2AD"/><line x1="993.0" y1="233.0" x2="999.0" y2="239.0" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/><line x1="999.0" y1="233.0" x2="993.0" y2="239.0" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
+  <text x="1010.0" y="240.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#414852" text-anchor="start">需要密钥 · 未配置</text>
+  <circle cx="996.0" cy="254.0" r="6.7" fill="#9AA2AD"/><line x1="993.0" y1="251.0" x2="999.0" y2="257.0" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/><line x1="999.0" y1="251.0" x2="993.0" y2="257.0" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
+  <text x="1010.0" y="258.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#414852" text-anchor="start">需要开启 NSFW（L2）· 已关闭</text>
+  <circle cx="996.0" cy="272.0" r="6.7" fill="#9AA2AD"/><line x1="993.0" y1="269.0" x2="999.0" y2="275.0" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/><line x1="999.0" y1="269.0" x2="993.0" y2="275.0" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
+  <text x="1010.0" y="276.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#414852" text-anchor="start">需要开启本次可见（L3）· 已关闭</text>
+  <rect x="988.0" y="284.0" width="104.0" height="24.0" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1" stroke-opacity="0.14"/>
+  <text x="1040.0" y="299.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="510" fill="#12151A" text-anchor="middle">打开密钥设置</text>
+  <line x1="1224.0" y1="188.0" x2="1224.0" y2="196.0" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="976.0" y="354.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="510" fill="#6B7480" text-anchor="start">分辨率</text>
+  <rect x="976.0" y="362.0" width="288.0" height="24.0" rx="6" fill="#12151A" fill-opacity="0.06"/>
+  <text x="1000.0" y="377.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#414852" text-anchor="middle">不限</text>
+  <text x="1048.0" y="377.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#414852" text-anchor="middle">≥1080p</text>
+  <text x="1096.0" y="377.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#414852" text-anchor="middle">≥1440p</text>
+  <rect x="1121.0" y="363.0" width="46.0" height="22.0" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <text x="1144.0" y="377.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="510" fill="#12151A" text-anchor="middle">≥4K</text>
+  <text x="1192.0" y="377.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#414852" text-anchor="middle">≥5K</text>
+  <text x="1240.0" y="377.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#414852" text-anchor="middle">超宽</text>
+  <rect x="976.0" y="394.0" width="288.0" height="28.0" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1" stroke-opacity="0.14"/>
+  <text x="988.0" y="412.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#414852" text-anchor="start">精确分辨率</text>
+  <text x="1238.0" y="412.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#9AA2AD" text-anchor="end">不限</text>
+  <path d="M1248.2,405.1 L1252.0,408.9 L1255.8,405.1" fill="none" stroke="#9AA2AD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="976.0" y="450.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="510" fill="#6B7480" text-anchor="start">比例</text>
+  <rect x="976.0" y="458.0" width="51.0" height="56.0" rx="6" fill="#F5F6F8" fill-opacity="1.0" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="994.2" y="466.0" width="14.6" height="26.0" rx="2" fill="none" stroke="#6B7480" stroke-width="1"/>
+  <text x="1001.5" y="506.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#6B7480" text-anchor="middle">竖构图</text>
+  <rect x="1035.0" y="458.0" width="51.0" height="56.0" rx="6" fill="#F5F6F8" fill-opacity="1.0" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1047.5" y="466.0" width="26.0" height="26.0" rx="2" fill="none" stroke="#6B7480" stroke-width="1"/>
+  <text x="1060.5" y="506.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#6B7480" text-anchor="middle">方图</text>
+  <rect x="1094.0" y="458.0" width="51.0" height="56.0" rx="6" fill="#B06A10" fill-opacity="0.12" stroke="#B06A10" stroke-width="2" stroke-opacity="1.0"/>
+  <rect x="1102.2" y="466.0" width="34.7" height="26.0" rx="2" fill="none" stroke="#8E5309" stroke-width="1.5"/>
+  <text x="1119.5" y="506.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="510" fill="#8E5309" text-anchor="middle">横构图</text>
+  <rect x="1153.0" y="458.0" width="51.0" height="56.0" rx="6" fill="#F5F6F8" fill-opacity="1.0" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1159.5" y="468.3" width="38.0" height="21.4" rx="2" fill="none" stroke="#6B7480" stroke-width="1"/>
+  <text x="1178.5" y="506.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#6B7480" text-anchor="middle">宽幅</text>
+  <rect x="1212.0" y="458.0" width="51.0" height="56.0" rx="6" fill="#F5F6F8" fill-opacity="1.0" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1218.5" y="473.7" width="38.0" height="10.7" rx="2" fill="none" stroke="#6B7480" stroke-width="1"/>
+  <text x="1237.5" y="506.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#6B7480" text-anchor="middle">超宽</text>
+  <text x="976.0" y="542.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="510" fill="#6B7480" text-anchor="start">色调</text>
+  <rect x="976.0" y="550.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.1"/>
+  <line x1="984.5" y1="558.5" x2="991.5" y2="565.5" stroke="#9AA2AD" stroke-width="1.76" stroke-linecap="round"/><line x1="991.5" y1="558.5" x2="984.5" y2="565.5" stroke="#9AA2AD" stroke-width="1.76" stroke-linecap="round"/>
+  <rect x="1008.0" y="550.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1040.0" y="550.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1072.0" y="550.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1104.0" y="550.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1136.0" y="550.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="976.0" y="582.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1008.0" y="582.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1040.0" y="582.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1072.0" y="582.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1104.0" y="582.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1136.0" y="582.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="976.0" y="614.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1008.0" y="614.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1040.0" y="614.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1072.0" y="614.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1104.0" y="614.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1136.0" y="614.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="976.0" y="646.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1008.0" y="646.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1040.0" y="646.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1072.0" y="646.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1104.0" y="646.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1136.0" y="646.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="976.0" y="678.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1008.0" y="678.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1040.0" y="678.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1072.0" y="678.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="1104.0" y="678.0" width="24.0" height="24.0" rx="4" fill="#E4E6EA" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <clipPath id="bw29"><rect x="1136.0" y="678.0" width="24.0" height="24.0" rx="4" fill="none"/></clipPath>
+  <g clip-path="url(#bw29)"><rect x="1136.0" y="678.0" width="8.0" height="24.0" fill="#FFFFFF"/><rect x="1144.0" y="678.0" width="8.0" height="24.0" fill="#9AA2AD"/><rect x="1152.0" y="678.0" width="8.0" height="24.0" fill="#12151A"/></g>
+  <rect x="1136.0" y="678.0" width="24.0" height="24.0" rx="4" fill="none" stroke="#000000" stroke-width="1" stroke-opacity="0.1"/>
+  <text x="976.0" y="718.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#9AA2AD" text-anchor="start">格内 hex 取自 wallhaven 30 色有限枚举常量，线框稿不臆造</text>
+  <text x="976.0" y="746.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="510" fill="#6B7480" text-anchor="start">排序</text>
+  <rect x="976.0" y="754.0" width="288.0" height="24.0" rx="6" fill="#12151A" fill-opacity="0.06"/>
+  <rect x="977.0" y="755.0" width="70.0" height="22.0" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1" stroke-opacity="0.08"/>
+  <text x="1012.0" y="769.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="510" fill="#12151A" text-anchor="middle">最新</text>
+  <text x="1084.0" y="769.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#414852" text-anchor="middle">热门</text>
+  <text x="1156.0" y="769.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#414852" text-anchor="middle">收藏最多</text>
+  <text x="1228.0" y="769.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#414852" text-anchor="middle">随机</text>
+  <line x1="960.0" y1="624.0" x2="1280.0" y2="624.0" stroke="#9A6B12" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="952.0" y="620.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#9A6B12" text-anchor="end">maxHeight 560px</text>
+  <text x="952.0" y="634.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#9A6B12" text-anchor="end">以下需滚动</text>
+  <text x="40.0" y="100.0" font-family="-apple-system, 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="22" font-weight="590" fill="#12151A" text-anchor="start">筛选面板 · 工具栏下 popover</text>
+  <text x="40.0" y="126.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="12" font-weight="400" fill="#6B7480" text-anchor="start">component.filterPanel：presentation=工具栏下 popover（非侧栏常驻）· width 320px · maxHeight 560px</text>
+  <text x="40.0" y="146.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#6B7480" text-anchor="start">groupSpacing = space.6（16px）· groups = category / purity / resolution / ratio / color / sorting</text>
+  <text x="40.0" y="168.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="11" font-weight="400" fill="#9A6B12" text-anchor="start">内容总高 730px 超过 maxHeight 560px —— 实际呈现为可滚动（滚动条沿右内缘，虚线为折叠位置）</text>
+  <rect x="620.0" y="180.0" width="310.0" height="55.0" rx="6" fill="#FFFFFF" fill-opacity="0.94" stroke="#1B6FC4" stroke-width="1"/>
+  <text x="630.0" y="195.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="510" fill="#1B6FC4" text-anchor="start">1. 分类（category）· 分段控件</text>
+  <text x="630.0" y="208.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">全部 / 风景 / 动漫 / 人物（general / anime / people）</text>
+  <text x="630.0" y="221.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">segmentedControl：h24 · r6 · itemPaddingX 10</text>
+  <line x1="930.0" y1="207.5" x2="945.0" y2="112.0" stroke="#1B6FC4" stroke-width="1"/>
+  <line x1="945.0" y1="112.0" x2="960.0" y2="112.0" stroke="#1B6FC4" stroke-width="1"/>
+  <circle cx="960" cy="112" r="2.2" fill="#1B6FC4"/>
+  <rect x="620.0" y="243.0" width="310.0" height="172.0" rx="6" fill="#FFFFFF" fill-opacity="0.94" stroke="#1B6FC4" stroke-width="1"/>
+  <text x="630.0" y="258.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="510" fill="#1B6FC4" text-anchor="start">2. 纯度（purity）· 三档 chip（v4.2 回改，原定稿为移除）</text>
+  <text x="630.0" y="271.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">全年龄 ON / 轻微暗示 ON / NSFW OFF</text>
+  <text x="630.0" y="284.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">轻微暗示不需 NSFW 权限，默认开启</text>
+  <text x="630.0" y="297.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">NSFW 档位灰置不可点：常驻可见 + disabled 态</text>
+  <text x="630.0" y="310.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">  hover 列三层门禁状态（每行带当前状态）：</text>
+  <text x="630.0" y="323.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">  需要密钥 · 未配置</text>
+  <text x="630.0" y="336.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">  需要开启 NSFW（L2）· 已关闭</text>
+  <text x="630.0" y="349.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">  需要开启本次可见（L3）· 已关闭</text>
+  <text x="630.0" y="362.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">  操作路由到设置：「打开密钥设置」（microCopy）</text>
+  <text x="630.0" y="375.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">[!] 面板内不画 L2 / L3 任何开关 —— 筛选用筛选面板，</text>
+  <text x="630.0" y="388.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">     开关只在设置（L2）与菜单栏面板（L3）</text>
+  <text x="630.0" y="401.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">[!] 必须列出 L3：否则开了 L2 回来还是灰的，会以为 bug</text>
+  <line x1="930.0" y1="329.0" x2="945.0" y2="240.0" stroke="#1B6FC4" stroke-width="1"/>
+  <line x1="945.0" y1="240.0" x2="960.0" y2="240.0" stroke="#1B6FC4" stroke-width="1"/>
+  <circle cx="960" cy="240" r="2.2" fill="#1B6FC4"/>
+  <rect x="620.0" y="423.0" width="310.0" height="94.0" rx="6" fill="#FFFFFF" fill-opacity="0.94" stroke="#1B6FC4" stroke-width="1"/>
+  <text x="630.0" y="438.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="510" fill="#1B6FC4" text-anchor="start">3. 分辨率（resolution）</text>
+  <text x="630.0" y="451.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">6 档 UI 预设（microCopy.resolutionPreset.presets）</text>
+  <text x="630.0" y="464.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">选中态走 segmented 语义，不额外消耗强调色配额</text>
+  <text x="630.0" y="477.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">精确分辨率＝下拉（折叠态），取值 ARCHITECTURE §6.2.4</text>
+  <text x="630.0" y="490.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">ExactResolution 封闭枚举（24 值 + UNSET 哨兵）</text>
+  <text x="630.0" y="503.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">结果数省略：microCopy.resultCountFormat.alternative</text>
+  <line x1="930.0" y1="470.0" x2="945.0" y2="374.0" stroke="#1B6FC4" stroke-width="1"/>
+  <line x1="945.0" y1="374.0" x2="960.0" y2="374.0" stroke="#1B6FC4" stroke-width="1"/>
+  <circle cx="960" cy="374" r="2.2" fill="#1B6FC4"/>
+  <rect x="620.0" y="525.0" width="310.0" height="133.0" rx="6" fill="#FFFFFF" fill-opacity="0.94" stroke="#1B6FC4" stroke-width="1"/>
+  <text x="630.0" y="540.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="510" fill="#1B6FC4" text-anchor="start">4. 比例（ratio）· 5 组归并（§4.3 ② 定稿）</text>
+  <text x="630.0" y="553.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">竖构图 = 9x16 / 10x16 / 9x18</text>
+  <text x="630.0" y="566.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">方图 = 1x1</text>
+  <text x="630.0" y="579.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">横构图 = 3x2 / 4x3 / 5x4 / 16x9</text>
+  <text x="630.0" y="592.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">宽幅 = 16x10 / 21x9</text>
+  <text x="630.0" y="605.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">超宽 = 32x9 / 48x9</text>
+  <text x="630.0" y="618.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">每格按真实宽高比绘制；选中态琥珀 2px 描边 + accentWash</text>
+  <text x="630.0" y="631.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">12 个封闭枚举值收进 accessibilityLabel</text>
+  <text x="630.0" y="644.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">    如「竖构图，9:16 等 3 种比例」</text>
+  <line x1="930.0" y1="591.5" x2="945.0" y2="486.0" stroke="#1B6FC4" stroke-width="1"/>
+  <line x1="945.0" y1="486.0" x2="960.0" y2="486.0" stroke="#1B6FC4" stroke-width="1"/>
+  <circle cx="960" cy="486" r="2.2" fill="#1B6FC4"/>
+  <rect x="620.0" y="666.0" width="310.0" height="68.0" rx="6" fill="#FFFFFF" fill-opacity="0.94" stroke="#1B6FC4" stroke-width="1"/>
+  <text x="630.0" y="681.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="510" fill="#1B6FC4" text-anchor="start">5. 色调（color）· 5×6 = 30 格</text>
+  <text x="630.0" y="694.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">每格 24×24 · radius.xs 4px · 间距 8px</text>
+  <text x="630.0" y="707.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">首格「不限」（xmark）+ 末格「黑白灰」</text>
+  <text x="630.0" y="720.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">格内 hex 不臆造，实现时取 wallhaven 色板常量</text>
+  <line x1="930.0" y1="700.0" x2="945.0" y2="626.0" stroke="#1B6FC4" stroke-width="1"/>
+  <line x1="945.0" y1="626.0" x2="960.0" y2="626.0" stroke="#1B6FC4" stroke-width="1"/>
+  <circle cx="960" cy="626" r="2.2" fill="#1B6FC4"/>
+  <rect x="620.0" y="742.0" width="310.0" height="68.0" rx="6" fill="#FFFFFF" fill-opacity="0.94" stroke="#1B6FC4" stroke-width="1"/>
+  <text x="630.0" y="757.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="510" fill="#1B6FC4" text-anchor="start">6. 排序（sorting）· 分段控件 4 项</text>
+  <text x="630.0" y="770.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">最新 date_added / 热门 toplist / 收藏最多 favorites /</text>
+  <text x="630.0" y="783.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">随机 random（选中时图标换 shuffle，禁用分页）</text>
+  <text x="630.0" y="796.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">标签取自 DESIGN §4.3 ⑥</text>
+  <line x1="930.0" y1="776.0" x2="945.0" y2="766.0" stroke="#1B6FC4" stroke-width="1"/>
+  <line x1="945.0" y1="766.0" x2="960.0" y2="766.0" stroke="#1B6FC4" stroke-width="1"/>
+  <circle cx="960" cy="766" r="2.2" fill="#1B6FC4"/>
+  <rect x="40.0" y="200.0" width="540.0" height="133.0" rx="6" fill="#FFFFFF" fill-opacity="0.94" stroke="#1B6FC4" stroke-width="1"/>
+  <text x="52.0" y="216.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="510" fill="#1B6FC4" text-anchor="start">本图「未取 token」的自定项（已授权补的除外）</text>
+  <text x="52.0" y="229.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">· 纯度三档标签「全年龄 / 轻微暗示」—— 已记入 §4.3 ⑤，待补 microCopy.purityTier</text>
+  <text x="52.0" y="242.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">· 灰置 hover 文案「NSFW 档位当前不可用」+ 三行原因 —— microCopy 无</text>
+  <text x="52.0" y="255.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">· 组标题中文（分类/纯度/分辨率/比例/色调/排序）—— token 只有 group id</text>
+  <text x="52.0" y="268.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">· 排序四档标签 —— 取自 DESIGN §4.3 ⑥，非 microCopy</text>
+  <text x="52.0" y="281.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">· 色调 30 格 hex —— 不臆造（colors 端点 404）</text>
+  <text x="52.0" y="294.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">· 结果数未显示 —— resultCountFormat.alternative 允许省略</text>
+  <text x="52.0" y="307.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">· macOS 红绿灯三色 —— 系统外观提供，非设计 token</text>
+  <text x="52.0" y="320.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#9A6B12" text-anchor="start">[OK] 已补（v4.2 授权）：浅色 border 三档 / statusBarHeight 32px</text>
+</svg>

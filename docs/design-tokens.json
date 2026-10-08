@@ -156,7 +156,10 @@
       "success":       { "value": "#2F7A3D" },
       "warning":       { "value": "#9A6B12" },
       "danger":        { "value": "#B3382C" },
-      "focus":         { "value": "#1B6FC4" }
+      "focus":         { "value": "#1B6FC4" },
+      "borderSubtle":  { "value": "rgba(0,0,0,0.06)", "note": "v4.2 新增（缺口 #1）：深色版为 rgba(255,255,255,0.06)，浅色下白 alpha 在浅底几乎不可见，必须换成黑 alpha 等值替代" },
+      "borderStrong":  { "value": "rgba(0,0,0,0.14)", "note": "v4.2 新增（缺口 #1）：深色 0.12 → 浅色 0.14。非等比，略加深以保住浅底上的可辨识度" },
+      "dividerHairline": { "value": "rgba(0,0,0,0.10)", "note": "v4.2 新增（缺口 #1）：此前 JSON 无该项，CSS 只有 --divider-hairline: 0.5px（那是线宽不是色值）。补色值并给浅色覆盖，避免实现方各自造值" }
     }
   },
 
@@ -267,7 +270,8 @@
       "sidebarWidth":    { "value": "208px","type": "dimension", "layer": "A1-structure" },
       "inspectorWidth":  { "value": "300px","type": "dimension", "layer": "A1-structure" },
       "menubarPanelWidth":  { "value": "400px", "type": "dimension", "layer": "A1-structure", "note": "规格锁定，可在 380-420 范围自适应" },
-      "menubarPanelHeight": { "value": "500px", "type": "dimension", "layer": "A1-structure", "note": "规格锁定，可在 440-560 范围自适应" }
+      "menubarPanelHeight": { "value": "500px", "type": "dimension", "layer": "A1-structure", "note": "规格锁定，可在 440-560 范围自适应" },
+      "statusBarHeight": { "value": "32px", "type": "dimension", "layer": "A1-structure", "note": "v4.2 新增（缺口 #2）：此前只在 DESIGN.md §7.1 ASCII 图里写了 32px，无 token，实现方会各自造值" }
     },
     "grid": {
       "masonryColMin": { "value": "240px", "type": "dimension", "layer": "A1-structure" },
@@ -470,7 +474,7 @@
       "tiers": {
         "L1": { "name": "能力层", "condition": "API Key 有效 且 wallhaven 账号已开启 NSFW", "default": "userConfigured", "uiWhenFailed": "none", "uiWhenFailedNote": "不渲染任何 NSFW UI，不做置灰开关——置灰会让用户反复点击找原因" },
         "L2": { "name": "应用层", "condition": "应用内 NSFW 总开关，需显式操作 + 年龄确认", "default": false, "scope": "allSurfaces", "presentIn": ["mainWindowSettings", "menubarPanel"] },
-        "L3": { "name": "场景层", "condition": "菜单栏面板 NSFW 独立开关", "default": false, "scope": "menubarPanelOnly", "presentIn": ["menubarPanel"], "note": "主窗口是主动打开的私密场景，不再加一层，避免过度设计" }
+        "L3": { "name": "场景层", "condition": "菜单栏面板 NSFW 独立开关", "default": false, "switchPresentIn": ["menubarPanel"], "effectScope": "global", "note": "主窗口是主动打开的私密场景，开关不在此处再加一层，避免过度设计", "scopeDisambiguation": "v4.2 改名（原字段 scope=menubarPanelOnly）：该字段名有歧义，会被读成「效果仅限菜单栏面板」，实际语义是「开关只在菜单栏面板，效果作用于全局可见性」——L3 关闭时主窗口收藏页同样不显示 NSFW（SPEC §8.6）。故拆成 switchPresentIn（开关所在处）与 effectScope（效果作用域）两个字段，不再使用 scope" }
       },
       "switchVisualHierarchy": {
         "L2Label": "应用内 NSFW",
