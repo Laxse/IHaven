@@ -116,6 +116,11 @@ class SelfTest:
         """
         self._external.append((cmd, list(args), probe_input))
 
+    # ---------- 模块位置说明 ----------
+    # 本模块是可复用的**代码**（非文档），理想位置是 `scripts/lib/`。
+    # 当前在 docs/ 下是因为它与 GATE-USAGE.md 的自检规范配套阅读。
+    # 若迁到 scripts/lib/，需同步更新 GATE-USAGE.md 里的引用路径。
+
     # ---------- 执行阶段 ----------
 
     @staticmethod
@@ -135,11 +140,7 @@ class SelfTest:
                 print(f"    - {b}")
         failures = []
 
-        # ① 正则可编译性
-        for rule_name, _ in self._rules:
-            pass  # 规则内的 compile() 会在下面执行时报错
-
-        # 执行规则 + ② 用例
+        # 执行规则（① 正则可编译性 + ② 用例）
         for rule_name, fn in self._rules:
             try:
                 fn()
