@@ -210,6 +210,9 @@ BLIND_SPOTS = [
     "不检查 Swift 编译期问题（那是 api-gate 的职责）",
     "shell 门禁（security/convention）无内建自检 —— 它们靠 IHAVEN_ROOT",
     "在隔离副本上做负向测试；语义级自检（must_exit/expect_stdout）尚未接入",
+    "章节回归只覆盖 PRD.md / ARCHITECTURE.md / DESIGN.md 三个文件",
+    "章节回归只比对**二级**标题 —— 三级及以下标题整块消失不覆盖",
+    "章节回归不覆盖未列入 _TRACKED_DOCS 的文档（ADR / SPEC.md / GATE-USAGE.md 等）",
 ]
 WARNINGS: list[str] = []
 
@@ -226,7 +229,8 @@ def warn(check: str, detail: str) -> None:
 def check_emoji() -> None:
     """emoji 区间检测。刻意不用 emoji 库—— 库的判定范围与我们的 P0 规则
     不一致，且引入依赖会让本脚本自身变成风险源。"""
-    targets = list(DOCS.rglob("*.md")) + [DOCS / "VERIFIED-API.swift"]
+    targets = list(DOCS.rglob("*.md")) + list(DOCS.rglob("*.svg"))
+    targets += [DOCS / "VERIFIED-API.swift"]
     targets += [ROOT / "scripts" / s for s in ("security-gate.sh", "convention-gate.sh",
                                                "api-gate.sh")]
     targets = [p for p in targets if p.exists()]
