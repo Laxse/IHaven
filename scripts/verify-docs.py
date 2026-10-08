@@ -286,7 +286,7 @@ def check_section_numbering() -> None:
     text = arch.read_text(encoding="utf-8")
     seen: dict[str, int] = {}
     for lineno, line in enumerate(text.splitlines(), 1):
-        m = re.match(r"^#{2,4}\s+(\d+(?:\.\d+)*)\s", line)
+        m = re.match(r"^#{2,4}\s+(\d+(?:\.\d+)*)(?=[\s.])", line)
         if not m:
             continue
         num = m.group(1)
@@ -305,11 +305,11 @@ def check_section_numbering() -> None:
 
     for parent, kids in parents.items():
         kids_sorted = sorted(kids)
-        expected = list(range(1, max(kids_sorted) + 1))
-        # §5.0 是刻意的前置定位节（见ARCHITECTURE.md §5.0 的设计意图说明），
-        # 编号从 0 起是合理的，不参与连续性检查。
-        if parent == "5":
-            continue
+        # 子编号允许从 0 起：§5.0 / §6.4.0 是刻意的前置定位节，编号从 0 起
+        # 是合理的（例如 §6.4.0 + §6.4.1 -> [0, 1] 应判连续）。硬编码
+        # `if parent == "5"` 会漏掉同样从 0 起的 §6.4。其余一律从 1 起。
+        start = kids_sorted[0] if kids_sorted[0] == 0 else 1
+        expected = list(range(start, max(kids_sorted) + 1))
         if kids_sorted != expected:
             warn("sections",
                  f"{parent}.* 子编号为 {kids_sorted}，期望连续 {expected}")
@@ -551,25 +551,87 @@ def _headings(text: str) -> list[str]:
             if m]
 
 
-def _heading_verdict(head_titles: list[str], work_titles: list[str],
-                     head_lines: int, work_lines: int) -> tuple[str, list[str]]:
-    """纯函数：给出 (verdict, details)。verdict ∈ {"ok", "warn", "fail"}。
+_RENAME_RATIO = 0.6
 
+
+def _prefix(title: str) -> str:
+    """标题前缀（冒号前部分）—— 附录类标题改名时前缀通常不变。"""
+    for sep in ("：", ":"):
+        if sep in title:
+            return title.split(sep, 1)[0]
+    return title[:8]
+
+
+def _is_rename(old: str, new: str) -> bool:
+    """是否构成「疑似改名」：同前缀，或整体相似度达阈值。"""
+    import difflib as _difflib
+
+    if _prefix(old) == _prefix(new):
+        return True
+    return _difflib.SequenceMatcher(None, old, new).ratio() >= _RENAME_RATIO
+
+
+def _pair_renames(missing: list[str],
+                  added: list[str]) -> tuple[list[tuple[str, str]], list[str]]:
+    """**一对一**配对（禁止一对多 / 多对一）：返回 (配对, 仍未配对的 missing)。
+
+    未配对的仍按「消失」处理 —— 这是本项的硬约束：改名识别只能用来消噪，
+    不得削弱对真删除的拦截。多块消失时若只配对上一块，剩下的必须照样拦住。
+    """
+    import difflib as _difflib
+
+    pairs: list[tuple[str, str]] = []
+    unpaired: list[str] = []
+    used: set[int] = set()
+    for m in missing:
+        best_idx, best_score = -1, 0.0
+        for i, a in enumerate(added):
+            if i in used:
+                continue
+            score = _difflib.SequenceMatcher(None, m, a).ratio()
+            if score > best_score:
+                best_idx, best_score = i, score
+        if best_idx >= 0 and _is_rename(m, added[best_idx]):
+            used.add(best_idx)
+            pairs.append((m, added[best_idx]))
+        else:
+            unpaired.append(m)
+    return pairs, unpaired
+
+
+def _heading_verdict(head_titles: list[str], work_titles: list[str],
+                     head_lines: int,
+                     work_lines: int) -> tuple[str, list[str], list[str]]:
+    """纯函数：(verdict, fail_details, warn_details)。
+
+    改名（一对一配对成功）-> WARN 并打印完整对照；配不上对的消失 -> FAIL。
     不依赖 git / 文件系统 —— 只有纯函数才能被启动自检直接验证。
     """
     missing = [t for t in head_titles if t not in work_titles]
-    if missing:
-        return "fail", [f"HEAD 中的二级标题在工作区消失: {t!r}" for t in missing]
+    added = [t for t in work_titles if t not in head_titles]
+    fail_details: list[str] = []
+    warn_details: list[str] = []
 
-    details: list[str] = []
+    if missing:
+        pairs, unpaired = _pair_renames(missing, added)
+        for old, new in pairs:
+            warn_details.append(f"疑似改名：{old!r} -> {new!r}（请确认）")
+        for t in unpaired:
+            fail_details.append(
+                f"HEAD 中的二级标题在工作区消失（未配对到改名）: {t!r}")
+
     # 集合相同但顺序变化（新增标题不算变化，故先按 HEAD 集合过滤）
+    # 有标题消失时不判顺序 —— 那时「顺序变化」是改名/删除的副作用，会误导
     head_set = set(head_titles)
-    if [t for t in work_titles if t in head_set] != head_titles:
-        details.append("二级标题顺序变化（集合未变）")
+    if not missing and [t for t in work_titles if t in head_set] != head_titles:
+        warn_details.append("二级标题顺序变化（集合未变）")
     if head_lines > 0 and work_lines < head_lines * 0.95:
         pct = (head_lines - work_lines) / head_lines * 100
-        details.append(f"行数下降 {pct:.1f}%（{head_lines} -> {work_lines}）")
-    return ("warn", details) if details else ("ok", [])
+        warn_details.append(f"行数下降 {pct:.1f}%（{head_lines} -> {work_lines}）")
+
+    if fail_details:
+        return "fail", fail_details, warn_details
+    return ("warn", fail_details, warn_details) if warn_details else ("ok", [], [])
 
 
 def _git_show(rel: str, root: Path | None = None) -> str | None:
@@ -612,21 +674,23 @@ def check_heading_regression() -> None:
             continue
 
         work = p.read_text(encoding="utf-8")
-        verdict, details = _heading_verdict(_headings(head), _headings(work),
-                                            len(head.splitlines()),
-                                            len(work.splitlines()))
+        verdict, fail_details, warn_details = _heading_verdict(
+            _headings(head), _headings(work),
+            len(head.splitlines()), len(work.splitlines()))
         if verdict == "ok":
             continue
 
         if _os.environ.get(_ALLOW_SHRINK_ENV) == "1":
             # 逃逸不能静默：放行了也要把命中内容打出来
             warn("heading-regression",
-                 f"{rel} 命中但被 {_ALLOW_SHRINK_ENV}=1 放行 —— " + "；".join(details))
+                 f"{rel} 命中但被 {_ALLOW_SHRINK_ENV}=1 放行 —— "
+                 + "；".join(fail_details + warn_details))
             continue
 
-        emit = fail if verdict == "fail" else warn
-        for d in details:
-            emit("heading-regression", f"{rel} {d}")
+        for d in fail_details:
+            fail("heading-regression", f"{rel} {d}")
+        for d in warn_details:
+            warn("heading-regression", f"{rel} {d}")
 
     if skipped:
         print("[verify-docs] 本项未检查（heading-regression SKIP）: "
@@ -638,24 +702,52 @@ def self_test_heading_regression() -> None:
 
     ① 负向用例（植入删标题）-> 必须 FAIL；且「仅行数下降」必须 WARN 而非 FAIL
     ② 能力缺失（非 git 仓库 / 未 track）-> 必须返回 None（SKIP），不得静默 PASS
+    ③ 改名识别：改名 -> WARN；**部分配对** -> 剩下配不上对的必须仍 FAIL
     """
     problems = []
 
-    v, details = _heading_verdict(["A", "B", "C"], ["A", "C"], 6, 5)
-    if v != "fail" or not any("B" in d for d in details):
-        problems.append(f"删标题未被判为 FAIL（verdict={v}, details={details}）")
+    v, f_details, _ = _heading_verdict(["A", "B", "C"], ["A", "C"], 6, 5)
+    if v != "fail" or not any("B" in d for d in f_details):
+        problems.append(f"删标题未被判为 FAIL（verdict={v}, fail={f_details}）")
 
-    v2, _ = _heading_verdict(["A", "B", "C"], ["A", "B", "C"], 100, 80)
+    v2, _, _ = _heading_verdict(["A", "B", "C"], ["A", "B", "C"], 100, 80)
     if v2 != "warn":
         problems.append(f"仅行数下降应判 WARN，实为 {v2}（规格：行数下降绝不 FAIL）")
 
-    v3, _ = _heading_verdict(["A", "B", "C"], ["C", "B", "A"], 6, 6)
+    v3, _, _ = _heading_verdict(["A", "B", "C"], ["C", "B", "A"], 6, 6)
     if v3 != "warn":
         problems.append(f"标题顺序变化应判 WARN，实为 {v3}")
 
-    v4, _ = _heading_verdict(["A", "B"], ["A", "B", "D"], 4, 6)
+    v4, _, _ = _heading_verdict(["A", "B"], ["A", "B", "D"], 4, 6)
     if v4 != "ok":
         problems.append(f"新增标题不应报警，实为 {v4}（会把合法编辑误报）")
+
+    # ③a 改名：用 PRD A-21 那次真实改名做样本（前缀「附录 A-21」不变）
+    old_a21 = "附录 A-21：sketchy 同样受 Key 门控，且是静默降级（产品侧实测，2026-10-08）"
+    new_a21 = "附录 A-21：全部档位都受 Key 门控，且是静默降级（产品侧实测，2026-10-08）"
+    v5, f5, w5 = _heading_verdict(["一、问题陈述", old_a21],
+                                  ["一、问题陈述", new_a21], 6, 6)
+    if v5 != "warn" or f5:
+        problems.append(f"改名应判 WARN 且不进 FAIL 列表，实为 {v5}（fail={f5}）")
+    if not any("疑似改名" in d and old_a21 in d and new_a21 in d for d in w5):
+        problems.append(f"改名必须打印完整对照 OLD -> NEW，实为 {w5}")
+
+    # ③b 部分配对：消失 3 个、只加回 1 个近义名 -> 剩下 2 个必须仍 FAIL 且被指名
+    v6, f6, w6 = _heading_verdict(
+        ["一、问题陈述", old_a21, "附录 A-22：另一条", "附录 A-23：再一条", "九、收尾"],
+        ["一、问题陈述", new_a21, "九、收尾"], 10, 9)
+    if v6 != "fail":
+        problems.append(f"部分配对时应 FAIL，实为 {v6}")
+    if not all(any(t in d for d in f6) for t in ("附录 A-22", "附录 A-23")):
+        problems.append(f"部分配对时未配对的两条必须仍被指名 FAIL，实为 {f6}")
+    if not any("疑似改名" in d for d in w6):
+        problems.append(f"部分配对时已成对的那对应仍打印对照，实为 {w6}")
+
+    # ③c 一对一：两个 missing 竞争同一个 added -> 只能配掉一个，另一个仍 FAIL
+    v7, f7, _ = _heading_verdict(["附录 A-1：旧结论", "附录 A-2：旧结论"],
+                                 ["附录 A-1：新结论"], 4, 3)
+    if v7 != "fail" or len(f7) != 1:
+        problems.append(f"一对一配对失效（应只剩 1 个 FAIL），实为 {v7}（fail={f7}）")
 
     import tempfile
     with tempfile.TemporaryDirectory() as td:
