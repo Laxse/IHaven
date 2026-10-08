@@ -289,6 +289,98 @@ def grep_pattern_safe(patterns: list) -> str:
     return "|".join(escaped)
 
 
+def extract_code_patterns(source: str) -> list:
+    """从源码中提取**代码区**的正则模式，跳过注释与 docstring。
+
+    起因（架构师提出、设计师实测确认）：
+    检查器不该检查解释它自己的文档。若不剥离 docstring，
+    ``check_regex_dialect`` 会把说明陷阱的示例文本
+    （如 ``a\\|b 与 a|b``）判为方言混用 —— **纯粹的误报**。
+
+    同源问题（架构师指出）：emoji 检查器不检查 .py，
+    因为 ``\\U0001F680`` 这类转义序列不是字面 emoji。
+    两者的共同点是「盲区不只是『不检查什么』，
+    也包括『不该检查什么』」。
+
+    Args:
+        source: Python 源码文本
+
+    Returns:
+        代码区字符串字面量列表
+    """
+    #剥离三引号块（docstring）
+    no_doc = re.sub(r'\"\"\"[\s\S]*?\"\"\"', '', source)
+    # 剥离 # 注释
+    no_cmt = re.sub(r'#.*', '', no_doc)
+    # 提取字符串字面量（支持单/双引号 + r 前缀）
+    lits = (re.findall(r'r?\"([^\"]*)\"', no_cmt)
+            + re.findall(r"r?'([^']*)'", no_cmt))
+    return [s for s in lits if s]
+
+
+def is_descriptive_text(literal: str) -> bool:
+    """判断字符串字面量是否为**描述性文本**而非可执行正则。
+
+    用于避免把错误提示文案误判为模式。例如::
+
+        "跨工具陷阱: {pattern!r} 同时含 | 与 \\\\|。"
+        "模式 {pattern!r} 含 \\\\ 但无裸 |。"
+
+    这两条都是**给人看的提示**，但字符串里同时含 | 与 \\|
+    —— 若不排除，`check_regex_dialect` 会报假阳性。
+
+    判据：含格式化占位符（``{}``）、含中文说明词、或以
+    「模式/规则/陷阱」等描述性词汇开头。
+
+    Args:
+        literal: 字符串字面量
+
+    Returns:
+        True 表示这是描述性文本，应跳过方言检查
+    """
+    # 格式化占位符 —— f-string / .format() 的强信号
+    if "{" in literal and "}" in literal:
+        return True
+    # 说明性词汇
+    desc_words = ("模式", "规则", "陷阱", "字面", "语义", "检查",
+                  "字符类", "不支持", "解释", "含义")
+    if any(w in literal for w in desc_words):
+        return True
+    # 含中文说明文字
+    if re.search(r'[\u4e00-\u9fff]', literal):
+        return True
+    return False
+
+
+def check_source_dialects(source: str) -> list:
+    """扫描源码中**代码区**的正则，报告方言混用。
+
+    这是 ``check_regex_dialect`` 的源码级封装，自动做了
+    两层排除，避免误报：
+    ①剥离 docstring 与注释（见 `extract_code_patterns`）
+    ②排除描述性文本（见 `is_descriptive_text`）
+
+    Args:
+        source: Python 源码文本
+
+    Returns:
+        违规列表；每项是 (字面量, 原因)
+    """
+    violations = []
+    for lit in extract_code_patterns(source):
+        if r"\|" not in lit:
+            continue
+        # ① 排除描述性文本
+        if is_descriptive_text(lit):
+            continue
+        # ② 正常检查
+        try:
+            check_regex_dialect(lit)
+        except SyntaxCheckFailure as e:
+            violations.append((lit, str(e)))
+    return violations
+
+
 # ---------- 便捷：带自检的匹配器 ----------
 
 class GuardedPattern:
