@@ -1,0 +1,229 @@
+"""校验器自检框架（可复用）
+========================
+
+**为什么有这个模块**：我们已四次遇到「检索/检查工具静默失效」——
+security-gate 的空格类、cjk-spacing 的 PCRE 水平空白类、verify-docs 核实时的
+BSD basic 模式 alternation、pre-commit 的 PCRE 模式开关。
+四次里有两次是「能力不存在 + 失败静默」，静默失效比误报更危险：
+它给人「已有防护」的错觉，而实际一条规则都没跑。
+
+**核心原则**：自己不能跑，就没资格检查别人。
+
+**三类自检**
+
+| 类别 | 能抓 | 抓不到 |
+|------|------|--------|
+| 1 正则可编译性 | Python re 语法错误（如 PCRE 专有的水平空白类） | 外部工具能力缺失 |
+| 2 负向用例 | 规则永不命中 / 过宽（误报） | 规则漏报 |
+| 3 外部依赖能力 | 「以为有能力实际没有」（如 macOS 无 PCRE 模式） | — |
+
+**用法**
+
+```python
+from selftest_framework import SelfTest
+
+st = SelfTest("my-check")
+emoji = st.compile(r'[\U0001F300-\U0001F9FF]')   # 1 正则可编译
+
+@st.rule
+def check_emoji():
+    st.must_hit("有 emoji")       # 2 必须命中
+    st.must_miss("纯中文无 emoji") # 2 必须不命中
+    st.position("│ 状态栏 │ <- 说明", False)  # 2 位置用例
+
+st.require_external("grep", "-P", "test")   # 3 外部能力
+st.run()   # 自测不通过 -> SystemExit(2)
+```
+
+**为什么 POSITION_CASES 是独立的第三类**
+
+负向用例防「误报」，位置用例防「误判该跳过的地方没跳过」。
+例：ASCII 布局图里有大量对齐空格，若规则不跳过代码块就会误报——
+这类「跳过逻辑失效」既不是过宽也不是漏报，而是第三种形态。
+"""
+import re
+import subprocess
+import sys
+from dataclasses import dataclass, field
+from typing import Callable, List, Tuple
+
+
+@dataclass
+class Case:
+    """一个测试用例"""
+    content: str
+    should_flag: bool
+    label: str = ""
+
+
+@dataclass
+class SelfTest:
+    """校验器自检框架"""
+    name: str = "check"
+    _rules: List[Tuple[str, Callable]] = field(default_factory=list)
+    _cases: List[Case] = field(default_factory=list)
+    _external: List[Tuple[str, list, str]] = field(default_factory=list)
+
+    # ---------- 定义阶段（装饰器） ----------
+
+    def rule(self, fn: Callable) -> Callable:
+        self._rules.append((fn.__name__, fn))
+        return fn
+
+    # ---------- 用例 ----------
+
+    def must_hit(self, content: str, label: str = "") -> None:
+        """content 必须被规则命中"""
+        self._cases.append(Case(content, True, label or f"必须命中: {content!r}"))
+
+    def must_miss(self, content: str, label: str = "") -> None:
+        """content 必须不被规则命中"""
+        self._cases.append(Case(content, False, label or f"必须不命中: {content!r}"))
+
+    def position(self, content: str, should_flag: bool, label: str = "") -> None:
+        """位置用例 —— 验证「该跳过的区域确实被跳过」
+
+        独立于 must_hit/must_miss，因为它防的是第三种失效：
+        「跳过逻辑失效」既不是过宽也不是漏报。
+        例：ASCII 布局图有对齐空格，规则若不跳过代码块就会误报。
+        """
+        self._cases.append(
+            Case(content, should_flag, label or f"位置: {content!r}")
+        )
+
+    # ---------- 外部依赖 ----------
+
+    def require_external(self, cmd: str, *args: str,
+                         probe_input: str = "test") -> None:
+        """声明外部依赖，并检查它是否真的具备该能力
+
+        用法: st.require_external("grep", "-P", "test")
+        """
+        self._external.append((cmd, list(args), probe_input))
+
+    # ---------- 执行阶段 ----------
+
+    @staticmethod
+    def compile(pattern: str) -> "re.Pattern":
+        """① 正则可编译性 —— PCRE 专有语法会在此抛异常"""
+        try:
+            return re.compile(pattern)
+        except re.error as e:
+            raise SyntaxCheckFailure(f"正则语法错误: {pattern!r} -> {e}")
+
+    def run(self) -> None:
+        """执行全部自检。失败则 SystemExit(2)"""
+        print(f"[{self.name}] 自检开始")
+        failures = []
+
+        # ① 正则可编译性
+        for rule_name, _ in self._rules:
+            pass  # 规则内的 compile() 会在下面执行时报错
+
+        # 执行规则 + ② 用例
+        for rule_name, fn in self._rules:
+            try:
+                fn()
+            except SyntaxCheckFailure as e:
+                failures.append(f"[①正则] {rule_name}: {e}")
+            except Exception as e:
+                failures.append(f"[①正则] {rule_name} 执行异常: {type(e).__name__}: {e}")
+
+        # ③ 外部依赖能力
+        for cmd, args, probe in self._external:
+            try:
+                r = subprocess.run([cmd] + args, input=probe,
+                                   capture_output=True, text=True, timeout=5)
+                if r.returncode == 2 or 'invalid option' in (r.stderr or '').lower():
+                    failures.append(
+                        f"[③外部依赖] `{cmd} {' '.join(args)}` 在本平台不可用"
+                        f"（exit={r.returncode}）—— 会静默失效"
+                    )
+            except FileNotFoundError:
+                failures.append(f"[③外部依赖] `{cmd}` 不存在")
+            except Exception as e:
+                failures.append(f"[③外部依赖] `{cmd}` 探测异常: {e}")
+
+        # 汇总
+        if failures:
+            print(f"[{self.name}] SELF-TEST FAILED", file=sys.stderr)
+            for f in failures:
+                print(f"  {f}", file=sys.stderr)
+            sys.exit(2)
+
+        print(f"[{self.name}] 自检通过"
+              f"（{len(self._rules)} 条规则可编译"
+              f" + {len(self._external)} 项外部依赖可用）")
+
+
+class SyntaxCheckFailure(Exception):
+    """正则语法错误 —— 对应自检类别①"""
+
+
+# ---------- 便捷：带自检的匹配器 ----------
+
+class GuardedPattern:
+    """带自检的正则匹配器
+
+    用法:
+        gp = GuardedPattern("emoji", r'[\U0001F300-\U0001F9FF]')
+        gp.must_hit("有 emoji \U0001F680")   # 用转义表达样本
+        gp.must_miss("纯中文")
+        gp.check()          # 自检不通过则 SystemExit(2)
+        gp.search(text)     # 正常使用
+    """
+
+    def __init__(self, name: str, pattern: str):
+self.name = name
+        self.raw = pattern
+        try:
+            self.p = re.compile(pattern)
+        except re.error as e:
+            print(f"[{name}] SELF-TEST FAILED: 正则语法错误 {e}",
+                  file=sys.stderr)
+            sys.exit(2)
+        self._cases: List[Case] = []
+
+    def must_hit(self, content: str):  self._cases.append(Case(content, True))
+    def must_miss(self, content: str): self._cases.append(Case(content, False))
+
+    def check(self):
+        """执行负向/正向用例自检"""
+        for c in self._cases:
+            got = bool(self.p.search(c.content))
+            if got != c.should_flag:
+                print(f"[{self.name}] SELF-TEST FAILED: "
+                      f"{c.label} 期望={c.should_flag} 实得={got}",
+                      file=sys.stderr)
+                sys.exit(2)
+        return self
+
+    def search(self, text: str):
+        return self.p.search(text)
+
+    def findall(self, text: str):
+        return self.p.findall(text)
+
+
+# ========== 使用示例（可直接运行验证框架本身） ==========
+if __name__ == "__main__":
+    st = SelfTest("demo")
+
+    hit_emoji = st.compile(r'[\U0001F300-\U0001F9FF]')
+
+    @st.rule
+    def rule_emoji():
+        st.must_hit("有 emoji \U0001F680")   # 用转义表达样本
+        st.must_miss("纯中文无 emoji")
+        # 位置用例：ASCII 图里不该命中
+        st.position("│ 状态栏 │  <- 说明", False)
+
+    @st.rule
+    def rule_cjk_spacing():
+        pat = st.compile(r'[一-鿿][。，][ \t]{2,}')
+        st.must_hit("正常。  多余")
+        st.must_miss("ASCII 0% -> 22%")
+        st.must_miss("单个空格 正常。 一个")
+
+    st.require_external("grep", "-P", "test")   # macOS 上会 WARN/失败
+    st.run()

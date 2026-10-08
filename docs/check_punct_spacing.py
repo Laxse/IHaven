@@ -149,7 +149,7 @@ def main():
     if total:
         print(f"合计 {total} 处中文标点后多余空格")
         return 1
-    print("全部通过 ✓")
+    print("全部通过")
     return 0
 
 

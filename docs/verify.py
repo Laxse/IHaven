@@ -266,4 +266,4 @@ if failures:
     for m in failures:
         print(f"  [FAIL] {m}")
     sys.exit(1)
-print("\n全部通过 ✓")
+print("\n全部通过")

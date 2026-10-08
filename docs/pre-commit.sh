@@ -44,5 +44,5 @@ if [ $FAILED -ne 0 ]; then
 fi
 
 echo ""
-echo "全部通过 ✓"
+echo "全部通过"
 exit 0
