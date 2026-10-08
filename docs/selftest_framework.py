@@ -109,12 +109,30 @@ class SelfTest:
     # ---------- 外部依赖 ----------
 
     def require_external(self, cmd: str, *args: str,
-                         probe_input: str = "test") -> None:
+                         probe_input: str = "test",
+                         must_exit: int | None = None,
+                         expect_stdout: str | None = None) -> None:
         """声明外部依赖，并检查它是否真的具备该能力
 
-        用法: st.require_external("grep", "-P", "test")
+        两��用法：
+
+        1) 能力探测（只确认工具支持该选项）：
+           st.require_external("grep", "-P", "test")
+           → 退出码 2 或 stderr 含 invalid option => 能力不存在
+
+        2) 语义断言（运行真实命令并断言结果）—— 架构师建议：
+           st.require_external("grep", "-E", "x",
+                               probe_input="x", must_exit=0)
+           st.require_external("grep", "-E", "x",
+                               probe_input="y", expect_stdout="")
+           → 不只问「能不能跑」，而是断言「跑出来对不对」
+
+        理由（架构师提出）：require_semantic 那一类无法机械判定
+        （「语义是否正确」本身没有判据），所以不新增类型，
+        而是把语义断言挂到已有的外部依赖检查上。
         """
-        self._external.append((cmd, list(args), probe_input))
+        self._external.append((cmd, list(args), probe_input,
+                               must_exit, expect_stdout))
 
     # ---------- 模块位置说明 ----------
     # 本模块是可复用的**代码**（非文档），理想位置是 `scripts/lib/`。
@@ -149,16 +167,35 @@ class SelfTest:
             except Exception as e:
                 failures.append(f"[①正则] {rule_name} 执行异常: {type(e).__name__}: {e}")
 
-        # ③ 外部依赖能力
-        for cmd, args, probe in self._external:
+        # ③ 外部依赖能力（+ 可选语义断言）
+        for cmd, args, probe, must_exit, expect_stdout in self._external:
             try:
                 r = subprocess.run([cmd] + args, input=probe,
                                    capture_output=True, text=True, timeout=5)
-                if r.returncode == 2 or 'invalid option' in (r.stderr or '').lower():
+                stderr = (r.stderr or '').lower()
+
+                # ③a 能力探测：不支持该选项（静默失效的形态）
+                if r.returncode == 2 or 'invalid option' in stderr:
                     failures.append(
                         f"[③外部依赖] `{cmd} {' '.join(args)}` 在本平台不可用"
                         f"（exit={r.returncode}）—— 会静默失效"
                     )
+                    continue
+
+                # ③b 语义断言（架构师建议）：运行真实命令并断言结果
+                if must_exit is not None and r.returncode != must_exit:
+                    failures.append(
+                        f"[③语义断言] `{cmd} {' '.join(args)}` "
+                        f"期望 exit={must_exit}，实得 {r.returncode}"
+                        f"（stderr: {r.stderr.strip()[:60]}）"
+                    )
+                if expect_stdout is not None:
+                    if expect_stdout not in (r.stdout or ''):
+                        failures.append(
+                            f"[③语义断言] `{cmd} {' '.join(args)}` "
+                            f"输出不含 {expect_stdout!r}"
+                            f"，实得 {(r.stdout or '').strip()[:40]!r}"
+                        )
             except FileNotFoundError:
                 failures.append(f"[③外部依赖] `{cmd}` 不存在")
             except Exception as e:
