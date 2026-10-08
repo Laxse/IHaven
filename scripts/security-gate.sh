@@ -30,8 +30,18 @@ SOURCES=$(find . -type d \( -name .git -o -name .build -o -name DerivedData \
 
 COUNT=$(printf '%s' "$SOURCES" | grep -c . || true)
 
-# 断言：可扫描文件数为 0 时必须 FAIL，否则「PASS」不代表干净
+# 断言：可扫描文件数为 0 时，默认 FAIL —— 否则「PASS」不代表干净。
+#
+# 但「0 个文件」在不同阶段的含义不同（设计侧 v3.9 的关键修正）：
+#   Phase 1 文档阶段 -> 合法，仓库本就无源码
+#   Phase 3 有了源码却扫到 0 -> 扫描逻辑坏了，必须 FAIL
+# 单一阈值无法区分这两者，因此阶段需显式声明。
+PHASE="${IHAVEN_PHASE:-code}"   # code | docs
 if [ "$COUNT" -eq 0 ]; then
+  if [ "$PHASE" = "docs" ]; then
+    echo "[gate] SKIP 阶段声明为 docs，仓库无源码可查（本阶段预期状态）"
+    exit 0
+  fi
   echo "[gate] FAIL 可扫描源文件数为 0 —— 门禁未检查任何内容"
   echo "       「PASS」此时不代表仓库干净，而是「什么都没检查」。"
   FAIL=1
