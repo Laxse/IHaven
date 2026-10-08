@@ -17,6 +17,7 @@ IHaven 独立文档校验器（Independent Doc Verifier）
   4. 章节编号连续无重复
   5. ADR 交叉引用不断链（引用的 Trap / ADR 必须真实存在）
   6. 文件非空且行数达标
+  7. 相对 HEAD 的章节回归：二级标题消失 = FAIL（覆盖式写入丢段）
 
 用法：
   python3 scripts/verify-docs.py                # 校验真实项目
@@ -521,6 +522,149 @@ def check_non_empty() -> None:
             fail("empty", f"{p.relative_to(ROOT)} 仅 {p.stat().st_size} 字节")
 
 
+# ---- 7. 相对 HEAD 的章节回归（覆盖式丢失）----
+# 起因（真实事故，非假设）：docs/PRD.md 被一次写入丢掉约 490 行 ——
+# 三块连续内容，每块起点都是二级标题。作者逐块还原（PRD v1.17 / b57300e）。
+#
+# 为什么主判据是**标题序列**而不是**行数**：
+#   - 合法编辑几乎不会删除整个章节，但**经常**修改内容长度（改写、精简、表格对齐）。
+#     行数阈值会把合法的整篇重构全部拦下 —— 那是假阳性。
+#   - 反过来，一个既有二级标题整块消失，几乎必然是覆盖式写入事故 —— 那是真阳性。
+#   本次事故正是「三个二级标题块整块消失」：标题判据直接命中，
+#   行数判据只是间接信号，因此行数下降**只 WARN，绝不 FAIL**。
+#
+# 为什么不放在别的检查里：本项依赖 git（外部命令），失败模式与纯文本检查不同
+# —— 它必须显式声明「本项未检查」，不能静默通过。
+_TRACKED_DOCS = ("PRD.md", "ARCHITECTURE.md", "DESIGN.md")
+_ALLOW_SHRINK_ENV = "IHAVEN_ALLOW_SHRINK"
+_HEADING_RE = register(r"^##\s+(?P<title>.+?)\s*$")
+
+
+def _headings(text: str) -> list[str]:
+    """取二级标题序列（`## `，不匹配 `###` 及以下）。"""
+    return [m.group("title")
+            for m in (_HEADING_RE.match(line) for line in text.splitlines())
+            if m]
+
+
+def _heading_verdict(head_titles: list[str], work_titles: list[str],
+                     head_lines: int, work_lines: int) -> tuple[str, list[str]]:
+    """纯函数：给出 (verdict, details)。verdict ∈ {"ok", "warn", "fail"}。
+
+    不依赖 git / 文件系统 —— 只有纯函数才能被启动自检直接验证。
+    """
+    missing = [t for t in head_titles if t not in work_titles]
+    if missing:
+        return "fail", [f"HEAD 中的二级标题在工作区消失: {t!r}" for t in missing]
+
+    details: list[str] = []
+    # 集合相同但顺序变化（新增标题不算变化，故先按 HEAD 集合过滤）
+    head_set = set(head_titles)
+    if [t for t in work_titles if t in head_set] != head_titles:
+        details.append("二级标题顺序变化（集合未变）")
+    if head_lines > 0 and work_lines < head_lines * 0.95:
+        pct = (head_lines - work_lines) / head_lines * 100
+        details.append(f"行数下降 {pct:.1f}%（{head_lines} -> {work_lines}）")
+    return ("warn", details) if details else ("ok", [])
+
+
+def _git_show(rel: str, root: Path | None = None) -> str | None:
+    """取 HEAD 版本内容。git 不可用 / 非仓库 / 未 track 时返回 None（= SKIP）。"""
+    import shutil as _shutil
+    import subprocess as _subprocess
+
+    if _shutil.which("git") is None:
+        return None
+    base = str(root if root is not None else ROOT)
+    p = _subprocess.run(["git", "-C", base, "show", f"HEAD:{rel}"],
+                        capture_output=True, text=True)
+    if p.returncode != 0:
+        return None
+    return p.stdout
+
+
+def check_heading_regression() -> None:
+    """比对工作区与 HEAD 的二级标题序列，捕获「覆盖式写入丢段」。
+
+    判据：HEAD 中存在的二级标题在工作区消失 -> FAIL；顺序变化或行数下降 > 5%
+    -> WARN。逃逸阀 `IHAVEN_ALLOW_SHRINK=1` 放行但**必须打印消失的标题**。
+
+    已知盲区（未声明进 BLIND_SPOTS，因本轮冻结只授权新增本项与其自检）：
+    只覆盖 `docs/PRD.md` / `ARCHITECTURE.md` / `DESIGN.md` 三个文件的**二级**标题；
+    三级及以下标题整块消失、以及未纳入列表的文档，本项不覆盖。
+    """
+    import os as _os
+
+    skipped: list[str] = []
+    for name in _TRACKED_DOCS:
+        rel = f"docs/{name}"
+        p = DOCS / name
+        if not p.exists():
+            skipped.append(f"{rel} 不存在")
+            continue
+        head = _git_show(rel)
+        if head is None:
+            skipped.append(f"{rel} 无 HEAD 版本（git 不可用 / 非仓库 / 未 track）")
+            continue
+
+        work = p.read_text(encoding="utf-8")
+        verdict, details = _heading_verdict(_headings(head), _headings(work),
+                                            len(head.splitlines()),
+                                            len(work.splitlines()))
+        if verdict == "ok":
+            continue
+
+        if _os.environ.get(_ALLOW_SHRINK_ENV) == "1":
+            # 逃逸不能静默：放行了也要把命中内容打出来
+            warn("heading-regression",
+                 f"{rel} 命中但被 {_ALLOW_SHRINK_ENV}=1 放行 —— " + "；".join(details))
+            continue
+
+        emit = fail if verdict == "fail" else warn
+        for d in details:
+            emit("heading-regression", f"{rel} {d}")
+
+    if skipped:
+        print("[verify-docs] 本项未检查（heading-regression SKIP）: "
+              + "；".join(skipped))
+
+
+def self_test_heading_regression() -> None:
+    """本项的自检：既能检出它要检的东西，也能在能力缺失时正确 SKIP。
+
+    ① 负向用例（植入删标题）-> 必须 FAIL；且「仅行数下降」必须 WARN 而非 FAIL
+    ② 能力缺失（非 git 仓库 / 未 track）-> 必须返回 None（SKIP），不得静默 PASS
+    """
+    problems = []
+
+    v, details = _heading_verdict(["A", "B", "C"], ["A", "C"], 6, 5)
+    if v != "fail" or not any("B" in d for d in details):
+        problems.append(f"删标题未被判为 FAIL（verdict={v}, details={details}）")
+
+    v2, _ = _heading_verdict(["A", "B", "C"], ["A", "B", "C"], 100, 80)
+    if v2 != "warn":
+        problems.append(f"仅行数下降应判 WARN，实为 {v2}（规格：行数下降绝不 FAIL）")
+
+    v3, _ = _heading_verdict(["A", "B", "C"], ["C", "B", "A"], 6, 6)
+    if v3 != "warn":
+        problems.append(f"标题顺序变化应判 WARN，实为 {v3}")
+
+    v4, _ = _heading_verdict(["A", "B"], ["A", "B", "D"], 4, 6)
+    if v4 != "ok":
+        problems.append(f"新增标题不应报警，实为 {v4}（会把合法编辑误报）")
+
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        if _git_show("docs/PRD.md", root=Path(td)) is not None:
+            problems.append("非 git 目录下 _git_show 未返回 None —— "
+                            "SKIP 路径失效，本项会静默 PASS")
+
+    if problems:
+        raise RuntimeError(
+            "章节回归自检失败（已阻断）:\n  - " + "\n  - ".join(problems)
+        )
+
+
 def main() -> int:
     global ROOT, DOCS
     ap = argparse.ArgumentParser(
@@ -537,7 +681,8 @@ def main() -> int:
 
     # 启动自检必须在任何检查之前 —— 自己不能跑，就没资格检查别人
     for stage, fn in (("正则自检", self_test),
-                      ("外部依赖能力自检", self_test_external_deps)):
+                      ("外部依赖能力自检", self_test_external_deps),
+                      ("章节回归自检", self_test_heading_regression)):
         try:
             fn()
         except RuntimeError as exc:
@@ -555,7 +700,8 @@ def main() -> int:
                check_section_numbering, check_cross_references,
                check_cross_document_refs, check_box_drawing,
                check_cjk_punctuation_spacing,
-               check_conclusion_consistency, check_non_empty):
+               check_conclusion_consistency, check_non_empty,
+               check_heading_regression):
         try:
             fn()
         except Exception as exc:                      # noqa: BLE001
