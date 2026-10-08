@@ -5,14 +5,14 @@
 
 | Date | Source | Open Item | Related Constraints | Current Leaning | Blocked By | Resolves When | Status |
 |------|--------|-----------|---------------------|-----------------|------------|---------------|--------|
-| 2026-10-08 | Phase 1 | **API Key `CmQyjMpXsdgTlyoME98eaf64cbJCRzac` 已泄露** | 该 key 硬编码在 git tag 1.2 (a8cdcaf) 的 QueryParameter.swift:56，仓库 https://github.com/Laxse/IHaven 为公开仓库（HTTP 200），已随提交推送至 GitHub | **必须立即吊销并重新生成**；新代码库禁止任何明文 Key 常量，认证一律走 X-API-Key 请求头 | 用户需登录 wallhaven.cc 账户 Settings 页重新生成 |用户重新生成 Key 后 | OPEN |
+| 2026-10-08 | Phase 1 | **API Key `<REDACTED_API_KEY>` 已泄露**（旧 Key 已吊销，值已脱敏，本文件不再记录原文） | 该 key 硬编码在 git tag 1.2 (a8cdcaf) 的 QueryParameter.swift:56，仓库 https://github.com/Laxse/IHaven 为公开仓库（HTTP 200），已随提交推送至 GitHub | **必须立即吊销并重新生成**；新代码库禁止任何明文 Key 常量，认证一律走 X-API-Key 请求头 | 用户需登录 wallhaven.cc 账户 Settings 页重新生成 |用户重新生成 Key 后 | OPEN |
 
 ---
 
 ## P0 安全事故记录
 
 ### 泄露详情
-- **泄露内容**：wallhaven API Key `CmQyjMpXsdgTlyoME98eaf64cbJCRzac`
+- **泄露内容**：wallhaven API Key `<REDACTED_API_KEY>`（旧 Key 已吊销，值已脱敏，本文件不再记录原文）
 - **泄露路径**：`IHaven/Resource/WallHaven/QueryParameter.swift:56` 硬编码明文常量
 - **暴露面**：GitHub 公开仓库 `Laxse/IHaven`，提交 `a8cdcaf`（tag 1.2）
 - **二次泄露面**：旧代码通过 URL query 参数传递（`result["apikey"] = apikey`），会进入 URL 日志、代理日志、HTTP Referer 链
