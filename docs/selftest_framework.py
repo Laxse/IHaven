@@ -217,6 +217,54 @@ class SyntaxCheckFailure(Exception):
     """正则语法错误 —— 对应自检类别①"""
 
 
+# ---- 跨工具正则语义一致性（v3.8 新增）----
+
+def check_regex_dialect(pattern: str) -> None:
+    """检查 `pattern` 是否混用了两种正则方言的 alternation 语法。
+
+    背景（架构师提出、设计师实测确认）：
+    同一写法 ``a\\|b`` 在两个工具下语义**完全不同**：
+
+    | 工具 | ``\\|`` 的含义 | 实测结果 |
+    |------|---------------|---------|
+    | BSD grep basic | 无效（不支持该语法） | exit=1，**静默零命中** |
+    | Python re | **字面竖线** | findall('a|b') == ['b'] |
+
+    这比「工具能力缺失」更隐蔽：语法都能编译，但匹配的东西不一样。
+    把 shell 正则移植到 Python 时最容易踩。
+
+    Args:
+        pattern: 待检查的正则（Python re 语法）
+
+    Raises:
+        SyntaxCheckFailure: 若同时出现 `|` 与 `\\|`，极可能是方言混用
+    """
+    # 去掉 \| 后若还剩 |，说明两者同时出现 —— 方言混用的典型信号
+    if r"\|" in pattern and "|" in pattern.replace(r"\|", ""):
+        raise SyntaxCheckFailure(
+            f"跨工具陷阱: {pattern!r} 同时含 | 与 \\|。"
+            "Python re 中 \\| 是字面竖线（不是 or）；"
+            "BSD grep basic 完全不支持 \\| alternation。"
+            "建议 Python 侧统一用 |，shell 侧用 grep -E。"
+        )
+
+
+def grep_pattern_safe(patterns: list) -> str:
+    """把多个 pattern 拼成可在 BSD grep -E 下安全使用的 alternation。
+
+    这是「跨工具陷阱」的正面解法：**统一用 -E + |**，
+    不依赖 basic 模式的 \\| 语义。
+
+    Args:
+        patterns: 多个搜索模式
+
+    Returns:
+        可直接传给 ``grep -E`` 的模式串
+    """
+    escaped = [re.escape(p) for p in patterns]
+    return "|".join(escaped)
+
+
 # ---------- 便捷：带自检的匹配器 ----------
 
 class GuardedPattern:

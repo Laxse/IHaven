@@ -35,6 +35,10 @@ jobs:
       - name: Independent doc verification
         run: python3 scripts/verify-docs.py
 
+      # 门禁语义自检：证明门禁能检出植入违规，而非仅「当前仓库干净」
+      - name: Gate semantic self-check
+        run: python3 scripts/gate-selfcheck.py
+
       - name: Build
         run: |
           xcodebuild build \
