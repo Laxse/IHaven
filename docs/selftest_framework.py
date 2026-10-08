@@ -219,25 +219,38 @@ class SyntaxCheckFailure(Exception):
 
 # ---- 跨工具正则语义一致性（v3.8 新增）----
 
-def check_regex_dialect(pattern: str) -> None:
+def check_regex_dialect(pattern: str, warn_pure_escape: bool = False) -> None:
     """检查 `pattern` 是否混用了两种正则方言的 alternation 语法。
 
     背景（架构师提出、设计师实测确认）：
-    同一写法 ``a\\|b`` 在两个工具下语义**完全不同**：
+    同一写法 ``a\\|b`` 在不同工具下语义**完全不同**，且有**三种机制**：
 
-    | 工具 | ``\\|`` 的含义 | 实测结果 |
-    |------|---------------|---------|
-    | BSD grep basic | 无效（不支持该语法） | exit=1，**静默零命中** |
-    | Python re | **字面竖线** | findall('a|b') == ['b'] |
+    | 工具 | 写法 | 实测结果 | 机制 |
+    |------|------|---------|------|
+    | BSD grep basic | ``grep 'a\\|b'`` | exit=1，零命中，无报错 | **语法无效** |
+    | Python re | ``r'a\\|b'`` | 匹配字面 ``a\\|b`` | **字面竖线匹配** |
+    | Python 非 raw 串| ``'a\\|b'`` | 同上 + SyntaxWarning | **多一层警告** |
 
     这比「工具能力缺失」更隐蔽：语法都能编译，但匹配的东西不一样。
-    把 shell 正则移植到 Python 时最容易踩。
+
+    **为什么不对「纯 \\|」也报警**（架构师提议过，我们实测后否决）：
+
+    纯 ``\\|`` 在 Python 里确实是**合法的字面竖线匹配**，且有正当用途。
+    本项目实例（verify.py 实测）：
+
+        re.match(r"^\\| \\d{4}-\\d{2}-\\d{2} \\| (v[\\d.]+)", "| 2026-10-08 | v2.1 | ...")
+        → 匹配成功，提取出 'v2.1'
+
+    这是匹配 **Markdown 表格的行首竖线**，完全正当。若对纯 ``\\|`` 也报WARN，
+    会误报这类用法 —— 而误报会导致检查被忽略，比漏报更糟。
 
     Args:
         pattern: 待检查的正则（Python re 语法）
+        warn_pure_escape: 若为 True，含 ``\\|`` 但不含裸 ``|`` 时也发出警告。
+            默认 False —— 实测表明这会误报 Markdown 表格匹配。
 
     Raises:
-        SyntaxCheckFailure: 若同时出现 `|` 与 `\\|`，极可能是方言混用
+        SyntaxCheckFailure: 若同时出现 ``|`` 与 ``\\|``，极可能是方言混用
     """
     # 去掉 \| 后若还剩 |，说明两者同时出现 —— 方言混用的典型信号
     if r"\|" in pattern and "|" in pattern.replace(r"\|", ""):
@@ -246,6 +259,17 @@ def check_regex_dialect(pattern: str) -> None:
             "Python re 中 \\| 是字面竖线（不是 or）；"
             "BSD grep basic 完全不支持 \\| alternation。"
             "建议 Python 侧统一用 |，shell 侧用 grep -E。"
+        )
+
+    # 可选：纯 \| 的警告（默认关闭，因实测会误报 Markdown 表格匹配）
+    if warn_pure_escape and r"\|" in pattern:
+        import warnings
+        warnings.warn(
+            f"模式 {pattern!r} 含 \\| 但无裸 |。在 Python re 中 \\| 是字面竖线，"
+            "几乎总是想写 or的笔误。但它也可能是正当的字面匹配"
+            "（如匹配 Markdown 表格竖线），故默认不报警。",
+            SyntaxWarning,
+            stacklevel=2
         )
 
 

@@ -75,6 +75,48 @@ cp docs/X.md /tmp/bak; python3 -c "改 docs/X.md"; cp /tmp/bak docs/X.md
 
 ---
 
+## 2.2 「通过」不等于「能检出违规」
+
+两种验证证明的是**完全不同性质**的事：
+
+| 验证方式 | 能证明 | 不能证明 |
+| --- | --- | --- |
+| 在真实仓库跑 | 当前是干净的 | **它能否检出植入的违规** |
+| 隔离副本 + 植入违规 | **它真的有效** | —— |
+
+**后者才是门禁有效性的证据。** `scripts/gate-selfcheck.py` 负责后者：
+在临时目录搭建 `scripts/<gate>` + 植入违规文件，断言门禁 `exit=1` 且输出提及该违规。
+
+```bash
+python3 scripts/gate-selfcheck.py
+# [security-gate.sh]    DETECTED  exit=1  硬编码明文 API Key
+# [convention-gate.sh] DETECTED  exit=1  被 ADR-004 禁用的 ObservableObject
+```
+
+前提是门禁支持 `IHAVEN_ROOT`（见 2.1）—— **门禁若无法被指向别处，就无法被回归测试**。
+
+## 2.3 跨工具正则方言：三种不同的失败机制
+
+`\|` 在不同工具下行为**不一样**，但结果都是「不or」，易被误判为同一现象：
+
+| 工具 | 写法 | 实测结果 | 失败机制 |
+| --- | --- | --- | --- |
+| BSD grep basic | `grep 'a\|b'` | exit=1，零命中，**无报错** | **语法无效**（该工具不支持此语法） |
+| Python `re` | `re.findall(r'a\\|b', 'a\|b')` | `['a\|b']` | **按字面竖线匹配**（`\|` 是转义后的普通字符） |
+| BSD grep `-E` | `grep -E 'a\|b'` | 匹配字面 `a\|b` | 字面匹配 |
+
+Python 侧还有第三层：非raw 字符串里的 `'a\|b'` 会额外触发
+`SyntaxWarning: invalid escape sequence '\|'`。
+
+**规则**：
+
+- 检索多模式一律用 `grep -E`（或 `-P` 若确认平台支持），**不要用 `\|`**
+- Python 正则的 alternation 是 `|`；`\|` 是字面竖线
+- 检测方言混用：`docs/selftest_framework.py` 的 `check_regex_dialect(pattern)`
+- 生成 ERE 安全模式：`grep_pattern_safe(patterns)`（内部用 `re.escape` + `|`）
+
+---
+
 ## 文档维护规范：结论一致性
 
 > **这一节是维护规范，不是验证纪律。** 它解决的是「结论在文档间不漂移」，
@@ -233,6 +275,20 @@ exit code = 2
 ---
 
 ## 当前状态
+
+**注意**：`security-gate.sh` / `convention-gate.sh` 扫描
+`Core/ Features/ Infrastructure/ Platform/ App/` 下的 Swift 源。
+Phase 1 为文档阶段，**这些目录尚不存在**，因此门禁会报：
+
+```
+[gate] FAIL 可扫描源文件数为 0 —— 门禁未检查任何内容
+```
+
+**这是正确行为，不是故障。** 该断言的目的是防止「绿色 CI 其实什么都没检查」——
+源文件为 0 时 `PASS` 无意义。Phase 3 写入 Swift 代码后即自然解除。
+
+若确需在文档阶段让 CI 全绿，应显式声明「本阶段无源码可查」，
+而**不是**放宽这个断言。
 
 ```
 api-gate         PASS（零错误零警告）
