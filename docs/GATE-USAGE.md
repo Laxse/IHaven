@@ -105,6 +105,32 @@ cp docs/X.md /tmp/bak; python3 -c "改 docs/X.md"; cp /tmp/bak docs/X.md
 ADR-007 记录的那类错误的又一次翻版：*静默失效不会被人发现，
 因为「检查通过」与「检查没跑」的表象完全相同。*
 
+### 第四类：显式盲区声明
+
+> 来源：设计侧 v3.5 实证。
+
+她的三层防线全绿，但 `.py` 里仍有 3 处字面 emoji ——
+因为 `check_punct_spacing.py` 不管 emoji，`verify.py` 只扫 `.md/.css/.json`。
+**延迟两轮才发现。**
+
+核心原则：**声明了才能被讨论，没声明就默认它被检查了。**
+这是从「默认有防护」转向「显式声明防护边界」。
+
+`verify-docs.py` 现输出自己的四条盲区：
+
+```
+[verify-docs] 已声明盲区: 不检查 scripts/*.py 自身的 emoji（字面样本须用 \u 转义）
+[verify-docs] 已声明盲区: 不做通用语义比对 —— 结论一致性仅检测互斥措辞
+[verify-docs] 已声明盲区: 不检查代码语义（仅文档一致性 + 源码规范）
+[verify-docs] 已声明盲区: 不检查 Swift 编译期问题（那是 api-gate 的职责）
+```
+
+框架侧提供 `SelfTest.declare_blind_spot(description)`，见
+`docs/selftest_framework.py`（设计侧交付，含 `POSITION_CASES` 位置用例维度）。
+
+**新增检查器时必须声明盲区** —— 沿用 GATE-USAGE.md 第一条使用纪律的思路：
+声明了才能被讨论，没声明就默认它被检查了，而这个默认往往是错的。
+
 ### 人肉部分（补机器检查的缺口）
 
 写完一份文档后，反向搜一遍自己最核心的 3-5 条结论：

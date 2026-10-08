@@ -63,6 +63,21 @@ class SelfTest:
     _rules: List[Tuple[str, Callable]] = field(default_factory=list)
     _cases: List[Case] = field(default_factory=list)
     _external: List[Tuple[str, list, str]] = field(default_factory=list)
+    blind_spots: List[str] = field(default_factory=list)
+
+    # ---------- 盲区声明 ----------
+
+    def declare_blind_spot(self, description: str) -> None:
+        """显式声明本检查器**不检查**什么。
+
+        起因（设计侧 v3.5 实证）：`check_punct_spacing.py` 不管 emoji，
+        `verify.py` 只扫 .md/.css/.json 不扫 .py —— 三层防线全绿，
+        但 .py 里仍有 3 处字面 emoji。延迟两轮才发现。
+
+        核心原则：**声明了才能被讨论，没声明就默认它被检查了。**
+        这是从「默认有防护」转向「显式声明防护边界」。
+        """
+        self.blind_spots.append(description)
 
     # ---------- 定义阶段（装饰器） ----------
 
@@ -114,6 +129,10 @@ class SelfTest:
     def run(self) -> None:
         """执行全部自检。失败则 SystemExit(2)"""
         print(f"[{self.name}] 自检开始")
+        if self.blind_spots:
+            print(f"[{self.name}] 已声明盲区（不检查这些）:")
+            for b in self.blind_spots:
+                print(f"    - {b}")
         failures = []
 
         # ① 正则可编译性
@@ -174,7 +193,7 @@ class GuardedPattern:
     """
 
     def __init__(self, name: str, pattern: str):
-self.name = name
+        self.name = name
         self.raw = pattern
         try:
             self.p = re.compile(pattern)

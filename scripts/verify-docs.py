@@ -189,6 +189,17 @@ def self_test_external_deps() -> None:
 
 WARM: list[str] = []
 FAILURES: list[str] = []
+
+# 显式盲区声明 —— 见 docs/selftest_framework.py 的 declare_blind_spot
+# 原则：声明了才能被讨论，没声明就默认它被检查了。
+# 这一项由设计侧 v3.5 实证推动：他们的三层防线全绿，
+# 但 .py 里仍有 3 处 emoji，因为没有检查器覆盖 .py 的 emoji。
+BLIND_SPOTS = [
+    "不检查 scripts/*.py 自身的 emoji（字面样本须用 \\u 转义）",
+    "不做通用语义比对 —— 结论一致性仅检测互斥措辞",
+    "不检查代码语义（仅文档一致性 + 源码规范）",
+    "不检查 Swift 编译期问题（那是 api-gate 的职责）",
+]
 WARNINGS: list[str] = []
 
 
@@ -524,6 +535,8 @@ def main() -> int:
                   file=sys.stderr)
             return 2
     print("[verify-docs] 自检通过（正则可编译 + 负向用例命中 + 外部依赖可用）")
+    for b in BLIND_SPOTS:
+        print(f"[verify-docs] 已声明盲区: {b}")
 
     print(f"[verify-docs] 独立校验器启动（只读，不参与文件写入）")
     print(f"[verify-docs] root = {ROOT}\n")
