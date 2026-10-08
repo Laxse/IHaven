@@ -3,7 +3,10 @@
 # 依据 ADR-006：认证统一走 X-API-Key 头，禁止 ?apikey= query 传递
 # 用法：bash scripts/security-gate.sh
 set -uo pipefail
-cd "$(dirname "$0")/.."
+# --root 可指向任意目录，使门禁可在隔离副本上做负向测试
+# （GATE-USAGE 三条使用纪律第 2 条：负向测试必须用副本，不碰真实文件）
+ROOT="${IHAVEN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
+cd "$ROOT"
 
 # 只扫描重写后的新代码目录，旧代码 tag 1.2 已废弃
 SCAN_DIRS=(Core Features Infrastructure Platform App)
