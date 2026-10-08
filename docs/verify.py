@@ -223,6 +223,23 @@ def check_no_hardcoded_hex_outside_primitive():
     ok("组件层色值检查完成")
 
 
+def check_punct_spacing():
+    """中文标点后多余空格（独立脚本，含17 项自测）"""
+    punct = DOCS / "check_punct_spacing.py"
+    if not punct.exists():
+        warn("check_punct_spacing.py 不存在")
+        return
+    import subprocess
+    r = subprocess.run(["python3", str(punct)],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        bad("中文标点空格检查未通过")
+        print("\n标点检查输出:")
+        print(r.stdout[-900:])
+    else:
+        ok("中文标点空格检查（17 项自测全过）")
+
+
 # ---- 执行 ----
 print("=" * 60)
 print("IHaven 设计文件独立校验")
@@ -234,10 +251,12 @@ check_forbidden_ui_words()
 check_json_valid()
 check_css_tokens()
 check_doc_structure()
+check_punct_spacing()
 
 print(f"\n通过 {len(passed)} 项:")
 for m in passed:
     print(f"  [OK] {m}")
+
 if warnings:
     print(f"\n警告 {len(warnings)} 项:")
     for m in warnings:

@@ -25,11 +25,15 @@ else
     echo "[2/2] 设计侧校验器不存在，跳过"
 fi
 
-# 补充检查：中文标点后的多余空格（两个校验器都不查）
-if grep -qP '[\x{4e00}-\x{9fff}][\x{3000}-\x{303f}\x{ff00}-\x{ffef}][ \t]{2,}' docs/DESIGN.md 2>/dev/null; then
-    echo "[!] 发现中文标点后多余空格（emoji 清理痕迹）"
-    grep -nP '[\x{4e00}-\x{9fff}][\x{3000}-\x{303f}\x{ff00}-\x{ffef}][ \t]{2,}' docs/DESIGN.md | head -5
-    FAILED=1
+# 补充检查：中文标点后的多余空格（emoji 清理痕迹）
+# [!] 必须用 Python 而非 grep -P —— macOS BSD grep 不支持 -P，
+#     错误被 2>/dev/null 吞掉会导致规则「静默失效」（不报错也不命中）。
+#     静默失效比误报更危险：给人「已有防护」的错觉，实际一条规则都没跑。
+if [ -f docs/check_punct_spacing.py ]; then
+    echo "[3/3] 中文标点空格检查…"
+    python3 docs/check_punct_spacing.py || FAILED=1
+else
+    echo "[3/3] 标点检查脚本不存在，跳过"
 fi
 
 if [ $FAILED -ne 0 ]; then

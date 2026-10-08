@@ -304,30 +304,47 @@ def check_cjk_punctuation_spacing() -> None:
 # 机制三（作用域放大）最难靠人眼发现，因为症状是「我测了，测得也对」。
 # 因此对高风险参数做跨文档一致性抽查。
 def check_conclusion_consistency() -> None:
-    """检查已知高风险参数的结论表述是否跨文档一致。
+    """实测事实的**矛盾表述**检查（ADR-007 机制三）。
 
-    不做全文语义比对（那需要 LLM），只检查「危险措辞」是否与已实测事实矛盾。
+    背景：本项目的事实（如 `ratios=99x99` 静默匹配）被重复写在
+    ADR-007 / ARCHITECTURE / PRD 三处。任一处措辞与实测不符即产生
+    结论漂移，且**更显眼的那版（表格 / 摘要）风险最高**。
+
+    为什么不尝试通用语义比对：那需要 LLM，而门禁必须能在 CI 里
+    确定性运行。因此只检测**可机械判定的矛盾**：
+
+      同一个实测样本，若一处说它「被静默忽略 / 不构成风险」，
+      另一处却把它当作「正常生效 / 精确匹配」，即为矛盾。
+
+    纯粹的**重复表述**（同一结论说多次）不是矛盾，不应报错 ——
+    本检查的第一版曾把line 76/346/493 的同义重复误报，已修正。
     """
-    arch = DOCS / "ARCHITECTURE.md"
-    if not arch.exists():
+    adr7 = DOCS / "decisions" / "ADR-007.md"
+    if not adr7.exists():
         return
 
-    text = arch.read_text(encoding="utf-8")
+    text = adr7.read_text(encoding="utf-8")
+    lines = text.splitlines()
 
-    # 1. 不得声称 ratios/resolutions 非法值「不构成风险」
-    for lineno, line in enumerate(text.splitlines(), 1):
-        if re.search(r"`?(resolutions|ratios)`?[^\n|]*不构成风险", line):
+    # 危险/正确两类互斥措辞
+    SILENT = re.compile(r"(静默|被忽略|不构成风险|不报错)")
+    EXACT = re.compile(r"(精确匹配|正常匹配|完全一致|生效)")
+
+    # 逐行收集每个实测样本的定性
+    verdicts: dict[str, set[str]] = {}
+    for line in lines:
+        for m in re.finditer(r"`([a-zA-Z]+=[^`\s]+)`", line):
+            key = m.group(1)
+            if SILENT.search(line):
+                verdicts.setdefault(key, set()).add("silent")
+            if EXACT.search(line):
+                verdicts.setdefault(key, set()).add("exact")
+
+    for key, vs in sorted(verdicts.items()):
+        if "silent" in vs and "exact" in vs:
             fail("conclusion-drift",
-                 f"docs/ARCHITECTURE.md:{lineno} 声称非法值「不构成风险」，"
-                 f"与 Trap 13（静默匹配）矛盾 —— "
-                 f"200 只代表服务端没报错，不代表内容正确")
-
-    # 2. 不得声称 atleast 会被服务端当作有效筛选（它确实不是，但若与实测矛盾需更新）
-    for lineno, line in enumerate(text.splitlines(), 1):
-        if re.search(r"`atleast`[^\n]*会?被?服务端(?:接受|忽略)", line):
-            warn("conclusion-drift",
-                 f"docs/ARCHITECTURE.md:{lineno} 关于 atleast 服务端行为的表述，"
-                 f"请确认与 §6.2.3 实测矩阵一致")
+                 f"ADR-007.md 中 `{key}` 同时被描述为「静默/忽略」"
+                 f"与「精确匹配/正常生效」—— 同一实测出现互斥结论")
 
 
 # ---- 6. 文件非空 ----

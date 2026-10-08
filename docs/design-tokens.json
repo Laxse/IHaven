@@ -929,7 +929,26 @@
               "rule": "探测前必须先检查本地是否已配置 Key；未配置 → 常规空态 + 「请先在「设置 › 密钥」配置 API Key」",
               "linksTo": "emptyNoKey（§4.9.3）—— 未配 Key 的用户根本不该走到 NSFW 空态这一步"
             },
-            "requestBudget": { "triggerCondition": "仅 NSFW 条件且结果为空", "extraRequests": 1, "budgetImpact": "占 45次/分钟预算的 2.2%" },
+            "requestBudget": {
+              "triggerCondition": "仅 NSFW 条件且结果为空，且已配置 Key",
+              "extraRequests": 1,
+              "budgetImpact": "占 45次/分钟预算的 2.2%",
+              "sessionCache": {
+                "enabled": true,
+                "scope": "session",
+                "key": "NSFW 权限状态",
+                "invalidatedBy": ["用户更换 API Key", "用户显式点击「重新检查」"],
+                "rationale": "NSFW 权限不会中途改变，会话内缓存后平均成本接近 0",
+                "uxNote": "换 Key 必须失效缓存 —— 否则新 Key 的权限状态会被旧缓存覆盖"
+              }
+            },
+            "threePreconditions": {
+              "note": "架构师复核补充：三条前置条件缺一不可",
+              "1_localKeyConfigured": "探测前必须先检查本地是否已配置 API Key（未配 Key 时探测结果与权限不足完全相同）",
+              "2_fixedWidthProbe": "探测必须为固定宽查询 purity=001，不带任何用户筛选条件",
+              "3_sessionCache": "探测结果会话内缓存，避免重复请求",
+              "source": "PM 转达架构师复核意见"
+            },
             "hardConstraintsRetained": {
               "noWarningColor": "保留 —— 权限不足仍归入空态分支而非错误态（用户筛选操作本身没错，开启权限即可解决，无需重试）",
               "noUserRetry": "保留 —— 不让用户在无需重试的情况下反复重试",
