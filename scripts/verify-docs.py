@@ -264,6 +264,37 @@ def check_box_drawing() -> None:
                      f"（以│ 开头但未以 │ 结尾）")
 
 
+# ---- 5d. 中文全角标点后多余空格（WARN）----
+# 起因：批量删除 emoji 后必然产生这类残留（如「非空判断。 若采用」）。
+# 不属于 P0，但影响可读性，且会持续累积。
+#
+# 规则必须精确 —— 早期版本误把「0% -> 22%」「1.3s（并行化后）」等
+# ASCII 场景一并命中（2940 处假阳性）。现仅匹配全角标点。
+_CJK_PUNCT_AFTER_SPACE = re.compile(
+    "[。，、；：？！）】》」』][ \t]+(?=[\u4e00-\u9fffA-Za-z0-9])"
+)
+
+
+def check_cjk_punctuation_spacing() -> None:
+    for doc in DOCS.rglob("*.md"):
+        in_fence = False
+        for lineno, line in enumerate(
+                doc.read_text(encoding="utf-8").splitlines(), 1):
+            if line.strip().startswith("```"):
+                in_fence = not in_fence
+                continue
+            if in_fence:
+                continue
+            # 表格行是有意对齐的，跳过
+            if line.lstrip().startswith("|"):
+                continue
+            m = _CJK_PUNCT_AFTER_SPACE.search(line)
+            if m:
+                warn("cjk-spacing",
+                     f"{doc.relative_to(ROOT)}:{lineno} 全角标点后有多余空格 "
+                     f"（{m.group()!r}）")
+
+
 # ---- 6. 文件非空 ----
 def check_non_empty() -> None:
     for p in list(DOCS.glob("*.md")) + list((DOCS / "decisions").glob("*.md")):
@@ -291,7 +322,7 @@ def main() -> int:
     for fn in (check_emoji, check_purple_pink, check_json,
                check_section_numbering, check_cross_references,
                check_cross_document_refs, check_box_drawing,
-               check_non_empty):
+               check_cjk_punctuation_spacing, check_non_empty):
         try:
             fn()
         except Exception as exc:                      # noqa: BLE001

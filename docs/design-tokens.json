@@ -908,21 +908,38 @@
           },
           "conclusion": "NSFW 权限不足表现为「有效 Key + 200 + total=0」，不是 401。模型更简洁——不需要任何探测逻辑，只有一个判据",
           "uiImpact": {
-            "problem": "NSFW 权限不足与「筛选条件太窄」在响应层面完全一样（都是 200 + total=0），但用户需要的动作完全不同",
-            "wrongIfHandledAsEmptyOnly": "权限不足的用户会以为是自己筛选条件的问题，反复调筛选",
-            "wrongIfHandledAsError": "违反 §4.9.2「空态必须完全中性」；且让用户在无需重试的情况下反复重试",
-            "solution": {
-              "step1": "响应 total=0 → 显示常规空态",
-              "step2": "若请求含 NSFW 筛选条件（purity 含 sketchy/nsfw）且结果为空 → 追加一句补充说明",
-              "step3": "该补充句不改变空态的中性视觉（不用警示色），仅作 --text-xs --muted 补充"
+            "problem": "NSFW 权限不足与「筛选条件太窄」在响应层面完全一样（都是 200 + total=0 + data=[]），但用户需要的动作完全不同（去开授权 vs 放宽筛选）",
+            "solution": "probeRequest",
+            "solutionRationale": "v3.1 初版用推测式提示（「可能未授权」）。PM 提出可用探测消除推测，设计师实测复核成立——两个可能原因的后续动作完全相反，推测语气迫使用户自己猜；多发一次请求就能确定，不该让用户承担猜测成本",
+            "probeRequest": {
+              "request": "GET /search?purity=001",
+              "criticalConstraint": "[!] 必须不带任何其他筛选条件",
+              "whyNoOtherFilters": "实测 purity=001&resolutions=9999x9999&有效Key → total=0，而 purity=001 单独 → total=339162。若探测携带用户筛选条件会复现主请求的 0，失去区分能力",
+              "outcomes": {
+                "401": { "meaning": "Key 已失效", "ui": "走鉴权失败态（§4.9.1）" },
+                "total=0": { "meaning": "确定：权限不足", "ui": "空态 + 明确文案「此 API Key 无 NSFW 访问权限，请到 wallhaven 账号设置开启」", "certainty": "确定，不再推测" },
+                "total>0": { "meaning": "确定：筛选过窄", "ui": "常规空态 + 放宽建议，不显示任何权限文案", "certainty": "确定" },
+                "selfFails": { "meaning": "网络/5xx", "ui": "退化为常规空态，不显示权限文案", "principle": "宁可少提示，不可误报。推测方向是「不说权限问题」而非「说权限问题」" }
+              }
             },
-            "copyDirection": "当前密钥可能未获授权浏览 NSFW 内容，可在「设置 › 密钥」确认，或在主窗口查看",
-            "mustUseUncertainWording": "[!] 必须表达不确定性——我们不知道服务端有什么，只能推测"
+            "preCheckLocalKey": {
+              "mustDoFirst": true,
+              "problem": "实测未配 Key 的用户请求 purity=001 也返回 total=0，与「有 Key 但无 NSFW 权限」完全相同",
+              "wrongWithoutIt": "会误报「无 NSFW 访问权限，请到账号设置开启」—— 而用户根本没配 Key，去账号设置也找不到入口",
+              "rule": "探测前必须先检查本地是否已配置 Key；未配置 → 常规空态 + 「请先在「设置 › 密钥」配置 API Key」",
+              "linksTo": "emptyNoKey（§4.9.3）—— 未配 Key 的用户根本不该走到 NSFW 空态这一步"
+            },
+            "requestBudget": { "triggerCondition": "仅 NSFW 条件且结果为空", "extraRequests": 1, "budgetImpact": "占 45次/分钟预算的 2.2%" },
+            "hardConstraintsRetained": {
+              "noWarningColor": "保留 —— 权限不足仍归入空态分支而非错误态（用户筛选操作本身没错，开启权限即可解决，无需重试）",
+              "noUserRetry": "保留 —— 不让用户在无需重试的情况下反复重试",
+              "uncertainWordingRemoved": "推测语气约束已作废 —— 探测确定后文案是确定的"
+            }
           },
           "relationToNsfwGatePrompt": {
             "gatePrompt_484": "L3 关闭时结果为空 → 「有 N 张 NSFW 结果未显示」（因为我们知道有确切数量）",
-            "thisCase": "请求含 NSFW 条件但 total=0 → 「可能未授权」（因为我们不知道服务端有什么）",
-            "keyDifference": "确定性不同。前者确定故可给数字，后者不确定故必须用推测语气"
+            "thisCase": "探测 total=0 → 「此 API Key 无 NSFW 访问权限」（探测确定，非推测）",
+            "keyDifference": "v3.1 两者的区别是「确定性」；v3.2 探测方案让两者都变成确定，因此措辞各自独立"
           }
         },
         "neverCoOccursWith": {
