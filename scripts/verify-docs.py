@@ -42,6 +42,95 @@ _DEFAULT_ROOT = Path(__file__).resolve().parent.parent
 ROOT = _DEFAULT_ROOT
 DOCS = ROOT / "docs"
 
+
+# ============================================================
+# 启动自检：正则可编译性 + 规则有效性
+# ============================================================
+# 起因（设计侧 v3.3 的真实教训）：她的 pre-commit 用 `grep -qP`，
+# macOS BSD grep 不支持 -P -> 退出码 2 -> 被 `2>/dev/null` 吞掉
+# -> if 恒为 false -> **规则从未运行过，且没有任何声音**。
+#
+# 人写错字会被人看见；机器的语法错误常被 try/except / 2>/dev/null 吞掉。
+# 因此校验器自己必须先证明自己能跑，再去检查别人。
+#
+# 违反时抛异常而非警告 —— 「自检失败」必须阻断，不能只是提示。
+
+_REGISTRY: list[tuple[str, object]] = []
+
+
+def register(pattern: str) -> re.Pattern:
+    """注册并立即验证一个正则可编译。编译失败 = 抛异常（阻断）。"""
+    try:
+        compiled = re.compile(pattern)
+    except re.error as exc:
+        raise RuntimeError(
+            f"规则正则语法错误（自检失败，已阻断）: {pattern!r} -> {exc}"
+        ) from exc
+    _REGISTRY.append((pattern, compiled))
+    return compiled
+
+
+def self_test() -> None:
+    """启动自检：所有注册的正则必须可编译，且关键规则必须真的会命中。"""
+    # 1) 可编译性
+    for pattern, _ in _REGISTRY:
+        re.compile(pattern)
+
+    # 2) 负向用例 —— 证明规则真的在工作，而不是静默通过
+    #    正向用例只能证明"没坏"，负向用例才能证明"在工作"（ADR-007 三层机制）
+    probes = [
+        # (规则名, pattern, 必须命中的样本, 必须不命中的样本)
+        ("emoji",
+         "[\U0001F300-\U0001FAFF\u2600-\u27BF]",
+         ["\U0001F600", "\u26A0\uFE0F", "\u2705"],
+         ["abc", "中文", "123"]),
+        ("cross-doc-adr",
+         r"\b(ADR-\d{3})\b",
+         ["ADR-007"],
+         ["ADR-", "ADR-07", "无ADR"]),
+        ("cross-doc-trap",
+         r"ADR-007\s+Trap\s+(\d+)",
+         ["ADR-007 Trap 12"],
+         ["ADR-007 Trap", "Trap 12"]),
+        ("cross-doc-appendix",
+         r"附录\s+([A-Z](?:-\d+[a-z]?)?)",
+         ["附录 A-9", "附录 B"],
+         ["附录无编号", "A-9"]),
+        ("box-drawing",
+         r"^\s*\u2502",
+         ["\u2502 x \u2502"],
+         ["x"]),
+        ("cjk-spacing",
+         "[\u3002\uff0c\u3001\uff1b\uff1a\uff1f\uff01\uff09\u3011\u300b\u300d\u300f\u300e\u3018"
+         "\u300f][ \t]+(?=[\u4e00-\u9fffA-Za-z0-9])",
+         ["\u3002 \u4e0b", "\uff0c A"],
+         ["0% -> 22%", "1.3s\uff08\u5e76\u884c\u5316\u540e\uff09", "\u3002\u4e0b"]),
+        ("conclusion-drift",
+         r"(`?(?:resolutions|ratios)`?[^\n|]*(?:\u9759\u9ed8|\u88ab\u5ffd\u7565|\u4e0d\u6784\u6210\u98ce\u9669|\u4e0d\u62a5\u9519))",
+         ["`ratios` \u9759\u9ed8\u5ffd\u7565"],
+         ["`ratios` \u7cbe\u786e\u5339\u914d"]),
+    ]
+    failures = []
+    for name, pattern, must_hit, must_miss in probes:
+        try:
+            rx = re.compile(pattern)
+        except re.error as exc:
+            failures.append(f"{name}: 正则无法编译 -> {exc}")
+            continue
+        for sample in must_hit:
+            if not rx.search(sample):
+                failures.append(f"{name}: 正则无法命中必须命中的样本 {sample!r}")
+        for sample in must_miss:
+            if rx.search(sample):
+                failures.append(f"{name}: 正则误报了必须不匹配的样本 {sample!r}")
+
+    if failures:
+        raise RuntimeError(
+            "规则自检失败（已阻断）:\n  - " + "\n  - ".join(failures)
+        )
+
+
+
 FAILURES: list[str] = []
 WARNINGS: list[str] = []
 
@@ -69,7 +158,7 @@ def check_emoji() -> None:
                 cp = ord(ch)
                 is_emoji = (
                     0x1F300 <= cp <= 0x1FAFF   # pictographs, symbols
-                    or 0x2600 <= cp <= 0x27BF  # misc symbols + dingbats (含 ✅❌⚠)
+                    or 0x2600 <= cp <= 0x27BF  # misc symbols + dingbats (含 check/cross/ballot 等)
                     or 0x1F000 <= cp <= 0x1F0FF  # mahjong / cards
                     or cp in (0xFE0F, 0x2B50)     # variation selector, star
                 )
@@ -367,6 +456,14 @@ def main() -> int:
     args = ap.parse_args()
     ROOT = args.root.resolve()
     DOCS = ROOT / "docs"
+
+    # 启动自检必须在任何检查之前 —— 自己不能跑，就没资格检查别人
+    try:
+        self_test()
+    except RuntimeError as exc:
+        print(f"[verify-docs] SELF-TEST FAILED —— {exc}", file=sys.stderr)
+        return 2
+    print("[verify-docs] 自检通过（正则可编译 + 负向用例命中）")
 
     print(f"[verify-docs] 独立校验器启动（只读，不参与文件写入）")
     print(f"[verify-docs] root = {ROOT}\n")
