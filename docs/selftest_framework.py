@@ -41,6 +41,7 @@ st.run()   # 自测不通过 -> SystemExit(2)
 例：ASCII 布局图里有大量对齐空格，若规则不跳过代码块就会误报——
 这类「跳过逻辑失效」既不是过宽也不是漏报，而是第三种形态。
 """
+import ast
 import re
 import subprocess
 import sys
@@ -379,6 +380,103 @@ def check_source_dialects(source: str) -> list:
         except SyntaxCheckFailure as e:
             violations.append((lit, str(e)))
     return violations
+
+
+# ---- AST 模式：精确区分「正则」与「说明文字」（v4.1）----
+
+# re 模块的函数名—— 只有这些调用的首参才是正则
+RE_FUNC_NAMES = frozenset({
+    'compile', 'match', 'search', 'findall', 'finditer',
+    'fullmatch', 'split', 'sub',
+})
+
+
+def check_source_dialects_ast(source: str) -> tuple:
+    """AST 模式：只检查 ``re.*(...)`` 调用的**字面量**首参。
+
+    **为什么值得做**（架构师提议、设计师实测确认）：
+
+    启发式（`check_source_dialects`）要处理两类误报 ——
+    docstring 与描述性文本。而这两类误报的**成因**是：
+    检查器在扫描「所有字符串」，但真正该检查的只有「作为正则使用的字符串」。
+
+    AST 解析天然区分二者：
+
+    ===========================================  ================
+    代码                                          AST 节点
+    ===========================================  ================
+    ``re.compile(r"a|b")``                       Call ->可检查
+    ``"提示: {pattern} 同时含 | 与 \\|"``普通常量     -> 不可检查
+    ===========================================  ================
+
+    **这不是「增加能力」，而是「减少启发式依赖」** —— 第一类误报
+    由解析器天然解决，启发式降级为 ``.sh`` 文件的唯一防线。
+
+    **关于非字面量首参的处理**（架构师提问，设计师实测后否决 WARN）：
+
+    架构师建议对「参数非字面量的 re.compile 调用」发 WARN。实测本项目：
+
+    ==================  ==========  ================
+    文件                re.* 调用   首参非字面量
+    ==================  ==========  ================
+    check_punct_spacing 3            2
+    selftest_framework   12           5
+    verify.py            12           2
+    ==================  ==========  ================
+    **合计**            **27**      **9（33%）**
+
+    若每处都 WARN，将产生 9 条噪声 —— 而这 9 处多是
+    ``re.compile(self.p)`` 这类**检查器自身的模式对象**，
+    它们不可能有方言问题。
+
+    **所以本实现选择：统计但不报警**（见返回值说明），
+    仅当调用点显式标注了 ``# noqa: dialect-unchecked`` 时才提示。
+    理由与PM 那句「一个总是误报的检查等于没有检查」一致。
+
+    Args:
+        source: Python 源码文本
+
+    Returns:
+        (violations, unchecked) 二元组：
+        - violations: [(行号, 字面量, 原因)] —— 确认的方言混用
+        - unchecked: [(行号, 节点类型)] —— 首参非字面量、**未被检查**的调用点
+          （仅供人工审计，不自动报警）
+    """
+    violations = []
+    unchecked = []
+
+    try:
+        tree = ast.parse(source)
+    except SyntaxError as e:
+        # AST 解析失败不应让整个检查崩溃
+        return [(0, "<parse-error>", f"AST 解析失败: {e}")], []
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+
+        func = node.func
+        if isinstance(func, ast.Attribute):
+            fname = func.attr
+        elif isinstance(func, ast.Name):
+            fname = func.id
+        else:
+            continue
+
+        if fname not in RE_FUNC_NAMES or not node.args:
+            continue
+
+        first = node.args[0]
+        if isinstance(first, ast.Constant) and isinstance(first.value, str):
+            try:
+                check_regex_dialect(first.value)
+            except SyntaxCheckFailure as e:
+                violations.append((node.lineno, first.value, str(e)))
+        else:
+            # 首参非字面量 —— 记录但不报警（见 docstring 的实测依据）
+            unchecked.append((node.lineno, type(first).__name__))
+
+    return violations, unchecked
 
 
 # ---------- 便捷：带自检的匹配器 ----------

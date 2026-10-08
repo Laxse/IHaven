@@ -223,6 +223,19 @@ def check_no_hardcoded_hex_outside_primitive():
     ok("组件层色值检查完成")
 
 
+def is_literal_only(literal: str) -> bool:
+    """判断字面量是否为「纯正则」而非描述性文本。
+
+    与 selftest_framework.is_descriptive_text 同源判断，
+    供 verify.py 在启发式补充检查中排除说明性文字。
+    """
+    if "{" in literal and "}" in literal:
+        return False
+    if re.search(r'[\u4e00-\u9fff]', literal):
+        return False
+    return True
+
+
 def check_regex_dialects_in_source():
     """扫描本项目所有 .py 的正则，检测方言混用（跨工具陷阱）。
 
@@ -232,12 +245,14 @@ def check_regex_dialects_in_source():
     """
     try:
         sys.path.insert(0, str(DOCS))
-        from selftest_framework import check_source_dialects
+        from selftest_framework import (check_source_dialects,
+                                       check_source_dialects_ast)
     except ImportError:
         warn("selftest_framework.py 不存在，跳过方言检查")
         return
 
     total = 0
+    unchecked_total = 0
     for py in sorted(DOCS.glob("*.py")):
         if py.name == "verify.py":
             continue          # 不扫自己，避免递归
@@ -245,13 +260,27 @@ def check_regex_dialects_in_source():
             src = py.read_text(encoding="utf-8")
         except Exception:
             continue
-        for lit, why in check_source_dialects(src):
-            line = next((i for i, l in enumerate(src.split("\n"), 1)
-                         if lit[:20] in l), 0)
-            bad(f"方言混调 {py.name}:{line} {lit!r}")
+
+        # 主检查：AST 模式（精确，只看re.*调用的字面量首参）
+        violations, unchecked = check_source_dialects_ast(src)
+        for line, lit, why in violations:
+            bad(f"方言混用 {py.name}:{line} {lit!r}")
             total += 1
+        unchecked_total += len(unchecked)
+
+        # 补充：启发式（覆盖 AST 看不到的地方，如模块级常量）
+        for lit, why in check_source_dialects(src):
+            # AST 已覆盖的跳过，避免重复报告
+            if any(lit == v[1] for v in violations):
+                continue
+            if not is_literal_only(lit):
+                # 描述性文本 —— 启发式的已知盲区，跳过
+                continue
+            bad(f"方言混用(启发式) {py.name} {lit!r}")
+            total += 1
+
     if total == 0:
-        ok("正则方言检查（代码区，跳过 docstring）")
+        ok(f"正则方言检查（AST 主+ 启发式补充，{unchecked_total} 处非字面量未检查）")
 
 
 def check_punct_spacing():
