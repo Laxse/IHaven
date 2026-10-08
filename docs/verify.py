@@ -223,6 +223,37 @@ def check_no_hardcoded_hex_outside_primitive():
     ok("组件层色值检查完成")
 
 
+def check_regex_dialects_in_source():
+    """扫描本项目所有 .py 的正则，检测方言混用（跨工具陷阱）。
+
+    用check_source_dialects 而非裸调 check_regex_dialect，原因：
+    它自动跳过 docstring 与描述性文本，避免检查器误报自己
+    解释陷阱的示例（架构师提出，设计师实测确认这是真实误报源）。
+    """
+    try:
+        sys.path.insert(0, str(DOCS))
+        from selftest_framework import check_source_dialects
+    except ImportError:
+        warn("selftest_framework.py 不存在，跳过方言检查")
+        return
+
+    total = 0
+    for py in sorted(DOCS.glob("*.py")):
+        if py.name == "verify.py":
+            continue          # 不扫自己，避免递归
+        try:
+            src = py.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        for lit, why in check_source_dialects(src):
+            line = next((i for i, l in enumerate(src.split("\n"), 1)
+                         if lit[:20] in l), 0)
+            bad(f"方言混调 {py.name}:{line} {lit!r}")
+            total += 1
+    if total == 0:
+        ok("正则方言检查（代码区，跳过 docstring）")
+
+
 def check_punct_spacing():
     """中文标点后多余空格（独立脚本，含17 项自测）"""
     punct = DOCS / "check_punct_spacing.py"
@@ -252,6 +283,7 @@ check_json_valid()
 check_css_tokens()
 check_doc_structure()
 check_punct_spacing()
+check_regex_dialects_in_source()
 
 print(f"\n通过 {len(passed)} 项:")
 for m in passed:
