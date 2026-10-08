@@ -20,15 +20,15 @@ struct ContentView: View {
             if iHavenContext.currentState == .Main {
                 MainContentView()
                     .transition(.asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .leading)))
-                    .edgesIgnoringSafeArea(.all)
+                    .ignoresSafeArea(.all)
                     .background(Color.black.opacity(0.5))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            
+
             if iHavenContext.currentState == .Filter {
                 FilterContentView()
                     .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .trailing)))
-                    .edgesIgnoringSafeArea(.all)
+                    .ignoresSafeArea(.all)
                     .background(Color.black.opacity(0.5))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }

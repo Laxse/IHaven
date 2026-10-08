@@ -9,11 +9,17 @@
 import SwiftUI
 
 struct AboutContentView: View {
+    private var versionText: String {
+        let short = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
+        return "Version \(short)(\(build))"
+    }
+
     var body: some View {
         VStack(alignment: .center, spacing: 5) {
             Image("AppImage").resizable().scaledToFit().frame(height: 60)
             Text("IHaven").font(.headline).fontWeight(.regular)
-            Text("Version 0.0.1(beta)")
+            Text(versionText)
                 .fontWeight(.ultraLight).font(.system(size: 12))
             Text("Copyright © 2020-2020 Laxse").font(.system(size: 10))
                 .fontWeight(.ultraLight)

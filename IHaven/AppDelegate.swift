@@ -9,27 +9,26 @@
 import Cocoa
 import SwiftUI
 
-@NSApplicationMain
+@main
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
-    static var shared:AppDelegate?
-    
+    static private(set) var shared: AppDelegate?
 
-    
-    let popoverHeight:CGFloat = 500.0
-    let popoverWidth:CGFloat = 400.0
-    
+    let popoverHeight: CGFloat = 500.0
+    let popoverWidth: CGFloat = 400.0
+
     //window or view
     var iHavenPopover: NSPopover!
     var iHavenBarItem: NSStatusItem!
     lazy var aboutWindowController = AboutWindowController()
     lazy var desktopWindowController = DesktopWindowController()
-    
+
     @ObservedObject var iHavenContext = IHavenContext()
     override init() {
         super.init()
-        AppDelegate.shared = self;
+        AppDelegate.shared = self
     }
-    
+
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Create the popover
         iHavenPopover = NSPopover()
@@ -38,37 +37,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         iHavenPopover.contentViewController = NSHostingController(rootView: ContentView().environmentObject(iHavenContext))
 
         // Create the status item
-        self.iHavenBarItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
+        self.iHavenBarItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = self.iHavenBarItem.button {
             button.image = NSImage(named: "MenuBarIcon")
             button.action = #selector(togglePopover(_:))
+            button.target = self
         }
-        // MARK 
-//        desktopWindowController.showWindow(nil)
-        
     }
-    
-    
+
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
     }
-    
+
     func showAboutWindow() {
         aboutWindowController.showWindow(nil)
         NSApplication.shared.activate(ignoringOtherApps: true)
-        
     }
+
     func showDesktopWindow() {
         desktopWindowController.showWindow(nil)
         // this line may set Toolbar cannot click
 //        NSApplication.shared.activate(ignoringOtherApps: true)
-        
+
         //default mode is Agent（info.plist）
         //when show Desktop window Dynactic change to show icon on dock
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
     }
+
     @objc func togglePopover(_ sender: AnyObject?) {
         if let button = self.iHavenBarItem.button {
             if self.iHavenPopover.isShown {
@@ -78,5 +75,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
-    
 }

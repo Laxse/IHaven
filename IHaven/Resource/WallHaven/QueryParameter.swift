@@ -7,7 +7,7 @@
 //
 
 import Foundation
-class QueryParameter {
+final class QueryParameter: @unchecked Sendable {
     static let UNSET = "UNSET"
     static let NULL = "NULL"
     let q:String = ""
@@ -18,8 +18,8 @@ class QueryParameter {
     /** 100* /110/111/etc (sfw/sketchy/nsfw)  */
     var purity:String = "100"
     
-    static let sortingArray = [UNSET,"date_added","relevance","random","views","favorites","toplist"]
-    /** date_added* , relevance, random, views, favorites, toplist */
+    static let sortingArray = [UNSET,"date_added","relevance","random","views","favorites","toplist","toplist_random"]
+    /** date_added* , relevance, random, views, favorites, toplist, toplist_random */
     var sorting:String = "date_added"
     
     /** desc asc */
@@ -42,7 +42,7 @@ class QueryParameter {
     
     static let ratioArray = [UNSET,"9x16","10x16","9x18",    "1x1","3x2","4x3","5x4",    "16x9","16x10",    "21x9","32x9","48x9"]
     /** 16x9,16x10 */
-    let ratios:String = ""
+    var ratios:String = ""
     
     /** 660000..... */
     var color:String = "NULL"
@@ -69,24 +69,23 @@ class QueryParameter {
     }
     
     func toDictionary() -> [String: Any] {
-        var  result:[String:Any] =  [:]
+        toSendableParameters()
+    }
+
+    /// 生成可跨并发边界传递的查询参数
+    func toSendableParameters() -> [String: Sendable] {
+        var result:[String:Sendable] = [:]
         result["q"] = q;
         result["categories"] = categories;
         result["purity"] = purity;
-        
         if(!_isUnset(param: sorting)){
             result["sorting"] = sorting;
-        }
-        if(!_isUnset(param: sorting)){
             result["order"] = order;
         }
-        
-        result["topPange"] = topPange;
-        
         if(!_isUnset(param: atleast)){
             result["atleast"] = atleast;
         }
-        if(!_isUnset(param: atleast)){
+        if(!_isUnset(param: resolutions)){
             result["resolutions"] = resolutions;
         }
         if(!_isUnset(param: ratios)){
@@ -94,6 +93,9 @@ class QueryParameter {
         }
         if(!_isUnset(param: color)){
             result["color"] = color;
+        }
+        if(!_isUnset(param: topPange)){
+            result["topRange"] = topPange;
         }
         result["page"] = page;
         if(seed != ""){
@@ -150,7 +152,7 @@ class QueryParameter {
         }
     }
     func setRatio(v:Int) {
-        self.resolutions = QueryParameter.resolutionArray[v]
+        self.ratios = QueryParameter.ratioArray[v]
     }
     func random() {
         self.seed = getRandomStringWithNum(num: 6)

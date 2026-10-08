@@ -11,55 +11,46 @@ import Alamofire
 
 
 private let QueryAPI = "https://wallhaven.cc/api/v1/search"
-private let InfoApi = "https://wallhaven.cc/api/v1/w/"
-class WallHavenImageRepository {
+
+final class WallHavenImageRepository: @unchecked Sendable {
     static let shared = WallHavenImageRepository()
     private init() {}
-    
+
     @discardableResult
-    func query(parameters:Parameters?,callback:@escaping (Result<QueryResponse,Error>) -> Void) -> DataRequest {
+    func query(parameters: Parameters?, callback: @escaping @Sendable (Result<QueryResponse, any Error>) -> Void) -> DataRequest {
         AF.request(QueryAPI,
                    method: .get,
                    parameters: parameters,
-                   headers: []
-            //            ,requestModifier: {$0.timeoutInterval = 15}
+                   headers: nil
         )
             .responseData { response in
-                switch response.result{
-                    case let .success(data):
-                        print(data)
-                        let queryResponse:Result<QueryResponse,Error> = self.HandleData(data)
-                        callback(queryResponse)
-                    case let .failure(error): callback(.failure(error))
+                switch response.result {
+                case let .success(data):
+                    callback(Self.handle(data))
+                case let .failure(error):
+                    callback(.failure(error))
                 }
-                
         }
     }
-    
+
     //解析Response 为目标类型
-    func HandleData<T:Decodable>(_ reponse:Data) -> Result<T,Error> {
-        
+    private static func handle<T: Decodable>(_ response: Data) -> Result<T, any Error> {
         do {
-            //TODO useless need remove
-            _ = try JSONDecoder().decode(T.self, from: reponse)
+            return .success(try JSONDecoder().decode(T.self, from: response))
+        } catch {
+            let nsError = NSError(domain: "WallHavenDataError", code: 0, userInfo: [NSLocalizedDescriptionKey : "解析数据异常"])
+            return .failure(nsError)
         }
-        catch {
-            print(error)
-        }
-        guard let resultData = try? JSONDecoder().decode(T.self, from: reponse)else{
-            let error = NSError(domain: "WallHavenDataError", code: 0, userInfo: [NSLocalizedDescriptionKey : "解析数据异常"])
-            return .failure(error)
-        }
-        return .success(resultData)
     }
-    func downloadImage(url:URL,procressCallback:@escaping (Progress)-> Void,callback:@escaping () -> Void) {
+
+    func downloadImage(url: URL, procressCallback: @escaping @Sendable (Progress) -> Void, callback: @escaping @Sendable () -> Void) {
         let destination = DownloadRequest.suggestedDownloadDestination(for: .downloadsDirectory)
-        print(url.description)
-        _ = AF.download(url.description, to: destination).downloadProgress { progress in
-               procressCallback(progress)
-           }.response { response in
-            print(response.description)
-            callback()
-        }
+        AF.download(url.description, to: destination)
+            .downloadProgress { progress in
+                procressCallback(progress)
+            }
+            .response { _ in
+                callback()
+            }
     }
 }

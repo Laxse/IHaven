@@ -18,25 +18,26 @@ struct FilterContentView: View {
             Spacer()
         }
     }
-    
+
 }
 struct QueryFilter: View {
     @State var query:QueryParameter
     var body: some View{
         List(){
             CategorySection(query: $query)
-            
+
             PuritySection(query: $query)
-            
+
             ResolutionSelection(query: $query, select: query.getResolutionIndex(), label: query.resolutions)
-            
+
             RatioSelection(query: $query, select: query.getRatioIndex(), label: query.ratios)
-            
+
             ColorSection(query: $query, currentLabel: query.color)
-            
+
             SortSelection(query: $query, select: query.getSortIndex(), label: query.sorting)
-        }.listStyle(SidebarListStyle())
-        
+        }
+        .listStyle(.inset)
+
     }
 }
 struct SortSelection:View {
@@ -204,7 +205,7 @@ struct FilterPartLabel: View {
     
     var body: some View{
         Text(label).font(.headline).fontWeight(.ultraLight).foregroundColor(Color.purple).multilineTextAlignment(.leading).shadow(color: .black, radius: 2, x: 0.1, y: 0.1)
-            .edgesIgnoringSafeArea(.all)
+            .ignoresSafeArea(.all)
     }
 }
 
