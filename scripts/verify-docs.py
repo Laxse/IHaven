@@ -131,6 +131,63 @@ def self_test() -> None:
 
 
 
+
+def self_test_external_deps() -> None:
+    """第三类自检：外部依赖的**能力**是否存在。
+
+    前两类自检只验证 Python 层的正则，**完全看不见外部工具调用**。
+    设计侧的 pre-commit 失效正是这一类：`grep -P` 在 macOS BSD grep 上
+    不存在 -> 退出码 2 -> 被 `2>/dev/null` 吞掉 -> 规则从未运行且无声。
+
+    这类失效的特征是「你以为在调用某个能力，实际上那个能力不存在」。
+    因此必须显式验证所依赖的外部命令确实支持所需选项。
+    """
+    import shutil
+    import subprocess
+
+    problems = []
+
+    # 1) git 必须可用（跨文档引用检查依赖 git 历史一致性时可选用）
+    if shutil.which("git") is None:
+        problems.append("git 不可用 —— 部分检查能力缺失")
+
+    # 2) grep -P 在 BSD grep 上不存在：显式验证而非假设
+    if shutil.which("grep") is None:
+        problems.append("grep 不存在")
+    else:
+        # grep -P 探测（仅用于判断平台能力，供 shell 门禁自检）
+        p_ok = subprocess.run(
+            ["grep", "-P", "x"], input="x",
+            capture_output=True, text=True,
+        ).returncode == 0
+
+        # 关键：检查我们的 shell 门禁是否真的用了 -P —— 用了就必须阻断
+        shell_gates = list((ROOT / "scripts").glob("*.sh"))
+        misusers = []
+        if not p_ok:
+            for g in shell_gates:
+                txt = g.read_text(encoding="utf-8", errors="ignore")
+                if re.search(r"grep\s+(-\w*P|-P)", txt):
+                    misusers.append(g.name)
+        if misusers:
+            problems.append(
+                f"以下 shell 门禁使用了 grep -P，在本平台会静默失效: "
+                f"{', '.join(misusers)} —— 请改用 -E"
+            )
+        elif not p_ok:
+            # 平台不支持 -P，但我们的脚本没用它 —— 只是提示，不阻断
+            WARM.append(
+                "[WARN] 本平台 grep 不支持 -P（BSD grep）。"
+                "当前门禁未使用它，但新增规则时务必用 -E 或 Python。"
+            )
+
+    if problems:
+        raise RuntimeError(
+            "外部依赖能力自检失败（已阻断）:\n  - " + "\n  - ".join(problems)
+        )
+
+
+WARM: list[str] = []
 FAILURES: list[str] = []
 WARNINGS: list[str] = []
 
@@ -458,12 +515,15 @@ def main() -> int:
     DOCS = ROOT / "docs"
 
     # 启动自检必须在任何检查之前 —— 自己不能跑，就没资格检查别人
-    try:
-        self_test()
-    except RuntimeError as exc:
-        print(f"[verify-docs] SELF-TEST FAILED —— {exc}", file=sys.stderr)
-        return 2
-    print("[verify-docs] 自检通过（正则可编译 + 负向用例命中）")
+    for stage, fn in (("正则自检", self_test),
+                      ("外部依赖能力自检", self_test_external_deps)):
+        try:
+            fn()
+        except RuntimeError as exc:
+            print(f"[verify-docs] SELF-TEST FAILED（{stage}）—— {exc}",
+                  file=sys.stderr)
+            return 2
+    print("[verify-docs] 自检通过（正则可编译 + 负向用例命中 + 外部依赖可用）")
 
     print(f"[verify-docs] 独立校验器启动（只读，不参与文件写入）")
     print(f"[verify-docs] root = {ROOT}\n")
@@ -478,7 +538,7 @@ def main() -> int:
         except Exception as exc:                      # noqa: BLE001
             fail(fn.__name__, f"检查器自身异常: {exc}")
 
-    for w in WARNINGS:
+    for w in (WARM + WARNINGS):
         print(w)
     print()
     if FAILURES:

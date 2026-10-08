@@ -929,6 +929,13 @@
               "rule": "探测前必须先检查本地是否已配置 Key；未配置 → 常规空态 + 「请先在「设置 › 密钥」配置 API Key」",
               "linksTo": "emptyNoKey（§4.9.3）—— 未配 Key 的用户根本不该走到 NSFW 空态这一步"
             },
+            "scopeDeclaration": {
+              "statement": "本判定仅适用于「请求含 NSFW 筛选条件且结果为空」。非 NSFW 场景的空结果走常规空态，不使用探测",
+              "purpose": "防结论被外推 —— 一条写「NSFW 空结果用探测判定」和一条写「所有空结果用探测判定」读起来一样通顺，但后者是错的",
+              "whyItCannotBeCaughtByReading": "外推在文档场景里无法被察觉，因为外推后的结论仍然合理",
+              "discipline": "team-lead 第 3 条纪律（作用域机制）",
+              "checkAction": "列出「结论未经验证的外推方向」"
+            },
             "requestBudget": {
               "triggerCondition": "仅 NSFW 条件且结果为空，且已配置 Key",
               "extraRequests": 1,
