@@ -899,6 +899,32 @@
           "saveButton": "输入框为空或仅空白时，「保存」保持 disabled",
           "interactsWith": "与「粘贴自动去空格」配合：去空格后必须再判空，否则纯空白输入会被 trim 成空串然后被误判"
         },
+        "nsfwPermissionDenied": {
+          "criticalCorrection": "[!] 401 只有单一含义（Key 无效），与 purity 无关。PM 原 PRD 写的「401 需区分 NSFW 无权限与 Key 无效，用 SFW/NSFW 双探测实现」是错的，架构师已推翻（ADR-007 Trap 16）",
+          "actualBehavior": {
+            "purity_nsfw + invalidKey": 401,
+            "purity_nsfw + noKey": "200, total=0",
+            "purity_sfw + noKey": "200, total=501661"
+          },
+          "conclusion": "NSFW 权限不足表现为「有效 Key + 200 + total=0」，不是 401。模型更简洁——不需要任何探测逻辑，只有一个判据",
+          "uiImpact": {
+            "problem": "NSFW 权限不足与「筛选条件太窄」在响应层面完全一样（都是 200 + total=0），但用户需要的动作完全不同",
+            "wrongIfHandledAsEmptyOnly": "权限不足的用户会以为是自己筛选条件的问题，反复调筛选",
+            "wrongIfHandledAsError": "违反 §4.9.2「空态必须完全中性」；且让用户在无需重试的情况下反复重试",
+            "solution": {
+              "step1": "响应 total=0 → 显示常规空态",
+              "step2": "若请求含 NSFW 筛选条件（purity 含 sketchy/nsfw）且结果为空 → 追加一句补充说明",
+              "step3": "该补充句不改变空态的中性视觉（不用警示色），仅作 --text-xs --muted 补充"
+            },
+            "copyDirection": "当前密钥可能未获授权浏览 NSFW 内容，可在「设置 › 密钥」确认，或在主窗口查看",
+            "mustUseUncertainWording": "[!] 必须表达不确定性——我们不知道服务端有什么，只能推测"
+          },
+          "relationToNsfwGatePrompt": {
+            "gatePrompt_484": "L3 关闭时结果为空 → 「有 N 张 NSFW 结果未显示」（因为我们知道有确切数量）",
+            "thisCase": "请求含 NSFW 条件但 total=0 → 「可能未授权」（因为我们不知道服务端有什么）",
+            "keyDifference": "确定性不同。前者确定故可给数字，后者不确定故必须用推测语气"
+          }
+        },
         "neverCoOccursWith": {
           "errorInvalidParams": "服务端先校验认证、再校验参数，无条件 401 优先。但参数非法的请求根本不会发出（被本地预校验拦截），因此 401 只会在「参数合法但 Key 无效」时出现 —— 两者互斥，不会同时出现"
         }

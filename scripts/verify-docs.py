@@ -18,17 +18,28 @@ IHaven 独立文档校验器（Independent Doc Verifier）
   5. ADR 交叉引用不断链（引用的 Trap / ADR 必须真实存在）
   6. 文件非空且行数达标
 
-用法：python3 scripts/verify-docs.py
+用法：
+  python3 scripts/verify-docs.py                # 校验真实项目
+  python3 scripts/verify-docs.py --root /tmp/x  # 校验副本（负向测试用）
+
+负向测试必须用 --root 指向临时副本，不要在真实文件上注入违规再恢复。
+备份+恢复不是隔离：它会吞掉测试期间的并行修改。
+
 退出码：0 = 全部通过；1 = 有 FAIL
 """
 
+import argparse
 import json
 import re
 import sys
 import unicodedata
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+_DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+
+# ROOT 可用 --root 覆盖，使负向测试能在临时副本上进行，
+# 完全不触碰真实文件。详见 --help。
+ROOT = _DEFAULT_ROOT
 DOCS = ROOT / "docs"
 
 FAILURES: list[str] = []
@@ -161,6 +172,98 @@ def check_cross_references() -> None:
             warn("xref", f"ADR-{', ADR-'.join(sorted(missing))} 未在 ARCHITECTURE.md 索引中")
 
 
+# ---- 5b. 跨文档引用（PM 建议的升级）----
+def check_cross_document_refs() -> None:
+    """单文档内不断链，不保证跨文档不断链。
+
+    本轮实际发生过：ARCHITECTURE 引用了不存在的 Trap 13；PRD 引用了
+    不存在的附录 A-9。因此本检查覆盖 PRD / ARCHITECTURE / DESIGN / ADR
+    四份文档之间的相互引用。
+    """
+    adr_dir = DOCS / "decisions"
+    arch = DOCS / "ARCHITECTURE.md"
+
+    # 收集全项目真实存在的标识符
+    adrs_on_disk = {p.stem for p in adr_dir.glob("ADR-*.md")}
+    traps_defined: set[str] = set()
+    adr7 = adr_dir / "ADR-007.md"
+    if adr7.exists():
+        traps_defined = set(re.findall(r"^### Trap (\d+)",
+                                       adr7.read_text(encoding="utf-8"), re.MULTILINE))
+
+    # 收集各文档真实存在的章节标识
+    headings: dict[Path, set[str]] = {}
+    for doc in [DOCS / "PRD.md", DOCS / "ARCHITECTURE.md", DOCS / "DESIGN.md"]:
+        if doc.exists():
+            headings[doc] = set(
+                re.findall(r"^#{2,4}\s+(\d+(?:\.\d+)*|[A-Z](?:-\d+[a-z]?)?)\s",
+                           doc.read_text(encoding="utf-8"), re.MULTILINE)
+            )
+
+    # 附录标识（PRD 用「附录 A-9」这类中文锚点）
+    prd = DOCS / "PRD.md"
+    prd_appendix: set[str] = set()
+    if prd.exists():
+        prd_appendix = set(re.findall(r"^##\s+附录\s+([A-Z](?:-\d+[a-z]?)?)[:：]",
+                                      prd.read_text(encoding="utf-8"), re.MULTILINE))
+
+    docs_to_scan = [p for p in
+                    [DOCS / "PRD.md", DOCS / "ARCHITECTURE.md", DOCS / "DESIGN.md"]
+                    if p.exists()] + list(adr_dir.glob("*.md"))
+
+    for doc in docs_to_scan:
+        for lineno, line in enumerate(doc.read_text(encoding="utf-8").splitlines(), 1):
+            # 跨文档 ADR 引用
+            for m in re.finditer(r"\b(ADR-\d{3})\b", line):
+                if m.group(1) not in adrs_on_disk:
+                    fail("xref-doc",
+                         f"{doc.relative_to(ROOT)}:{lineno} 引用不存在的 {m.group(1)}")
+            # 带编号的 Trap 引用
+            for m in re.finditer(r"ADR-007\s+Trap\s+(\d+)", line):
+                if m.group(1) not in traps_defined:
+                    fail("xref-doc",
+                         f"{doc.relative_to(ROOT)}:{lineno} 引用不存在的 "
+                         f"ADR-007 Trap {m.group(1)}")
+            # 跨文档章节引用（§6.2 等，指向 ARCHITECTURE 的编号体系）
+            if doc.name != "ARCHITECTURE.md" and arch.exists():
+                arch_nums = {h for h in headings.get(arch, set())
+                             if re.match(r"^\d", h)}
+                for m in re.finditer(r"ARCHITECTURE\.md\s*§(\d+(?:\.\d+)*)", line):
+                    if m.group(1) not in arch_nums:
+                        fail("xref-doc",
+                             f"{doc.relative_to(ROOT)}:{lineno} 引用 "
+                             f"ARCHITECTURE §{m.group(1)}，该章节不存在")
+            # PRD 内部附录引用
+            if prd_appendix:
+                for m in re.finditer(r"附录\s+([A-Z](?:-\d+[a-z]?)?)", line):
+                    ident = m.group(1)
+                    # 仅当这一行不是标题定义行本身时才校验
+                    if not line.lstrip().startswith("#"):
+                        if ident not in prd_appendix and ident not in {"A", "B", "C"}:
+                            fail("xref-doc",
+                                 f"{doc.relative_to(ROOT)}:{lineno} 引用附录 {ident}，"
+                                 f"但 PRD.md 未定义（已定义: {sorted(prd_appendix)}）")
+
+
+# ---- 5c. ASCII 框线完整性（标为 WARN，不阻断）----
+def check_box_drawing() -> None:
+    """检测以│ 开头但不以 │ 结尾的表格行。
+
+    背景：设计师的 v2.9 脚本按固定宽度重写ASCII 框时，未计中文双宽字符，
+    导致 79 处框线截短。这是可机械检测的问题，不该依赖人眼。
+
+    标为 WARN 而非 FAIL：修改 DESIGN.md 的时机由设计侧决定，
+    架构侧只报告不阻断。
+    """
+    for doc in DOCS.rglob("*.md"):
+        for lineno, line in enumerate(
+                doc.read_text(encoding="utf-8").splitlines(), 1):
+            if line.lstrip().startswith("│") and not line.rstrip().endswith("│"):
+                warn("box-drawing",
+                     f"{doc.relative_to(ROOT)}:{lineno} 框线不完整 "
+                     f"（以│ 开头但未以 │ 结尾）")
+
+
 # ---- 6. 文件非空 ----
 def check_non_empty() -> None:
     for p in list(DOCS.glob("*.md")) + list((DOCS / "decisions").glob("*.md")):
@@ -169,10 +272,26 @@ def check_non_empty() -> None:
 
 
 def main() -> int:
-    print("[verify-docs] 独立校验器启动（不参与文件写入）\n")
+    global ROOT, DOCS
+    ap = argparse.ArgumentParser(
+        description="IHaven 独立文档校验器（只读校验，不参与文件写入）",
+    )
+    ap.add_argument(
+        "--root", type=Path, default=_DEFAULT_ROOT,
+        help="项目根目录。负向测试请指向临时副本，"
+             "例如 --root /tmp/test-docs，避免修改真实文件。",
+    )
+    args = ap.parse_args()
+    ROOT = args.root.resolve()
+    DOCS = ROOT / "docs"
+
+    print(f"[verify-docs] 独立校验器启动（只读，不参与文件写入）")
+    print(f"[verify-docs] root = {ROOT}\n")
 
     for fn in (check_emoji, check_purple_pink, check_json,
-               check_section_numbering, check_cross_references, check_non_empty):
+               check_section_numbering, check_cross_references,
+               check_cross_document_refs, check_box_drawing,
+               check_non_empty):
         try:
             fn()
         except Exception as exc:                      # noqa: BLE001
