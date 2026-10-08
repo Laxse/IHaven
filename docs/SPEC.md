@@ -357,6 +357,8 @@
 
 **[!] API Key 页的验证端点**：`GET /search`。使用 `/settings` 会把完全有效的 Key 判为无效（该端点对无效 Key 返回 404）。
 
+**[!] 消歧（两个 `/settings`）**：本节的 `/settings/key`、`/settings/general` 是 **App 自己的设置页路由**，与 §9 中 wallhaven 的 **API 端点 `/settings`** 同名，但**完全无关**。§9.0 第四条禁令「`/settings` 整体不得作为任何能力或状态判据」**只约束那个 API 端点**，不约束 App 设置页 —— 设置页读写的是本地用户偏好，与那个会说假话的端点是两回事。
+
 ### 8.4 弹出层
 
 | 层 | 触发 | 内容 | Token 主题 |
