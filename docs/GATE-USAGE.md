@@ -40,6 +40,18 @@ git show HEAD:<文件> | grep <同样的规则>   # 对比 HEAD 版本
 
 若 HEAD 版本同样有问题，则问题来自作者本人，**应报告而非代改**。
 
+### 2.1 shell 门禁需 `IHAVEN_ROOT` 才能被测试
+
+`security-gate.sh` / `convention-gate.sh` 现支持 `IHAVEN_ROOT` 环境变量，
+使其可在隔离副本上跑负向测试（此前硬编码 `cd "$(dirname "$0")/.."`，
+只能指向真实仓库根，导致**无法自动化测试**）。
+
+```bash
+IHAVEN_ROOT=/tmp/copy bash /tmp/copy/scripts/security-gate.sh
+```
+
+**门禁若无法被指向别处，就无法被回归测试** —— 这本身就是一个盲区。
+
 ### 2. 负向测试必须在临时副本上做，禁止在真实文件上注入违规后恢复
 
 ```bash

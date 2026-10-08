@@ -199,6 +199,8 @@ BLIND_SPOTS = [
     "不做通用语义比对 —— 结论一致性仅检测互斥措辞",
     "不检查代码语义（仅文档一致性 + 源码规范）",
     "不检查 Swift 编译期问题（那是 api-gate 的职责）",
+    "shell 门禁（security/convention）无内建自检 —— 它们靠 IHAVEN_ROOT",
+    "在隔离副本上做负向测试；语义级自检（must_exit/expect_stdout）尚未接入",
 ]
 WARNINGS: list[str] = []
 
