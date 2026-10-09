@@ -6,13 +6,15 @@ struct IHavenApp: App {
     @State private var browseViewModel: BrowseViewModel?
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup("IHaven") {
             if let vm = browseViewModel {
                 BrowseView(viewModel: vm, keyStore: keyStore)
             } else {
                 ProgressView("初始化…").task { await bootstrap() }
             }
         }
+        // 线稿画布 1280×800：默认窗口若只有 minWidth 880，瀑布流会退化到 2 列，观感与线稿不符。
+        .defaultSize(width: 1280, height: 800)
     }
 
     /// 装配依赖：文件 KeyStore（KeyProvider/KeyStore，ADR-010）+ GRDB（WallpaperDatabase，失败降级 InMemory）

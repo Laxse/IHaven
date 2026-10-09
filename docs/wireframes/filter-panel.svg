@@ -194,4 +194,9 @@
   <text x="52.0" y="294.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">· 结果数未显示 —— resultCountFormat.alternative 允许省略</text>
   <text x="52.0" y="307.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#1B6FC4" text-anchor="start">· macOS 红绿灯三色 —— 系统外观提供，非设计 token</text>
   <text x="52.0" y="320.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="400" fill="#9A6B12" text-anchor="start">[OK] 已补（v4.2 授权）：浅色 border 三档 / statusBarHeight 32px</text>
+  <!-- 2026-10-11 ADR-011：NSFW 门禁移除，本节灰置态与三层门禁说明已废弃 -->
+  <rect x="616.0" y="239.0" width="318.0" height="180.0" rx="6" fill="none" stroke="#B3382C" stroke-width="2" stroke-dasharray="6 4"/>
+  <line x1="616.0" y1="239.0" x2="934.0" y2="419.0" stroke="#B3382C" stroke-width="1.5" stroke-opacity="0.55"/>
+  <rect x="620.0" y="423.0" width="310.0" height="30.0" rx="6" fill="#B3382C" fill-opacity="0.1" stroke="#B3382C" stroke-width="1"/>
+  <text x="630.0" y="443.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="10" font-weight="590" fill="#B3382C" text-anchor="start">[已废弃 2026-10-11 ADR-011] NSFW 门禁移除，三档一律可点</text>
 </svg>

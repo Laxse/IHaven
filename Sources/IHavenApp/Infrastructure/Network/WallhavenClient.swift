@@ -41,26 +41,6 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
         }
     }
 
-    func probeNSFWPermission() async -> NSFWProbeResult {
-        // 固定宽：仅 purity=001，不带任何用户筛选（SPEC §9.2）。
-        // 带筛选会让探测与主请求一样返回 0，判定失效。
-        var comps = URLComponents(url: WallhavenEndpoint.search, resolvingAgainstBaseURL: false)!
-        comps.queryItems = [URLQueryItem(name: "purity", value: "001")]
-        guard let url = comps.url else { return .error(APIError.transport(NSError(domain: "IHaven", code: -2))) }
-        do {
-            let (data, response) = try await session.data(for: Self.makeRequest(url: url, key: keyProvider.currentKey))
-            if let http = response as? HTTPURLResponse, http.statusCode == 401 {
-                return .keyInvalid
-            }
-            try Self.assertSuccess(response)
-            let page = try JSONDecoder().decode(WallhavenPage.self, from: data)
-            return page.meta.total > 0 ? .authorized(total: page.meta.total) : .unauthorized
-        } catch {
-            if case APIError.unauthorizedKey = error { return .keyInvalid }
-            return .error(error)
-        }
-    }
-
     // MARK: - 内部
 
     private static func makeRequest(url: URL, key: String) -> URLRequest {

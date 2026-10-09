@@ -24,9 +24,12 @@ enum NavItem: Hashable {
 func browseActiveFilterChips(query: BrowseQuery) -> [String] {
     var r: [String] = []
     if !query.atleast.isEmpty { r.append(browseResolutionLabel(query.atleast)) }
-    if query.ratio != .unspecified { r.append("比例: \(query.ratio.rawValue)") }
+    // 摘要对用户展示分组名（「比例: 横构图」）而非下发值；未命中分组时回退原始值。
+    if query.ratio != .unspecified {
+        r.append("比例: \(RatioGroup.label(for: query.ratio) ?? query.ratio.rawValue)")
+    }
     if !query.color.isEmpty { r.append("色: #\(query.color)") }
-    if query.purity != PurityFilter(sfw: true, sketchy: false, nsfw: false) { r.append("纯度") }
+    if query.purity != PurityFilter.browseDefault { r.append("纯度") }
     return r
 }
 

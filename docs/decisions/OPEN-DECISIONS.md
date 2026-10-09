@@ -42,3 +42,20 @@
 **新增风险**：Key 明文落盘，同用户任意进程可读。已接受——危害面为「访问 NSFW、消耗 45 次/分钟配额、读取账号设置」，无资金路径与敏感 PII；且 P0 的实质危害（Key 进 git / 进 URL）在仓库外存储下被物理切断。
 
 **回切条件**：构建带上稳定 Developer ID 签名，或本地自签身份固定 CDHash。满足即改 `IHavenApp.swift:5` 一行回 `KeychainKeyProvider`。
+
+---
+
+## 决策变更登记（2026-10-11，ADR-011）
+
+**变更项**：筛选面板纯度分组的 NSFW 档位门禁——线稿 `docs/wireframes/filter-panel.svg` 原设计为「NSFW 灰置不可点」，并规划了三层门禁原因（需要密钥 · 未配置 / 需要开启 NSFW（L2）· 已关闭 / 需要开启本次可见（L3）· 已关闭）与「打开密钥设置」路由。
+**变更为**：NSFW 不再做任何权限门禁，与全年龄、轻微暗示两档完全等价，三档一律可自由切换；默认档仍为 `PurityFilter.browseDefault`（全年龄 ON / 轻微暗示 ON / NSFW OFF，`Core/Models/Query.swift`）。
+
+**变更理由（摘要，完整论证见 ADR-011）**：三层门禁里 L2 需要设置页承载、L3 需要菜单栏面板承载，MVP 阶段这两个界面都不存在，档位会被永久灰置——「灰置但永远点不开」呈现的是坏掉的功能而非范围外功能，比不做门禁更糟；探测本身消耗 API 配额，且其失败态（网络错误 / 配额耗尽 / 401）在 UI 上难以与「无权限」区分，会产生误导性提示；产品已明确要求不加限制。
+
+**配套删除（死代码）**：`probeNSFWPermission()`（`Core/Protocols/WallhavenAPI.swift` 协议声明 + `Infrastructure/Network/WallhavenClient.swift` 实现）与结果类型 `NSFWProbeResult` 已一并删除，全仓库无残留引用。删除后 `WallhavenAPIProtocol` 仅剩 `search(_:)` 与 `keyStatus`。
+
+**文档取代关系**：线稿 `filter-panel.svg` 纯度分组的灰置说明与三层门禁 hover 文案**已被 ADR-011 取代**。后续若重新引入门禁，应以 ADR-011 为起点，不得直接照抄线稿。
+
+**未放宽的部分（仍然硬性）**：认证走 `X-API-Key` 请求头（不回退 query）；禁止用 `/settings` 验证 Key；禁止用响应里的 `data.purity` 判断 NSFW 权限（Trap 14 / 15 / 17）。这三条的本质是「不得依赖错误信号源」，与「不门禁」正交，全部保留。
+
+**新增风险**：失去「防止用户在不知情下打开 NSFW」的提示层；将来重新引入门禁需重建探测基础设施。两项均已接受，见 ADR-011「负面」小节。

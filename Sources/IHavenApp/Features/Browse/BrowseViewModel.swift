@@ -99,7 +99,7 @@ final class BrowseViewModel {
     /// 清空全部筛选维度（工具栏「清除全部筛选」）。保留当前分类（由侧栏控制）。
     func clearFilters() {
         query.q = ""
-        query.purity = PurityFilter(sfw: true, sketchy: false, nsfw: false)
+        query.purity = .browseDefault
         query.atleast = ""
         query.ratio = .unspecified
         query.color = ""

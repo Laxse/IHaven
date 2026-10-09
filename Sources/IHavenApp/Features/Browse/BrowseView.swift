@@ -2,7 +2,7 @@ import SwiftUI
 
 /// 主窗口（瀑布流）。严格对齐已批准线稿 main-window.svg：
 /// 全宽 52px 工具栏（Liquid Glass G1）+ 208px 侧栏（Liquid Glass G2）+ 真 masonry 瀑布流 + 32px 状态栏。
-/// 保持 `BrowseView(viewModel:keyStore:)` 签名与 `.sheet` 接线不变（IHavenApp 依赖）。
+/// 保持 `BrowseView(viewModel:keyStore:)` 签名不变（IHavenApp 依赖）；筛选面板改为工具栏锚定 popover。
 struct BrowseView: View {
     @Bindable var viewModel: BrowseViewModel
     let keyStore: KeyStore
@@ -24,9 +24,6 @@ struct BrowseView: View {
         }
         .frame(minWidth: 880, minHeight: 600)
         .task { await reloadForNav() }
-        .sheet(isPresented: $showFilter) {
-            FilterView(viewModel: viewModel) { showFilter = false; Task { await reloadForNav() } }
-        }
         .sheet(isPresented: $showKeyConfig) {
             KeyConfigView(store: keyStore) { showKeyConfig = false; Task { await reloadForNav() } }
         }
@@ -35,32 +32,57 @@ struct BrowseView: View {
 
     // MARK: - 工具栏（52px，chrome 底 + 1px hairline）
     private var toolbar: some View {
-        HStack(spacing: IHaven.Space.s4.rawValue) {
-            Button { withAnimation { showSidebar.toggle() } } label: {
-                Image(systemName: "sidebar.left").font(.system(size: IHaven.Icon.sm))
-            }
-            .buttonStyle(.borderless)
-            .frame(width: 28, height: 28)
-            .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).stroke(IHaven.Color.border))
-            searchField
+        HStack(spacing: 0) {
+            toolbarIconButton("sidebar.left") { withAnimation { showSidebar.toggle() } }
+            searchField.padding(.leading, 20)
             Spacer(minLength: 0)
             filterChips
-            Button { showFilter = true } label: {
-                Label("筛选", systemImage: "line.3.horizontal.decrease")
-            }
-            .controlSize(.small)
-            Button { select(.favorites) } label: { Image(systemName: "star") }
-                .buttonStyle(.borderless)
-            Button { showKeyConfig = true } label: { Image(systemName: "gearshape") }
-                .buttonStyle(.borderless)
+            filterButton.padding(.leading, 20)
+            toolbarIconButton("star") { select(.favorites) }
+                .padding(.leading, 28)
+            toolbarIconButton("gearshape") { showKeyConfig = true }
+                .padding(.leading, 8)
         }
-        .padding(.horizontal, IHaven.Space.s5.rawValue)
+        // 内边距按线稿：leading 8 / trailing 16（齿轮右边缘距窗口 16）。
+        .padding(.leading, 8)
+        .padding(.trailing, 16)
         .frame(maxWidth: .infinity)
         .frame(height: IHaven.Layout.toolbarHeight)
         .background(IHaven.Color.bgChrome)
         .overlay(alignment: .bottom) {
             Rectangle().fill(IHaven.Color.border).frame(height: 1)
         }
+    }
+
+    /// 「筛选」按钮：线稿固定 76×28，系统 `Label` + `.controlSize(.small)` 只有 62×22.7，故自绘底+描边。
+    private var filterButton: some View {
+        Button { showFilter = true } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "line.3.horizontal.decrease").font(.system(size: 11))
+                Text("筛选").font(IHaven.Font.system(.md, IHaven.Font.weightEmphasize))
+            }
+            .padding(.horizontal, 12)
+            .frame(width: 76, height: 28)
+            .background(IHaven.Color.surface, in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue))
+            .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).stroke(IHaven.Color.border))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        // 线稿要求筛选面板挂在工具栏下方（popover），而不是居中 sheet。
+        .popover(isPresented: $showFilter, arrowEdge: .bottom) {
+            FilterView(viewModel: viewModel) { showFilter = false; Task { await reloadForNav() } }
+        }
+    }
+
+    /// 工具栏图标按钮统一规格：28×28 + 圆角 6 + 1px 描边（侧栏开关 / 星标 / 齿轮共用）。
+    private func toolbarIconButton(_ systemName: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: IHaven.Icon.sm))
+                .frame(width: 28, height: 28)
+        }
+        .buttonStyle(.plain)
+        .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).stroke(IHaven.Color.border))
     }
 
     private var searchField: some View {
@@ -203,7 +225,7 @@ struct BrowseView: View {
             let count = nav == .favorites ? viewModel.favorites.count : viewModel.wallpapers.count
             Text("已加载 \(count) 张").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
         }
-        .padding(.horizontal, IHaven.Space.s5.rawValue)
+        .padding(.horizontal, IHaven.Space.s6.rawValue)
         .frame(maxWidth: .infinity)
         .frame(height: IHaven.Layout.statusBarHeight)
         .background(IHaven.Color.bgChrome)
@@ -232,7 +254,7 @@ struct BrowseView: View {
 
     private func applyCategory(_ item: NavItem) {
         switch item {
-        case .discover: viewModel.query.categories = .general; viewModel.query.q = ""
+        case .discover: viewModel.query.categories = .all; viewModel.query.q = ""
         case .landscape: viewModel.query.categories = .general; viewModel.query.q = "nature"
         case .anime: viewModel.query.categories = .anime; viewModel.query.q = ""
         case .people: viewModel.query.categories = .people; viewModel.query.q = ""

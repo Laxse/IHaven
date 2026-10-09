@@ -12,18 +12,8 @@ public protocol KeyProvider: Sendable {
 public protocol WallhavenAPIProtocol: Sendable {
     /// 搜索（带用户筛选的常规请求）。
     func search(_ query: BrowseQuery) async throws -> WallhavenPage
-    /// NSFW 权限探测：固定宽 `purity=001`，不带任何用户筛选（SPEC §9.2）。
-    func probeNSFWPermission() async -> NSFWProbeResult
     /// 当前 Key 状态（空 / 已配置）。
     var keyStatus: KeyStatus { get }
-}
-
-/// NSFW 探测结论（SPEC §9.2）。
-public enum NSFWProbeResult {
-    case authorized(total: Int)   // total>0：有权限
-    case unauthorized            // total=0：权限不足
-    case keyInvalid              // 401：Key 失效（Trap 16，唯一含义）
-    case error(Error)
 }
 
 public enum KeyStatus {

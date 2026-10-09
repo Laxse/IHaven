@@ -3,7 +3,7 @@ import Foundation
 /// 搜索查询（用户在筛选面板配置的所有维度）。
 public struct BrowseQuery: Sendable {
     public var q: String = ""
-    public var purity = PurityFilter(sfw: true, sketchy: false, nsfw: false)
+    public var purity = PurityFilter.browseDefault
     public var categories: CategoryFilter = .default
     public var sorting: Sorting = .dateAdded
     public var order: Order = .desc
@@ -33,14 +33,19 @@ public struct PurityFilter: Sendable, Hashable {
         self.sketchy = sketchy
         self.nsfw = nsfw
     }
+
+    /// 浏览默认档：全年龄 + 轻微暗示 开、NSFW 关（filter-panel.svg：全年龄 ON / 轻微暗示 ON / NSFW OFF）。
+    /// NSFW 不再做权限门禁 —— 三档一律可自由切换（2026-10-11 产品决定，见 ADR-011）。
+    public static let browseDefault = PurityFilter(sfw: true, sketchy: true, nsfw: false)
 }
 
 public enum CategoryFilter: String, Sendable, CaseIterable {
+    case all = "111"
     case general = "100"
     case anime = "010"
     case people = "001"
-    /// 当前默认仅 general（与旧版默认 categories=011 不同）。
-    public static let `default` = CategoryFilter.general
+    /// 默认「全部」（filter-panel.svg 分类分段控件默认选中首项「全部」，侧栏「发现」也落到全部）。
+    public static let `default` = CategoryFilter.all
 }
 
 public enum Sorting: String, Sendable, CaseIterable {
