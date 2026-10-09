@@ -2,6 +2,11 @@ import Foundation
 import Security
 
 /// Keychain 实现的 KeyStore（ADR-002 / ARCH §3.3）。
+///
+/// **当前未接线（ADR-010 旁路）**：开发期构建是 ad-hoc 签名，每次重建 CDHash 都变，
+/// 钥匙串 ACL 的「始终允许」无法命中 → 每次启动弹授权框；启用 data-protection keychain
+/// 则对 ad-hoc 二进制返回 -34018。生产装配改用 `FileKeyProvider`。
+/// 回切条件（签名稳定后）见 ADR-010，切换点只有 `IHavenApp.swift` 一行。
 /// - kSecClassGenericPassword；service=`com.ihaven.apikey`，account=`wallhaven`
 /// - kSecAttrAccessibleWhenUnlocked：锁屏时不可读，避免后台任务拿明文 Key
 /// - 绝不写日志、绝不进 UserDefaults / SQLite

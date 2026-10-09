@@ -25,5 +25,20 @@
 
 ### 架构约束（已传达给架构师）
 - 认证统一走 `X-API-Key` 请求头，**禁止 URL query 传递**（官方文档明确支持 header 方式且更安全）
-- Key 存储用 macOS Keychain，**禁止 UserDefaults / plist / 硬编码**
+- Key 存储~~用 macOS Keychain~~，**禁止 UserDefaults / plist / 硬编码** —— **2026-10-11 变更，见 ADR-010**
 - 建议加 `.gitignore` 与 pre-commit hook 扫描 Key 模式
+
+---
+
+## 约束变更登记（2026-10-11，ADR-010）
+
+**变更项**：上述「Key 存储用 macOS Keychain」一条。
+**变更为**：`~/.ihaven/apikey`，目录 `0700` / 文件 `0600`，实现 `FileKeyProvider`（`Infrastructure/Security/FileKeyStore.swift`）。`KeychainStore.swift` 保留不删。
+
+**变更理由（摘要，完整论证见 ADR-010）**：本地构建为 ad-hoc 签名（无 team identifier，designated requirement 基于 CDHash），每次重建 CDHash 都变，钥匙串 ACL 的「始终允许」无法命中 → 每次启动弹授权框；`kSecUseDataProtectionKeychain` 对 ad-hoc 二进制返回 -34018。这是签名属性，非代码缺陷，换存储是唯一能立刻消除弹窗的路径。
+
+**未放宽的部分（仍然硬性）**：认证走 `X-API-Key` 头、禁止 URL query、禁止硬编码、禁止 UserDefaults / plist、禁止 Key 落日志。`security-gate.sh` 相应规则全部保留且通过。
+
+**新增风险**：Key 明文落盘，同用户任意进程可读。已接受——危害面为「访问 NSFW、消耗 45 次/分钟配额、读取账号设置」，无资金路径与敏感 PII；且 P0 的实质危害（Key 进 git / 进 URL）在仓库外存储下被物理切断。
+
+**回切条件**：构建带上稳定 Developer ID 签名，或本地自签身份固定 CDHash。满足即改 `IHavenApp.swift:5` 一行回 `KeychainKeyProvider`。

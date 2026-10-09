@@ -198,7 +198,7 @@ Keychain，`kSecClassGenericPassword`，`kSecAttrService = "com.ihaven.apikey"`�
 +----------------------------------------------------------------+
 |  Infrastructure (可替换实现)                                   |
 |  Database (GRDB) / WallhavenAPI (URLSession) /                 |
-|  ImagePipeline (Nuke) / KeychainStore / WallpaperEngine /     |
+|  ImagePipeline (Nuke) / FileKeyStore / WallpaperEngine /      |
 |  VideoExporter / Telemetry                                     |
 +----------------------------------------------------------------+
 |  Platform (系统能力封装)                                       |
@@ -243,7 +243,8 @@ IHaven/
       ImagePipeline.swift   Nuke 配置
       ImagePrefetcher.swift
     Security/
-      KeychainStore.swift
+      FileKeyStore.swift        ~/.ihaven/apikey（ADR-010）
+      KeychainStore.swift       已旁路，保留待签名稳定后启用
     Telemetry/
       Telemetry.swift
   Platform/

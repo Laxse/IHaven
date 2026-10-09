@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// API Key 配置（产品层）。Key 经 KeyStore 持久化到 Keychain（生产）/ 内存（Preview），
+/// API Key 配置（产品层）。Key 经 KeyStore 持久化到 `~/.ihaven/apikey`（生产，ADR-010）/ 内存（Preview），
 /// 绝不硬编码（ARCH §6.4.0）。本地 draft 编辑，保存时调用 `store.save`（trim 后写入）。
 struct KeyConfigView: View {
     let store: KeyStore
