@@ -32,7 +32,10 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
         let (data, response) = try await session.data(for: Self.makeRequest(url: url, key: keyProvider.currentKey))
         try Self.assertSuccess(response)
         do {
-            return try JSONDecoder().decode(WallhavenPage.self, from: data)
+            let page = try JSONDecoder().decode(WallhavenPage.self, from: data)
+            // ImagePipeline 层（Nuke）：结果返回即预取缩略图，避免滚动空白闪烁（ADR-001）。
+            NukeImagePipeline.prefetch(page.data.compactMap { $0.thumbs.small })
+            return page
         } catch {
             throw APIError.decode(error)
         }
