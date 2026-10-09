@@ -17,6 +17,8 @@ final class BrowseViewModel {
     var resultsIncomplete: Bool = false
     /// 当前已收藏的壁纸 id 集合（UI 即时反查）。
     var favoriteIDs: Set<String> = []
+    /// 收藏列表（侧栏「收藏」视图数据源，来自数据库）。
+    var favorites: [Favorite] = []
 
     private let client: WallhavenAPIProtocol
     private let keyProvider: KeyProvider
@@ -81,12 +83,49 @@ final class BrowseViewModel {
         favoriteIDs = Set((try? database.favorites().map(\.id)) ?? [])
     }
 
+    /// 载入收藏列表（侧栏「收藏」视图用）。
+    func loadFavorites() {
+        favorites = (try? database.favorites()) ?? []
+        refreshFavorites()
+        loadState = .loaded
+    }
+
+    /// 从收藏列表移除（FavoriteCard 上的星标动作）。
+    func removeFavorite(id: String) {
+        try? database.removeFavorite(id: id)
+        favoriteIDs.remove(id)
+    }
+
+    /// 清空全部筛选维度（工具栏「清除全部筛选」）。保留当前分类（由侧栏控制）。
+    func clearFilters() {
+        query.q = ""
+        query.purity = PurityFilter(sfw: true, sketchy: false, nsfw: false)
+        query.atleast = ""
+        query.ratio = .unspecified
+        query.color = ""
+        query.sorting = .dateAdded
+        query.order = .desc
+        query.topRange = .month
+        query.page = 1
+    }
+
     // MARK: - 设为壁纸（F1 / F2）
 
     /// 下载原图到本地后调用 WallpaperEngine 设置静态壁纸。返回 nil 表示成功，否则为错误描述。
     func setAsWallpaper(_ wp: Wallpaper) async -> String? {
         do {
             let file = try await downloader.download(wp.path)
+            try wallpaperEngine.setWallpaper(fileURL: file, for: nil, mode: .fill, fillColor: nil)
+            return nil
+        } catch {
+            return error.localizedDescription
+        }
+    }
+
+    /// 从收藏项直接设置壁纸（收藏视图用；下载 originalURL 后调用引擎）。
+    func setWallpaperFromFavorite(_ fav: Favorite) async -> String? {
+        do {
+            let file = try await downloader.download(fav.originalURL)
             try wallpaperEngine.setWallpaper(fileURL: file, for: nil, mode: .fill, fillColor: nil)
             return nil
         } catch {
