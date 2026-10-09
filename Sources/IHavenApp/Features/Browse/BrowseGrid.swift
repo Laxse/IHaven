@@ -28,6 +28,7 @@ struct MasonryView<Item: Identifiable, Content: View>: View {
                         VStack(spacing: spacing) {
                             ForEach(buckets[c]) { item in
                                 content(item)
+                                    .frame(width: colWidth, height: cardHeight(item, colWidth), alignment: .top)
                             }
                         }
                         .frame(width: colWidth, alignment: .top)
@@ -49,13 +50,17 @@ struct MasonryView<Item: Identifiable, Content: View>: View {
         var buckets: [[Item]] = Array(repeating: [], count: cols)
         var heights = Array(repeating: CGFloat(0), count: cols)
         for item in items {
-            let ar = aspectRatio(item)
-            let h = ar > 0 ? colWidth / ar : colWidth * 1.4
             let idx = heights.enumerated().min(by: { $0.element < $1.element })!.offset
             buckets[idx].append(item)
-            heights[idx] += h + spacing
+            heights[idx] += cardHeight(item, colWidth) + spacing
         }
         return buckets
+    }
+
+    /// 卡片高度 = 列宽 / 真实宽高比；异常比例（0 / NaN / 负）回退 1.4，避免 0 高卡片。
+    private func cardHeight(_ item: Item, _ colWidth: CGFloat) -> CGFloat {
+        let ar = aspectRatio(item)
+        return ar.isFinite && ar > 0 ? colWidth / ar : colWidth * 1.4
     }
 }
 
