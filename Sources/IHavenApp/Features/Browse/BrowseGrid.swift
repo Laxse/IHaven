@@ -2,12 +2,7 @@ import NukeUI
 import SwiftUI
 
 /// 真 masonry 瀑布流：按各卡真实宽高比分配列，列宽 240–340 / 沟槽 8（design-tokens grid）。
-/// 用 0 高 GeometryReader + preference 测量内容宽度，避免 GeometryReader 撑高 ScrollView。
-private struct _WidthKey: PreferenceKey {
-    static let defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
-}
-
+/// 宽度用 onGeometryChange 测量；每列用普通 VStack —— LazyVStack 在非滚动的 HStack 内会塌缩为 0 高。
 struct MasonryView<Item: Identifiable, Content: View>: View {
     let items: [Item]
     let spacing: CGFloat
@@ -23,28 +18,31 @@ struct MasonryView<Item: Identifiable, Content: View>: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            GeometryReader { g in
-                Color.clear.preference(key: _WidthKey.self, value: g.size.width)
-            }
-            .frame(height: 0)
+        VStack(alignment: .leading, spacing: spacing) {
             if width > 0 {
                 let cols = columnCount
                 let colWidth = (width - spacing * CGFloat(cols - 1)) / CGFloat(cols)
                 let buckets = distribute(into: cols, colWidth: colWidth)
                 HStack(alignment: .top, spacing: spacing) {
                     ForEach(0..<cols, id: \.self) { c in
-                        LazyVStack(spacing: spacing) {
+                        VStack(spacing: spacing) {
                             ForEach(buckets[c]) { item in
-                                content(item).frame(width: colWidth)
+                                content(item)
                             }
                         }
+                        .frame(width: colWidth, alignment: .top)
                     }
                 }
-                .frame(width: width)
+            } else {
+                Color.clear.frame(height: 1)
             }
         }
-        .onPreferenceChange(_WidthKey.self) { width = $0 }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.size.width
+        } action: { newWidth in
+            if abs(newWidth - width) > 0.5 { width = newWidth }
+        }
     }
 
     private func distribute(into cols: Int, colWidth: CGFloat) -> [[Item]] {

@@ -17,7 +17,7 @@ struct BrowseView: View {
         VStack(spacing: 0) {
             toolbar
             HStack(spacing: 0) {
-                if showSidebar { sidebar.frame(width: IHaven.Layout.sidebarWidth) }
+                if showSidebar { sidebar }
                 mainArea
             }
             statusBar
@@ -33,7 +33,7 @@ struct BrowseView: View {
         .overlay(alignment: .bottom) { if let toast { toastView(toast) } }
     }
 
-    // MARK: - 工具栏（52px，Liquid Glass）
+    // MARK: - 工具栏（52px，chrome 底 + 1px hairline）
     private var toolbar: some View {
         HStack(spacing: IHaven.Space.s4.rawValue) {
             Button { withAnimation { showSidebar.toggle() } } label: {
@@ -41,6 +41,7 @@ struct BrowseView: View {
             }
             .buttonStyle(.borderless)
             .frame(width: 28, height: 28)
+            .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).stroke(IHaven.Color.border))
             searchField
             Spacer(minLength: 0)
             filterChips
@@ -54,8 +55,12 @@ struct BrowseView: View {
                 .buttonStyle(.borderless)
         }
         .padding(.horizontal, IHaven.Space.s5.rawValue)
+        .frame(maxWidth: .infinity)
         .frame(height: IHaven.Layout.toolbarHeight)
-        .glassEffect(.regular)
+        .background(IHaven.Color.bgChrome)
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(IHaven.Color.border).frame(height: 1)
+        }
     }
 
     private var searchField: some View {
@@ -68,35 +73,49 @@ struct BrowseView: View {
         .padding(.horizontal, IHaven.Space.s4.rawValue)
         .frame(width: 280, height: 28)
         .background(IHaven.Color.surface, in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue))
+        .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).stroke(IHaven.Color.border))
     }
 
-    // MARK: - 侧栏（208px，Liquid Glass）
+    // MARK: - 侧栏（208px，chrome 底 + 1px hairline）
     private var sidebar: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 2) {
-                    sidebarRow(.discover)
-                    Divider().padding(.vertical, 4)
-                    sidebarRow(.landscape); sidebarRow(.anime); sidebarRow(.people)
-                    Divider().padding(.vertical, 4)
-                    sidebarRow(.favorites); sidebarRow(.wallpaperSet)
-                    Divider().padding(.vertical, 4)
-                    sidebarRow(.live); sidebarRow(.import)
-                    Divider().padding(.vertical, 4)
-                    sidebarRow(.settings); sidebarRow(.key)
-                }
-                .padding(.vertical, 8)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 2) {
+                sidebarRow(.discover)
+                sidebarDivider
+                sidebarRow(.landscape); sidebarRow(.anime); sidebarRow(.people)
+                sidebarDivider
+                sidebarRow(.favorites); sidebarRow(.wallpaperSet)
+                sidebarDivider
+                sidebarRow(.live); sidebarRow(.import)
+                sidebarDivider
+                sidebarRow(.settings); sidebarRow(.key)
             }
-            Spacer(minLength: 0)
+            .padding(.vertical, 8)
         }
-        .glassEffect(.regular)
+        .frame(maxHeight: .infinity)
+        .frame(width: IHaven.Layout.sidebarWidth)
+        .background(IHaven.Color.bgChrome)
+        .overlay(alignment: .trailing) {
+            Rectangle().fill(IHaven.Color.border).frame(width: 1)
+        }
+    }
+
+    private var sidebarDivider: some View {
+        Rectangle().fill(IHaven.Color.borderSoft).frame(height: 1)
+            .padding(.horizontal, IHaven.Space.s5.rawValue)
+            .padding(.vertical, IHaven.Space.s2.rawValue)
     }
 
     private func sidebarRow(_ item: NavItem) -> some View {
-        Button { select(item) } label: {
+        let selected = nav == item
+        return Button { select(item) } label: {
             HStack(spacing: 10) {
-                Image(systemName: item.icon).font(.system(size: IHaven.Icon.sm)).foregroundStyle(IHaven.Color.fg2)
-                Text(item.label).font(IHaven.Font.system(.md)).foregroundStyle(IHaven.Color.fg)
+                Image(systemName: item.icon)
+                    .font(.system(size: IHaven.Icon.sm))
+                    .foregroundStyle(selected ? IHaven.Color.fg : IHaven.Color.fg2)
+                Text(item.label)
+                    .font(IHaven.Font.system(.md))
+                    .foregroundStyle(selected ? IHaven.Color.fg : IHaven.Color.fg2)
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, 12)
@@ -104,9 +123,9 @@ struct BrowseView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, 8)
-        .background(nav == item ? IHaven.Color.surface : SwiftUI.Color.clear,
+        .background(selected ? IHaven.Color.void : SwiftUI.Color.clear,
                     in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue))
+        .padding(.horizontal, IHaven.Space.s4.rawValue)
     }
 
     // MARK: - 主内容区
@@ -115,10 +134,12 @@ struct BrowseView: View {
         VStack(spacing: 0) {
             switch nav {
             case .favorites: favoritesContent
-            case .live, .import: placeholder(item: nav)
+            case .live, .import: browsePlaceholder(item: nav)
             default: searchContent
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(IHaven.Color.bg)
     }
 
     @ViewBuilder
@@ -142,7 +163,7 @@ struct BrowseView: View {
                                       onToggleFavorite: { viewModel.toggleFavorite(wp) },
                                       onSetWallpaper: { setWallpaper(wp) })
                     }
-                    .padding(IHaven.Layout.masonryGap)
+                    .padding(IHaven.Space.s6.rawValue)
                 }
             }
         case .failed(let msg):
@@ -166,21 +187,12 @@ struct BrowseView: View {
                                  onToggleFavorite: { viewModel.removeFavorite(id: fav.id); viewModel.loadFavorites() },
                                  onSetWallpaper: { setWallpaperFromFavorite(fav) })
                 }
-                .padding(IHaven.Layout.masonryGap)
+                .padding(IHaven.Space.s6.rawValue)
             }
         }
     }
 
-    private func placeholder(item: NavItem) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: item.icon).font(.system(size: 40)).foregroundStyle(IHaven.Color.meta)
-            Text(item.label).font(IHaven.Font.system(.lg, IHaven.Font.weightEmphasize)).foregroundStyle(IHaven.Color.fg)
-            Text("此功能将在后续版本提供。").font(IHaven.Font.system(.md)).foregroundStyle(IHaven.Color.muted)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    // MARK: - 状态栏（32px，Liquid Glass）
+    // MARK: - 状态栏（32px，chrome 底 + 1px hairline）
     private var statusBar: some View {
         HStack(spacing: 12) {
             if viewModel.resultsIncomplete {
@@ -192,28 +204,17 @@ struct BrowseView: View {
             Text("已加载 \(count) 张").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
         }
         .padding(.horizontal, IHaven.Space.s5.rawValue)
+        .frame(maxWidth: .infinity)
         .frame(height: IHaven.Layout.statusBarHeight)
-        .glassEffect(.regular)
+        .background(IHaven.Color.bgChrome)
+        .overlay(alignment: .top) {
+            Rectangle().fill(IHaven.Color.border).frame(height: 1)
+        }
     }
 
     // MARK: - 筛选 chip 摘要 + 清除全部
     private var filterChips: some View {
-        HStack(spacing: 6) {
-            ForEach(browseActiveFilterChips(query: viewModel.query), id: \.self) { chip in
-                Text(chip)
-                    .font(IHaven.Font.system(.xs, IHaven.Font.weightEmphasize))
-                    .padding(.horizontal, 10).padding(.vertical, 4)
-                    .foregroundStyle(IHaven.Color.accent)
-                    .background(IHaven.Color.accent.opacity(0.12), in: Capsule())
-                    .overlay(Capsule().stroke(IHaven.Color.accent.opacity(0.34)))
-            }
-            if !browseActiveFilterChips(query: viewModel.query).isEmpty {
-                Button { clearFilters() } label: {
-                    Text("清除全部筛选").font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.focus)
-                }
-                .buttonStyle(.plain)
-            }
-        }
+        browseFilterChips(query: viewModel.query) { clearFilters() }
     }
 
     // MARK: - 行为

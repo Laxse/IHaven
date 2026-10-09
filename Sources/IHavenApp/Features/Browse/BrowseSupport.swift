@@ -40,7 +40,41 @@ func browseResolutionLabel(_ atleast: String) -> String {
     }
 }
 
+/// 工具栏筛选 chip 摘要 + 「清除全部筛选」（对齐线稿 summaryBar）。
+@MainActor
+func browseFilterChips(query: BrowseQuery, onClear: @escaping () -> Void) -> some View {
+    let chips = browseActiveFilterChips(query: query)
+    return HStack(spacing: 6) {
+        ForEach(chips, id: \.self) { chip in
+            Text(chip)
+                .font(IHaven.Font.system(.xs, IHaven.Font.weightEmphasize))
+                .padding(.horizontal, 10).padding(.vertical, 4)
+                .foregroundStyle(IHaven.Color.accent)
+                .background(IHaven.Color.accent.opacity(0.12), in: Capsule())
+                .overlay(Capsule().stroke(IHaven.Color.accent.opacity(0.34)))
+        }
+        if !chips.isEmpty {
+            Button(action: onClear) {
+                Text("清除全部筛选").font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.focus)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+}
+
+/// 未实现功能的占位态（动态壁纸 / 导入）。
+@MainActor
+func browsePlaceholder(item: NavItem) -> some View {
+    VStack(spacing: 12) {
+        Image(systemName: item.icon).font(.system(size: 40)).foregroundStyle(IHaven.Color.meta)
+        Text(item.label).font(IHaven.Font.system(.lg, IHaven.Font.weightEmphasize)).foregroundStyle(IHaven.Color.fg)
+        Text("此功能将在后续版本提供。").font(IHaven.Font.system(.md)).foregroundStyle(IHaven.Color.muted)
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+}
+
 /// 空态 / 错误态 / Toast（对齐线稿占位与反馈）。
+@MainActor
 func browseEmptyState(title: String, body: String, action: String, onAction: @escaping () -> Void) -> some View {
     VStack(spacing: 12) {
         Text(title).font(IHaven.Font.system(.xl, IHaven.Font.weightAnnounce)).foregroundStyle(IHaven.Color.fg)
@@ -51,6 +85,7 @@ func browseEmptyState(title: String, body: String, action: String, onAction: @es
     .frame(maxWidth: .infinity, maxHeight: .infinity)
 }
 
+@MainActor
 func browseErrorState(_ msg: String) -> some View {
     VStack(spacing: 12) {
         Image(systemName: "exclamationmark.triangle").font(.system(size: 40)).foregroundStyle(IHaven.Color.danger)
@@ -61,6 +96,7 @@ func browseErrorState(_ msg: String) -> some View {
     .frame(maxWidth: .infinity, maxHeight: .infinity)
 }
 
+@MainActor
 func browseToastView(_ msg: String) -> some View {
     Text(msg).font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.hudFg)
         .padding(.horizontal, 16).padding(.vertical, 8)
