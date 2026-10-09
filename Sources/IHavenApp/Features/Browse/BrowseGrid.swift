@@ -29,6 +29,7 @@ struct MasonryView<Item: Identifiable, Content: View>: View {
                             ForEach(buckets[c]) { item in
                                 content(item)
                                     .frame(width: colWidth, height: cardHeight(item, colWidth), alignment: .top)
+                                    .clipped()
                             }
                         }
                         .frame(width: colWidth, alignment: .top)
@@ -64,7 +65,7 @@ struct MasonryView<Item: Identifiable, Content: View>: View {
     }
 }
 
-/// 瀑布流图片卡：真实宽高比 + 圆角 10 + hover 90ms 浮层（scrim + 分辨率 mono + 收藏数 + 快捷动作）。
+/// 瀑布流图片卡：外部由 MasonryView 给定固定（列宽 × 计算高度），图片 fill 填满并裁切。
 /// Liquid Glass 仅用于侧栏/工具栏，卡片为内容层，禁止玻璃（DESIGN liquidGlass F1）。
 struct WallpaperCard: View {
     let wallpaper: Wallpaper
@@ -73,22 +74,18 @@ struct WallpaperCard: View {
     var onSetWallpaper: () -> Void
     @State private var hovered = false
 
-    private var aspect: CGFloat {
-        wallpaper.width > 0 && wallpaper.height > 0 ? CGFloat(wallpaper.width) / CGFloat(wallpaper.height) : 1.6
-    }
-
     var body: some View {
-        ZStack(alignment: .bottom) {
-            ThumbnailImage(url: wallpaper.thumbs.small)
-                .aspectRatio(aspect, contentMode: .fill)
-                .frame(maxWidth: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: IHaven.Radius.lg.rawValue))
-                .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.lg.rawValue).stroke(IHaven.Color.borderSoft, lineWidth: 1))
-            if hovered {
-                hoverOverlay.transition(.opacity)
+        GeometryReader { geo in
+            ZStack(alignment: .bottom) {
+                ThumbnailImage(url: wallpaper.thumbs.small)
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+                if hovered { hoverOverlay.transition(.opacity) }
             }
         }
-        .frame(maxWidth: .infinity)
+        .clipShape(RoundedRectangle(cornerRadius: IHaven.Radius.lg.rawValue, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.lg.rawValue, style: .continuous)
+            .stroke(IHaven.Color.borderSoft, lineWidth: 1))
         .contentShape(Rectangle())
         .onHover { hovered = $0 }
         .animation(IHaven.Motion.fast, value: hovered)
@@ -124,7 +121,6 @@ struct WallpaperCard: View {
             .padding(8)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
         }
-        .clipShape(RoundedRectangle(cornerRadius: IHaven.Radius.lg.rawValue))
     }
 }
 
@@ -136,35 +132,36 @@ struct FavoriteCard: View {
     @State private var hovered = false
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            ThumbnailImage(url: favorite.thumbnailURL)
-                .aspectRatio(1.6, contentMode: .fill)
-                .frame(maxWidth: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: IHaven.Radius.lg.rawValue))
-                .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.lg.rawValue).stroke(IHaven.Color.borderSoft, lineWidth: 1))
-            if hovered {
-                ZStack {
-                    LinearGradient(colors: [.black.opacity(0.45), .clear, .black.opacity(0.6)],
-                                  startPoint: .top, endPoint: .bottom)
-                    HStack(spacing: 6) {
-                        Button(action: onToggleFavorite) {
-                            Image(systemName: "heart.fill").foregroundStyle(IHaven.Color.accent)
+        GeometryReader { geo in
+            ZStack(alignment: .topTrailing) {
+                ThumbnailImage(url: favorite.thumbnailURL)
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+                if hovered {
+                    ZStack {
+                        LinearGradient(colors: [.black.opacity(0.45), .clear, .black.opacity(0.6)],
+                                      startPoint: .top, endPoint: .bottom)
+                        HStack(spacing: 6) {
+                            Button(action: onToggleFavorite) {
+                                Image(systemName: "heart.fill").foregroundStyle(IHaven.Color.accent)
+                            }
+                            .frame(width: IHaven.Layout.hitPointerMin, height: IHaven.Layout.hitPointerMin)
+                            .buttonStyle(.borderless)
+                            Button(action: onSetWallpaper) {
+                                Image(systemName: "desktopcomputer").foregroundStyle(.white)
+                            }
+                            .frame(width: IHaven.Layout.hitPointerMin, height: IHaven.Layout.hitPointerMin)
+                            .buttonStyle(.borderless)
                         }
-                        .frame(width: IHaven.Layout.hitPointerMin, height: IHaven.Layout.hitPointerMin)
-                        .buttonStyle(.borderless)
-                        Button(action: onSetWallpaper) {
-                            Image(systemName: "desktopcomputer").foregroundStyle(.white)
-                        }
-                        .frame(width: IHaven.Layout.hitPointerMin, height: IHaven.Layout.hitPointerMin)
-                        .buttonStyle(.borderless)
+                        .padding(8)
                     }
-                    .padding(8)
+                    .transition(.opacity)
                 }
-                .clipShape(RoundedRectangle(cornerRadius: IHaven.Radius.lg.rawValue))
-                .transition(.opacity)
             }
         }
-        .frame(maxWidth: .infinity)
+        .clipShape(RoundedRectangle(cornerRadius: IHaven.Radius.lg.rawValue, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.lg.rawValue, style: .continuous)
+            .stroke(IHaven.Color.borderSoft, lineWidth: 1))
         .contentShape(Rectangle())
         .onHover { hovered = $0 }
         .animation(IHaven.Motion.fast, value: hovered)
