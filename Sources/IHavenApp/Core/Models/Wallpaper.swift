@@ -55,7 +55,11 @@ public struct WallhavenPage: Codable, Sendable {
         public let lastPage: Int
         public let perPage: String
         public let total: Int
-        public let query: Query?
+        /// ⚠️ `query` 必须为 `String?` 而非嵌套对象：wallhaven 的 `meta.query` 返回的是
+        /// 搜索词字符串（如 `"nature"`），并非 `{q, purity}` 对象。用结构体会抛
+        /// `DecodingError.typeMismatch: Expected to decode Dictionary but found a string`。
+        /// 这是 2026-10-10 带 `q` 搜索时加载失败的真实根因（无 q 时该字段为 null，掩盖了问题）。
+        public let query: String?
         public let seed: String?
 
         private enum CodingKeys: String, CodingKey {
@@ -64,10 +68,5 @@ public struct WallhavenPage: Codable, Sendable {
             case perPage = "per_page"
             case total, query, seed
         }
-    }
-
-    public struct Query: Codable, Sendable {
-        public let q: String?
-        public let purity: String?
     }
 }
