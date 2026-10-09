@@ -1,6 +1,10 @@
 import Foundation
 
 /// 壁纸实体（纯值类型，无 UI / 网络依赖）。仅建模 wallhaven 响应的关键字段。
+///
+/// ⚠️ `source` 必须为 `String?` 而非 `URL?`：wallhaven 对“无来源”壁纸返回空串 `""`，
+/// 而 `URL` 的解码遇 `""` 会抛 `DecodingError.dataCorrupted: Invalid URL string`（空串非合法 URL，
+/// `decodeIfPresent` 只容忍 `null`/缺键，不容忍“存在但非法”）。这是 2026-10-09 加载失败的真实根因。
 public struct Wallpaper: Codable, Identifiable, Sendable, Hashable {
     public let id: String
     public let url: URL
@@ -16,7 +20,7 @@ public struct Wallpaper: Codable, Identifiable, Sendable, Hashable {
     public let fileType: String
     public let views: Int
     public let favorites: Int
-    public let source: URL?
+    public let source: String?
     public let colors: [String]
     public let path: URL
     public let thumbs: Thumbs
@@ -49,7 +53,7 @@ public struct WallhavenPage: Codable, Sendable {
     public struct Meta: Codable, Sendable {
         public let currentPage: Int
         public let lastPage: Int
-        public let perPage: Int
+        public let perPage: String
         public let total: Int
         public let query: Query?
         public let seed: String?
