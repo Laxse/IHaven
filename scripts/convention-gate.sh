@@ -8,6 +8,9 @@ set -uo pipefail
 # --root 可指向任意目录，使门禁可在隔离副本上做负向测试
 # （GATE-USAGE 三条使用纪律第 2 条：负向测试必须用副本，不碰真实文件）
 ROOT="${IHAVEN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
+# SwiftPM 包将分层源码收纳在 Sources/IHavenApp 下（而非仓库根的 Core/Features/...）。
+# 若其存在则以它为扫描根，否则回退到扁平布局 —— 避免「扫描 0 文件却报 PASS」的假绿。
+if [ -d "$ROOT/Sources/IHavenApp" ]; then ROOT="$ROOT/Sources/IHavenApp"; fi
 cd "$ROOT"
 
 SCAN_DIRS=(Core Features Infrastructure Platform App)
