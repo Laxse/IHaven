@@ -2,8 +2,7 @@ import NukeUI
 import SwiftUI
 
 /// 真 masonry 瀑布流：按各卡真实宽高比分配列，列宽 240–340 / 沟槽 8（design-tokens grid）。
-/// 宽度用 `GeometryReader` 直接测量可用宽度 —— 每个布局 pass 都反映真实值，避免 `@State` 缓存的
-/// 旧宽度在「先调大再调小」时出现 stale 导致列宽不回缩、内容溢出把侧栏挤偏。
+/// 宽度用 `onGeometryChange` 测量（作用在内容 VStack 上，不破坏 ScrollView 的滚动高度判定）；
 /// 每列用普通 VStack —— LazyVStack 在非滚动的 HStack 内会塌缩为 0 高。
 struct MasonryView<Item: Identifiable, Content: View>: View {
     let items: [Item]
@@ -11,38 +10,41 @@ struct MasonryView<Item: Identifiable, Content: View>: View {
     let minColumnWidth: CGFloat
     let aspectRatio: (Item) -> CGFloat
     @ViewBuilder let content: (Item) -> Content
+    @State private var width: CGFloat = 0
 
-    private func columnCount(_ width: CGFloat) -> Int {
+    private var columnCount: Int {
         guard width > 0 else { return 1 }
         let raw = Int((width + spacing) / (minColumnWidth + spacing))
         return max(1, min(6, raw))
     }
 
     var body: some View {
-        GeometryReader { geo in
-            let w = geo.size.width
-            VStack(alignment: .leading, spacing: spacing) {
-                if w > 0 {
-                    let cols = columnCount(w)
-                    let colWidth = (w - spacing * CGFloat(cols - 1)) / CGFloat(cols)
-                    let buckets = distribute(into: cols, colWidth: colWidth)
-                    HStack(alignment: .top, spacing: spacing) {
-                        ForEach(0..<cols, id: \.self) { c in
-                            VStack(spacing: spacing) {
-                                ForEach(buckets[c]) { item in
-                                    content(item)
-                                        .frame(width: colWidth, height: cardHeight(item, colWidth), alignment: .top)
-                                        .clipped()
-                                }
+        VStack(alignment: .leading, spacing: spacing) {
+            if width > 0 {
+                let cols = columnCount
+                let colWidth = (width - spacing * CGFloat(cols - 1)) / CGFloat(cols)
+                let buckets = distribute(into: cols, colWidth: colWidth)
+                HStack(alignment: .top, spacing: spacing) {
+                    ForEach(0..<cols, id: \.self) { c in
+                        VStack(spacing: spacing) {
+                            ForEach(buckets[c]) { item in
+                                content(item)
+                                    .frame(width: colWidth, height: cardHeight(item, colWidth), alignment: .top)
+                                    .clipped()
                             }
-                            .frame(width: colWidth, alignment: .top)
                         }
+                        .frame(width: colWidth, alignment: .top)
                     }
-                } else {
-                    Color.clear.frame(height: 1)
                 }
+            } else {
+                Color.clear.frame(height: 1)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.size.width
+        } action: { newWidth in
+            if abs(newWidth - width) > 0.5 { width = newWidth }
         }
     }
 

@@ -52,7 +52,8 @@ final class BrowseViewModel {
     }
 
     func nextPage() async {
-        guard case .loaded = loadState else { return }
+        guard case .loaded = loadState, !loadingMore else { return }
+        loadingMore = true
         query.page += 1
         do {
             let page = try await client.search(query)
@@ -61,7 +62,11 @@ final class BrowseViewModel {
             query.page -= 1
             loadState = .failed(error.localizedDescription)
         }
+        loadingMore = false
     }
+
+    /// 翻页在途标记：防止触底哨兵在加载中重复触发导致 page 跳号 / 重复请求。
+    private var loadingMore = false
 
     // MARK: - 收藏（F6）
 

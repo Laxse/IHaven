@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// 主窗口（瀑布流）。严格对齐已批准线稿 main-window.svg：
-/// 全宽 52px 工具栏（Liquid Glass G1）+ 208px 侧栏（Liquid Glass G2）+ 真 masonry 瀑布流 + 32px 状态栏。
-/// 保持 `BrowseView(viewModel:keyStore:)` 签名不变（IHavenApp 依赖）；筛选面板改为工具栏锚定 popover。
+/// 主窗口（瀑布流）：严格对齐线稿 main-window.svg，52px 工具栏 + 208px 侧栏 + 真 masonry + 32px 状态栏；保持 `BrowseView(viewModel:keyStore:)` 签名不变。
 struct BrowseView: View {
     @Bindable var viewModel: BrowseViewModel
     let keyStore: KeyStore
@@ -29,7 +27,7 @@ struct BrowseView: View {
         .sheet(isPresented: $showKeyConfig) {
             KeyConfigView(store: keyStore) { showKeyConfig = false; Task { await reloadForNav() } }
         }
-        .overlay(alignment: .bottom) { if let toast { toastView(toast) } }
+        .overlay(alignment: .bottom) { if let toast { browseToastView(toast) } }
     }
 
     // MARK: - 工具栏（52px，chrome 底 + 1px hairline）
@@ -45,7 +43,6 @@ struct BrowseView: View {
             toolbarIconButton("gearshape") { showKeyConfig = true }
                 .padding(.leading, 8)
         }
-        // 内边距按线稿：leading 8 / trailing 16（齿轮右边缘距窗口 16）。
         .padding(.leading, 8)
         .padding(.trailing, 16)
         .frame(maxWidth: .infinity)
@@ -70,7 +67,6 @@ struct BrowseView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        // 线稿要求筛选面板挂在工具栏下方（popover），而不是居中 sheet。
         .popover(isPresented: $showFilter, arrowEdge: .bottom) {
             FilterView(viewModel: viewModel) { showFilter = false; Task { await reloadForNav() } }
         }
@@ -126,8 +122,7 @@ struct BrowseView: View {
 
     private var sidebarDivider: some View {
         Rectangle().fill(IHaven.Color.borderSoft).frame(height: 1)
-            .padding(.horizontal, IHaven.Space.s5.rawValue)
-            .padding(.vertical, IHaven.Space.s2.rawValue)
+            .padding(.horizontal, IHaven.Space.s5.rawValue).padding(.vertical, IHaven.Space.s2.rawValue)
     }
 
     private func sidebarRow(_ item: NavItem) -> some View {
@@ -178,16 +173,32 @@ struct BrowseView: View {
                            action: "清除全部筛选") { clearFilters() }
             } else {
                 ScrollView {
-                    MasonryView(items: viewModel.wallpapers,
-                                spacing: IHaven.Layout.masonryGap,
-                                minColumnWidth: IHaven.Layout.masonryColMin,
-                                aspectRatio: { CGFloat($0.width) / CGFloat($0.height) }) { wp in
-                        WallpaperCard(wallpaper: wp,
-                                      isFavorite: viewModel.favoriteIDs.contains(wp.id),
-                                      onToggleFavorite: { viewModel.toggleFavorite(wp) },
-                                      onSetWallpaper: { setWallpaper(wp) })
+                    VStack(spacing: 0) {
+                        MasonryView(items: viewModel.wallpapers,
+                                    spacing: IHaven.Layout.masonryGap,
+                                    minColumnWidth: IHaven.Layout.masonryColMin,
+                                    aspectRatio: { CGFloat($0.width) / CGFloat($0.height) }) { wp in
+                            WallpaperCard(wallpaper: wp,
+                                          isFavorite: viewModel.favoriteIDs.contains(wp.id),
+                                          onToggleFavorite: { viewModel.toggleFavorite(wp) },
+                                          onSetWallpaper: { setWallpaper(wp) })
+                        }
+                        .padding(IHaven.Space.s6.rawValue)
+
+                        // 无限滚动：触底哨兵进入可视区即加载下一页，加载后内容变高、哨兵下移不重复触发（重入由 loadingMore 拦截）。
+                        HStack(spacing: 6) {
+                            Spacer(minLength: 0)
+                            if viewModel.query.page > 1 {
+                                ProgressView().controlSize(.small)
+                                Text("加载更多…")
+                                    .font(IHaven.Font.system(.xs))
+                                    .foregroundStyle(IHaven.Color.meta)
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        .frame(height: 40)
+                        .onAppear { Task { await viewModel.nextPage() } }
                     }
-                    .padding(IHaven.Space.s6.rawValue)
                 }
             }
         case .failed(let msg):
@@ -220,12 +231,10 @@ struct BrowseView: View {
     private var statusBar: some View {
         HStack(spacing: 12) {
             if viewModel.resultsIncomplete {
-                Label("结果不完整（未配置 Key）", systemImage: "exclamationmark.triangle")
-                    .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.warn)
+                Label("结果不完整（未配置 Key）", systemImage: "exclamationmark.triangle").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.warn)
             }
             Spacer(minLength: 0)
-            let count = nav == .favorites ? viewModel.favorites.count : viewModel.wallpapers.count
-            Text("已加载 \(count) 张").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
+            Text("已加载 \(nav == .favorites ? viewModel.favorites.count : viewModel.wallpapers.count) 张").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
         }
         .padding(.horizontal, IHaven.Space.s6.rawValue)
         .frame(maxWidth: .infinity)
@@ -264,10 +273,7 @@ struct BrowseView: View {
         }
     }
 
-    private func clearFilters() {
-        viewModel.clearFilters()
-        Task { await reloadForNav() }
-    }
+    private func clearFilters() { viewModel.clearFilters(); Task { await reloadForNav() } }
 
     private func reloadForNav() async {
         switch nav {
@@ -277,13 +283,8 @@ struct BrowseView: View {
         }
     }
 
-    private func setWallpaper(_ wp: Wallpaper) {
-        Task { showToast((await viewModel.setAsWallpaper(wp)) ?? "已设为壁纸") }
-    }
-
-    private func setWallpaperFromFavorite(_ fav: Favorite) {
-        Task { showToast((await viewModel.setWallpaperFromFavorite(fav)) ?? "已设为壁纸") }
-    }
+    private func setWallpaper(_ wp: Wallpaper) { Task { showToast((await viewModel.setAsWallpaper(wp)) ?? "已设为壁纸") } }
+    private func setWallpaperFromFavorite(_ fav: Favorite) { Task { showToast((await viewModel.setWallpaperFromFavorite(fav)) ?? "已设为壁纸") } }
 
     private func showToast(_ msg: String) {
         toast = msg
@@ -291,9 +292,5 @@ struct BrowseView: View {
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             if toast == msg { toast = nil }
         }
-    }
-
-    private func toastView(_ msg: String) -> some View {
-        browseToastView(msg)
     }
 }
