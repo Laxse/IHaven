@@ -21,6 +21,7 @@ struct IHavenApp: App {
     /// + 静态壁纸引擎（WallpaperEngine）+ 下载器（ImageDownloading）+ WallhavenClient（Network）。
     /// 全部具体实现落在 Infrastructure / Platform / App，Feature 仅见 Core 协议（ARCH §4 单向依赖）。
     private func bootstrap() async {
+        MockWallhaven.configureIfNeeded()   // 开发期 IHAVEN_MOCK=1 时接管请求，无需 VPN
         let client = WallhavenClient(keyProvider: keyStore)
         let database: WallpaperDatabase = (try? GRDBWallpaperDatabase()) ?? InMemoryWallpaperDatabase()
         let engine = SystemWallpaperEngine()

@@ -96,7 +96,13 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
 
 /// 端点与常量（ARCH §6.4.0 第四条：绝不使用 /settings 验证 Key 或判 NSFW）。
 enum WallhavenEndpoint {
-    static let base = URL(string: "https://wallhaven.cc/api/v1")!
+    private static let realBase = URL(string: "https://wallhaven.cc/api/v1")!
     /// 常规搜索。**绝不为** Key 验证 / NSFW 探测 使用 /settings（Trap 15/17）。
-    static let search = base.appendingPathComponent("search")
+    /// 默认指向真实服务（需 VPN）；`IHAVEN_MOCK=1` 时指向本地 mock 主机（见 MockWallhaven）。
+    static var search: URL {
+        let base = MockWallhaven.isEnabled
+            ? URL(string: "https://\(MockWallhaven.host)/api/v1")!
+            : realBase
+        return base.appendingPathComponent("search")
+    }
 }
