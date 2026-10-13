@@ -86,7 +86,10 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
         // ratios / resolutions：封闭枚举，unspecified 不下发（Trap 13）
         if q.resolution != .unspecified { items.append(.init(name: "resolutions", value: q.resolution.rawValue)) }
         if q.ratio != .unspecified { items.append(.init(name: "ratios", value: q.ratio.rawValue)) }
-        if !q.color.isEmpty { items.append(.init(name: "color", value: q.color)) }
+        // 参数名是复数 `colors`（6 位 hex，不带 #）。实测：下发单数 `color` 会被 wallhaven 静默忽略
+        // —— total 952937（= 未筛选）、24 条里只有 4 条命中目标色；改成 `colors` 后
+        // total 60509、24/24 命中，与无 Key 请求同样生效。
+        if !q.color.isEmpty { items.append(.init(name: "colors", value: q.color)) }
         items.append(.init(name: "page", value: String(q.page)))
         if !q.seed.isEmpty { items.append(.init(name: "seed", value: q.seed)) }
         comps.queryItems = items

@@ -136,7 +136,7 @@ struct FilterView: View {
             ForEach(FilterPalette.cells) { cell in
                 let selected = viewModel.query.color == cell.colorValue
                 ColorSwatchCell(cell: cell, isSelected: selected) {
-                    viewModel.query.color = cell.colorValue
+                    viewModel.query.color = selected ? "" : cell.colorValue   // 再点已选中项即取消（与比例组一致）
                 }
             }
         }

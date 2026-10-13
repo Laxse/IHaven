@@ -37,7 +37,7 @@ struct BrowseView: View {
             toolbarIconButton("sidebar.left") { withAnimation { showSidebar.toggle() } }.padding(.leading, 12)
             searchField.padding(.leading, 16)   // 线稿基准：搜索框左缘 x=56
             Spacer(minLength: 0)
-            filterChips
+            browseFilterChips(query: viewModel.query) { clearFilters() }
             filterButton.padding(.leading, 20)
             toolbarIconButton("star") { select(.favorites) }
                 .padding(.leading, 28)
@@ -200,8 +200,9 @@ struct BrowseView: View {
                         .frame(height: 40)
                     }
                 }
-                // 触底加载：distance = 内容高 - (已滚 + 视口高)，< 240pt 即预取下一页；重入由 loadingMore 拦截。
-                .onScrollGeometryChange(for: CGFloat.self) { $0.contentSize.height - ($0.contentOffset.y + $0.containerSize.height) } action: { _, distance in
+                // 触底加载：< 240pt 预取下一页。[!] 内容未超出视口时不算触底：首屏未布局时 contentSize=视口高，
+                // distance≈0 会被误判成已触底而多拉一页（实测启动连发 page=1+page=2，即「初始加载 48 张」的根因）。
+                .onScrollGeometryChange(for: CGFloat.self) { $0.contentSize.height > $0.containerSize.height ? $0.contentSize.height - ($0.contentOffset.y + $0.containerSize.height) : .infinity } action: { _, distance in
                     if distance < 240 { Task { await viewModel.nextPage() } }
                 }
             }
@@ -247,11 +248,6 @@ struct BrowseView: View {
         .overlay(alignment: .top) {
             Rectangle().fill(IHaven.Color.border).frame(height: 1)
         }
-    }
-
-    // MARK: - 筛选 chip 摘要 + 清除全部
-    private var filterChips: some View {
-        browseFilterChips(query: viewModel.query) { clearFilters() }
     }
 
     // MARK: - 行为
