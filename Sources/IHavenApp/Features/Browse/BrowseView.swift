@@ -33,10 +33,10 @@ struct BrowseView: View {
     // MARK: - 工具栏（52px，chrome 底 + 1px hairline）
     private var toolbar: some View {
         HStack(spacing: 0) {
-            Spacer().frame(width: 64)   // 交通灯让位：hiddenTitleBar 下系统浮于工具栏左上
-            searchField                  // 搜索置顶左对齐（用户要求）；此前 72px 让位+开关+20px 留白把搜索顶太远
-            toolbarIconButton("sidebar.left") { withAnimation { showSidebar.toggle() } }
-                .padding(.leading, 12)
+            // 交通灯在系统保留的标题栏安全区内（本行之上，实测 y10~22pt），不占水平空间：左侧只留 12pt，
+            // 使开关按钮 28pt 槽的中心 x=26 与下方侧栏图标列中心对齐（线稿 sidebarRow 图标中心同为 26）。
+            toolbarIconButton("sidebar.left") { withAnimation { showSidebar.toggle() } }.padding(.leading, 12)
+            searchField.padding(.leading, 16)   // 线稿基准：搜索框左缘 x=56
             Spacer(minLength: 0)
             filterChips
             filterButton.padding(.leading, 20)
@@ -139,7 +139,8 @@ struct BrowseView: View {
                     .foregroundStyle(selected ? IHaven.Color.fg : IHaven.Color.fg2)
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 12)
+            // 行内 8pt：图标槽落在 16~36（中心 26，与工具栏开关图标同列）、标签左缘 46（线稿基准）
+            .padding(.horizontal, IHaven.Space.s4.rawValue)
             .frame(height: IHaven.Layout.rowHeight)
             .contentShape(Rectangle())
         }
