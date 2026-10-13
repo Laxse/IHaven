@@ -1,7 +1,7 @@
 import Foundation
 
 /// 搜索查询（用户在筛选面板配置的所有维度）。
-public struct BrowseQuery: Sendable {
+public struct BrowseQuery: Sendable, Equatable {
     public var q: String = ""
     public var purity = PurityFilter.browseDefault
     public var categories: CategoryFilter = .default
@@ -16,6 +16,13 @@ public struct BrowseQuery: Sendable {
     public var seed: String = ""
 
     public init() {}
+
+    /// 筛选标识：除 `page` / `seed` 外的全部维度。用于区分「筛选变更」（要重查并回到第 1 页）
+    /// 与「翻页」（`page` 递增，不得触发重查）。
+    public var filterKey: String {
+        "\(q)|\(purity.rawValue)|\(categories.rawValue)|\(sorting.rawValue)|\(order.rawValue)"
+            + "|\(topRange.rawValue)|\(atleast)|\(resolution.rawValue)|\(ratio.rawValue)|\(color)"
+    }
 }
 
 /// 纯度筛选（三位 purity 串：bit0=sfw, bit1=sketchy, bit2=nsfw）。

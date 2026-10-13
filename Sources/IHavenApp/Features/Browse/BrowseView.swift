@@ -33,8 +33,7 @@ struct BrowseView: View {
     // MARK: - 工具栏（52px，chrome 底 + 1px hairline）
     private var toolbar: some View {
         HStack(spacing: 0) {
-            // 交通灯在系统保留的标题栏安全区内（本行之上，实测 y10~22pt），不占水平空间：左侧只留 12pt，
-            // 使开关按钮 28pt 槽的中心 x=26 与下方侧栏图标列中心对齐（线稿 sidebarRow 图标中心同为 26）。
+            // 交通灯在系统保留的标题栏安全区内（实测 y10~22pt）：左侧 12pt 使开关按钮槽中心 x=26 对齐侧栏图标列。
             toolbarIconButton("sidebar.left") { withAnimation { showSidebar.toggle() } }.padding(.leading, 12)
             searchField.padding(.leading, 16)   // 线稿基准：搜索框左缘 x=56
             Spacer(minLength: 0)
@@ -68,8 +67,9 @@ struct BrowseView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        // 关闭回调只收起 popover：筛选即时生效（FilterView 内 150ms 防抖已回到第 1 页重查），再 reload 会重复请求。
         .popover(isPresented: $showFilter, arrowEdge: .bottom) {
-            FilterView(viewModel: viewModel) { showFilter = false; Task { await reloadForNav() } }
+            FilterView(viewModel: viewModel) { showFilter = false }
         }
     }
 

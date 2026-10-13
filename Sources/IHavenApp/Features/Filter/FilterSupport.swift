@@ -1,5 +1,43 @@
 import SwiftUI
 
+// MARK: - 等宽分段控件（线稿规格：容器 h24 / r6，选中项内缩 1pt 成 70×22 药丸）
+
+/// 自绘分段控件（filter-panel.svg §1 / §3 / §6）。
+/// [!] 不用原生 `.pickerStyle(.segmented)`：其最小宽度由标签字宽决定，分辨率 6 档 ≈384pt 撑破 288pt 内容宽，
+///     会把整个面板内容撑到 384 并被 popover 居中裁掉左右各 32pt（组标题整条消失、每行左端少一项）。
+/// 这里按线稿定格：项等宽（分类/排序 72pt、分辨率 48pt，均由 288pt 均分得到），选中项药丸、未选纯文字。
+struct FilterSegmented<Value: Hashable>: View {
+    let options: [(value: Value, label: String)]
+    let selection: Value
+    var onSelect: (Value) -> Void
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(options.indices, id: \.self) { index in
+                let option = options[index]
+                let selected = option.value == selection
+                Button { onSelect(option.value) } label: {
+                    Text(option.label)
+                        .font(.system(size: 11, weight: selected ? .semibold : .regular))
+                        .foregroundStyle(selected ? IHaven.Color.fg : IHaven.Color.fg2)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 22)
+                        .background(RoundedRectangle(cornerRadius: 5, style: .continuous)
+                            .fill(selected ? IHaven.Color.surface : .clear))
+                        .overlay(RoundedRectangle(cornerRadius: 5, style: .continuous)
+                            .stroke(selected ? IHaven.Color.border : .clear, lineWidth: 1))
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(1)
+        .frame(height: 24)
+        .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(IHaven.Color.surfaceSunken))
+    }
+}
+
 // MARK: - 纯度 chip
 
 /// 纯度三档纯文字胶囊（filter-panel.svg §2）。
@@ -78,7 +116,8 @@ struct RatioTile: View {
 
 // MARK: - 精确分辨率行
 
-/// 精确分辨率下拉（filter-panel.svg §3 第 2 行）：整行 h28 / r6 / surface 底 + border 描边。
+/// 精确分辨率下拉（filter-panel.svg §3 第 2 行）：288pt 整行 h28 / r6 / surface 底 + border 描边，
+/// 左侧标签 + 右侧当前值 + chevron（原生 menu 指示器会多出一个左箭头，故隐藏）。
 struct ExactResolutionRow: View {
     @Binding var selection: Resolution
 
@@ -95,11 +134,15 @@ struct ExactResolutionRow: View {
                 Image(systemName: "chevron.down").font(.system(size: 9)).foregroundStyle(IHaven.Color.meta)
             }
             .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity)          // 撑满 288pt：Menu 默认按标签内容收窄，Spacer 会塌陷
             .frame(height: 28)
             .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(IHaven.Color.surface))
             .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).stroke(IHaven.Color.border, lineWidth: 1))
+            .contentShape(Rectangle())
         }
-        .menuStyle(.borderlessButton)
+        .menuStyle(.button)
+        .buttonStyle(.plain)                      // plain 让标签占满提议宽度（borderlessButton 会收窄成内容宽）
+        .menuIndicator(.hidden)                   // 原生指示器会额外多一个左箭头
     }
 
     /// 折叠态/菜单项统一文案：unspecified 显示「不限」，其余把 `1920x1080` 排成「1920 × 1080」。

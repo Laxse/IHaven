@@ -36,6 +36,9 @@ final class BrowseViewModel {
         self.database = database
         self.wallpaperEngine = wallpaperEngine
         self.downloader = downloader
+        // 以当前（默认）筛选键打底：启动时若 page/seed 之类的字段被改一次，onChange 也会触发
+        // scheduleFilterReload，此时 filterKey 并未变化，靠这个初值直接拦掉，避免多打一次搜索请求。
+        lastFilterKey = query.filterKey
     }
 
     func reload() async {
@@ -67,6 +70,25 @@ final class BrowseViewModel {
 
     /// 翻页在途标记：防止触底哨兵在加载中重复触发导致 page 跳号 / 重复请求。
     private var loadingMore = false
+
+    // MARK: - 筛选变更（DESIGN §4.3：150ms debounce 再请求）
+
+    private var filterReloadTask: Task<Void, Never>?
+    private var lastFilterKey = ""
+
+    /// 筛选面板任一维度变更 → 150ms 防抖后回到第 1 页重查。
+    /// 只有 `BrowseQuery.filterKey`（不含 page/seed）变化才算筛选变更，翻页不会触发重查。
+    func scheduleFilterReload() {
+        guard query.filterKey != lastFilterKey else { return }
+        lastFilterKey = query.filterKey
+        filterReloadTask?.cancel()
+        filterReloadTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 150_000_000)
+            guard !Task.isCancelled, let self else { return }
+            self.query.page = 1
+            await self.reload()
+        }
+    }
 
     // MARK: - 收藏（F6）
 
