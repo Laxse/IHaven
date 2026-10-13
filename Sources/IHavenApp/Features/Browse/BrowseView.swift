@@ -132,8 +132,8 @@ struct BrowseView: View {
                 Image(systemName: item.icon)
                     .font(.system(size: IHaven.Icon.sm))
                     .foregroundStyle(selected ? IHaven.Color.fg : IHaven.Color.fg2)
-                    // 固定图标槽：SF Symbol 宽窄不一会顶偏标签，左对齐成列使所有标签对齐到同一 x（线稿 x=46 意图）
-                    .frame(width: 20, alignment: .leading)
+                    // 固定图标槽：SF Symbol 宽窄不一，槽内居中使图标成列、标签对齐到同一 x
+                    .frame(width: 20, alignment: .center)
                 Text(item.label)
                     .font(IHaven.Font.system(.md))
                     .foregroundStyle(selected ? IHaven.Color.fg : IHaven.Color.fg2)
