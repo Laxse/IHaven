@@ -1,13 +1,13 @@
 import SwiftUI
 
-/// 侧栏导航项（对齐线稿 SF Symbols 对照）。
+/// 侧栏导航项（对齐线稿 SF Symbols 对照）。密钥不再是独立项，已并入设置面板页签。
 enum NavItem: Hashable {
-    case discover, landscape, anime, people, favorites, wallpaperSet, live, `import`, settings, key
+    case discover, landscape, anime, people, favorites, wallpaperSet, live, `import`, settings
     var label: String {
         switch self {
         case .discover: "发现"; case .landscape: "风景"; case .anime: "动漫"; case .people: "人物"
         case .favorites: "收藏"; case .wallpaperSet: "已设置"; case .live: "动态壁纸"
-        case .import: "导入…"; case .settings: "设置"; case .key: "密钥"
+        case .import: "导入…"; case .settings: "设置"
         }
     }
     var icon: String {
@@ -15,7 +15,7 @@ enum NavItem: Hashable {
         case .discover: "square.grid.2x2"; case .landscape: "mountain.2.fill"; case .anime: "sparkles"
         case .people: "person.fill"; case .favorites: "star"; case .wallpaperSet: "display.2"
         case .live: "play.circle"; case .import: "square.and.arrow.down"
-        case .settings: "gearshape"; case .key: "key"
+        case .settings: "gearshape"
         }
     }
 }

@@ -6,7 +6,7 @@ struct BrowseView: View {
     let keyStore: KeyStore
 
     @State private var showFilter = false
-    @State private var showKeyConfig = false
+    @State private var showSettings = false
     @State private var showSidebar = true
     @State private var nav: NavItem = .discover
     @State private var toast: String?
@@ -25,8 +25,8 @@ struct BrowseView: View {
         }
         .frame(minWidth: 880, minHeight: 600)
         .task { await reloadForNav() }
-        .sheet(isPresented: $showKeyConfig) {
-            KeyConfigView(store: keyStore) { showKeyConfig = false; Task { await reloadForNav() } }
+        .sheet(isPresented: $showSettings) {
+            SettingsView(store: keyStore, onSaved: { Task { await reloadForNav() } }, onClose: { showSettings = false })
         }
         .overlay(alignment: .bottom) { if let toast { browseToastView(toast) } }
     }
@@ -41,7 +41,7 @@ struct BrowseView: View {
             filterButton.padding(.leading, 20)
             toolbarIconButton("star") { select(.favorites) }
                 .padding(.leading, 28)
-            toolbarIconButton("gearshape") { showKeyConfig = true }
+            toolbarIconButton("gearshape") { showSettings = true }
                 .padding(.leading, 8)
         }
         .padding(.leading, 8)
@@ -109,7 +109,7 @@ struct BrowseView: View {
                 sidebarDivider
                 sidebarRow(.live); sidebarRow(.import)
                 sidebarDivider
-                sidebarRow(.settings); sidebarRow(.key)
+                sidebarRow(.settings)
             }
             .padding(.vertical, 8)
         }
@@ -255,7 +255,7 @@ struct BrowseView: View {
     // MARK: - 行为
     private func select(_ item: NavItem) {
         switch item {
-        case .settings, .key: showKeyConfig = true; return
+        case .settings: showSettings = true; return
         case .favorites: nav = .favorites; viewModel.loadFavorites(); return
         case .live, .import: nav = item; return
         default: break

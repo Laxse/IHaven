@@ -4,18 +4,27 @@ import SwiftUI
 struct IHavenApp: App {
     @State private var keyStore = FileKeyProvider()
     @State private var browseViewModel: BrowseViewModel?
+    @AppStorage("ihaven.appearance") private var appearance: String = "system"
 
     var body: some Scene {
         WindowGroup("IHaven") {
-            if let vm = browseViewModel {
-                BrowseView(viewModel: vm, keyStore: keyStore)
-            } else {
-                ProgressView("初始化…").task { await bootstrap() }
+            Group {
+                if let vm = browseViewModel {
+                    BrowseView(viewModel: vm, keyStore: keyStore)
+                } else {
+                    ProgressView("初始化…").task { await bootstrap() }
+                }
             }
+            .preferredColorScheme(appearanceScheme)
         }
         // 线稿画布 1280×800：默认窗口若只有 minWidth 880，瀑布流会退化到 2 列，观感与线稿不符。
         .defaultSize(width: 1280, height: 800)
         .windowStyle(.hiddenTitleBar)   // 隐藏系统标题栏，改由 BrowseTitleBar 自绘 38pt 对齐线稿
+    }
+
+    /// "system" → nil（跟随系统）；否则覆盖整窗外观（设置 · 外观页签）。
+    private var appearanceScheme: ColorScheme? {
+        switch appearance { case "light": .light; case "dark": .dark; default: nil }
     }
 
     /// 装配依赖：文件 KeyStore（KeyProvider/KeyStore，ADR-010）+ GRDB（WallpaperDatabase，失败降级 InMemory）
