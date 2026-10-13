@@ -14,12 +14,14 @@ struct BrowseView: View {
     @State private var toast: String?
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 0) {
             toolbar
             HStack(spacing: 0) {
                 if showSidebar { sidebar }
                 mainArea
             }
+            // HStack 占满宽度并左对齐，避免主区内容超出窗口宽时整体居中溢出把 sidebar 挤到左缘外被裁剪。
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             statusBar
         }
         .frame(minWidth: 880, minHeight: 600)
@@ -114,8 +116,8 @@ struct BrowseView: View {
             }
             .padding(.vertical, 8)
         }
+        .frame(width: IHaven.Layout.sidebarWidth)  // 先固定宽度再填充高度，保证 ScrollView 恰好 208px、不溢出挤偏主区
         .frame(maxHeight: .infinity)
-        .frame(width: IHaven.Layout.sidebarWidth)
         .background(IHaven.Color.bgChrome)
         .overlay(alignment: .trailing) {
             Rectangle().fill(IHaven.Color.border).frame(width: 1)
