@@ -186,20 +186,21 @@ struct BrowseView: View {
                         }
                         .padding(IHaven.Space.s6.rawValue)
 
-                        // 无限滚动：触底哨兵进入可视区即加载下一页，加载后内容变高、哨兵下移不重复触发（重入由 loadingMore 拦截）。
+                        // 底部加载指示（纯展示）；真正的触底加载由 ScrollView 的 onScrollGeometryChange 负责。
                         HStack(spacing: 6) {
                             Spacer(minLength: 0)
                             if viewModel.query.page > 1 {
                                 ProgressView().controlSize(.small)
-                                Text("加载更多…")
-                                    .font(IHaven.Font.system(.xs))
-                                    .foregroundStyle(IHaven.Color.meta)
+                                Text("加载更多…").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
                             }
                             Spacer(minLength: 0)
                         }
                         .frame(height: 40)
-                        .onAppear { Task { await viewModel.nextPage() } }
                     }
+                }
+                // 触底加载：distance = 内容高 - (已滚 + 视口高)，< 240pt 即预取下一页；重入由 loadingMore 拦截。
+                .onScrollGeometryChange(for: CGFloat.self) { $0.contentSize.height - ($0.contentOffset.y + $0.containerSize.height) } action: { _, distance in
+                    if distance < 240 { Task { await viewModel.nextPage() } }
                 }
             }
         case .failed(let msg):
