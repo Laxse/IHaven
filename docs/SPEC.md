@@ -462,11 +462,6 @@ func verifyKey(_ key: String) async throws -> KeyVerdict
 
 ### 9.2 NSFW 权限探测
 
-```swift
-/// 判定 Key 是否具备 NSFW 权限。**仅在主请求 total=0 且含 NSFW 条件时调用。**
-func probeNSFWPermission(key: String) async throws -> NSFWVerdict
-```
-
 **请求必须是固定宽查询**：`GET /search?purity=001`，**不带任何其他筛选条件**。
 
 判定：

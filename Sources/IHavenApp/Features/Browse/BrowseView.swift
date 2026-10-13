@@ -13,6 +13,7 @@ struct BrowseView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            BrowseTitleBar()
             toolbar
             HStack(spacing: 0) {
                 if showSidebar { sidebar }

@@ -15,6 +15,7 @@ struct IHavenApp: App {
         }
         // 线稿画布 1280×800：默认窗口若只有 minWidth 880，瀑布流会退化到 2 列，观感与线稿不符。
         .defaultSize(width: 1280, height: 800)
+        .windowStyle(.hiddenTitleBar)   // 隐藏系统标题栏，改由 BrowseTitleBar 自绘 38pt 对齐线稿
     }
 
     /// 装配依赖：文件 KeyStore（KeyProvider/KeyStore，ADR-010）+ GRDB（WallpaperDatabase，失败降级 InMemory）
