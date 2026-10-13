@@ -156,6 +156,8 @@ struct BrowseView: View {
         VStack(spacing: 0) {
             switch nav {
             case .favorites: favoritesContent
+            case .wallpaperSet:
+                AppliedWallpapersView(viewModel: viewModel, onDiscover: { select(.discover) }, onMessage: { showToast($0) })
             case .live, .import: browsePlaceholder(item: nav)
             default: searchContent
             }
@@ -255,6 +257,8 @@ struct BrowseView: View {
         switch item {
         case .settings: showSettings = true; return
         case .favorites: nav = .favorites; viewModel.loadFavorites(); return
+        // 「已设置」读本地记录，不发网络请求；落入 default 会走 reload 白打一次搜索。
+        case .wallpaperSet: nav = item; viewModel.loadApplied(); return
         case .live, .import: nav = item; return
         default: break
         }

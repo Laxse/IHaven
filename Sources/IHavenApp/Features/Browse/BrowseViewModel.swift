@@ -19,6 +19,8 @@ final class BrowseViewModel {
     var favoriteIDs: Set<String> = []
     /// 收藏列表（侧栏「收藏」视图数据源，来自数据库）。
     var favorites: [Favorite] = []
+    /// 已设壁纸记录（侧栏「已设置」视图数据源，来自数据库，按设置时间倒序）。
+    var applied: [AppliedWallpaper] = []
 
     private let client: WallhavenAPIProtocol
     private let keyProvider: KeyProvider
@@ -117,6 +119,43 @@ final class BrowseViewModel {
         loadState = .loaded
     }
 
+    /// 载入已设壁纸记录（侧栏「已设置」视图用）。
+    func loadApplied() {
+        applied = (try? database.applied()) ?? []
+        loadState = .loaded
+    }
+
+    /// 把一条历史记录重新设为壁纸：本地文件仍在就直接用（省一次下载），被清理了才回退重新下载原图。
+    func reapply(_ item: AppliedWallpaper) async -> String? {
+        let file: URL
+        if FileManager.default.fileExists(atPath: item.localPath) {
+            file = URL(fileURLWithPath: item.localPath)
+        } else {
+            do { file = try await downloader.download(item.originalURL) }
+            catch { return error.localizedDescription }
+        }
+        do {
+            try wallpaperEngine.setWallpaper(fileURL: file, for: nil, mode: .fill, fillColor: nil)
+            try? database.addApplied(AppliedWallpaper(id: item.id,
+                                                       thumbnailURL: item.thumbnailURL,
+                                                       originalURL: item.originalURL,
+                                                       localPath: file.path,
+                                                       width: item.width,
+                                                       height: item.height,
+                                                       appliedAt: Date()))
+            loadApplied()
+            return nil
+        } catch {
+            return error.localizedDescription
+        }
+    }
+
+    /// 从「已设置」移除一条记录（只删记录，不动桌面当前壁纸、不动收藏）。
+    func removeApplied(id: String) {
+        try? database.removeApplied(id: id)
+        loadApplied()
+    }
+
     /// 从收藏列表移除（FavoriteCard 上的星标动作）。
     func removeFavorite(id: String) {
         try? database.removeFavorite(id: id)
@@ -143,10 +182,24 @@ final class BrowseViewModel {
         do {
             let file = try await downloader.download(wp.path)
             try wallpaperEngine.setWallpaper(fileURL: file, for: nil, mode: .fill, fillColor: nil)
+            recordApplied(id: wp.id, thumbnailURL: wp.thumbs.small, originalURL: wp.path,
+                          localPath: file.path, width: wp.width, height: wp.height)
             return nil
         } catch {
             return error.localizedDescription
         }
+    }
+
+    /// 设壁纸成功后才落记录：没真的设上就不该出现在「已设置」里。
+    private func recordApplied(id: String, thumbnailURL: URL?, originalURL: URL,
+                               localPath: String, width: Int, height: Int) {
+        try? database.addApplied(AppliedWallpaper(id: id,
+                                                  thumbnailURL: thumbnailURL,
+                                                  originalURL: originalURL,
+                                                  localPath: localPath,
+                                                  width: width,
+                                                  height: height,
+                                                  appliedAt: Date()))
     }
 
     /// 从收藏项直接设置壁纸（收藏视图用；下载 originalURL 后调用引擎）。
@@ -154,6 +207,9 @@ final class BrowseViewModel {
         do {
             let file = try await downloader.download(fav.originalURL)
             try wallpaperEngine.setWallpaper(fileURL: file, for: nil, mode: .fill, fillColor: nil)
+            // Favorite 不持有尺寸（见 FavoriteCard 注释），尺寸记 0 → 卡片不显示分辨率。
+            recordApplied(id: fav.id, thumbnailURL: fav.thumbnailURL, originalURL: fav.originalURL,
+                          localPath: file.path, width: 0, height: 0)
             return nil
         } catch {
             return error.localizedDescription

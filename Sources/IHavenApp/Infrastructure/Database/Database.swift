@@ -26,6 +26,17 @@ final class GRDBWallpaperDatabase: WallpaperDatabase {
                 t.column("addedAt", .double).notNull()
             }
         }
+        migrator.registerMigration("v2") { db in
+            try db.create(table: "applied") { t in
+                t.column("id", .text).primaryKey()
+                t.column("thumbnailURL", .text)
+                t.column("originalURL", .text).notNull()
+                t.column("localPath", .text).notNull()
+                t.column("width", .integer).notNull()
+                t.column("height", .integer).notNull()
+                t.column("appliedAt", .double).notNull()
+            }
+        }
         try migrator.migrate(pool)
         self.db = pool
     }
@@ -56,6 +67,50 @@ final class GRDBWallpaperDatabase: WallpaperDatabase {
         (try? db.read { db in
             try Row.fetchOne(db, sql: "SELECT id FROM favorite WHERE id = ?", arguments: [id]) != nil
         }) ?? false
+    }
+
+    func addApplied(_ item: AppliedWallpaper) throws {
+        try db.write { db in
+            try db.execute(
+                sql: """
+                INSERT OR REPLACE INTO applied
+                    (id, thumbnailURL, originalURL, localPath, width, height, appliedAt)
+                VALUES (?,?,?,?,?,?,?)
+                """,
+                arguments: [
+                    item.id,
+                    item.thumbnailURL?.absoluteString,
+                    item.originalURL.absoluteString,
+                    item.localPath,
+                    item.width,
+                    item.height,
+                    item.appliedAt.timeIntervalSince1970,
+                ]
+            )
+        }
+    }
+
+    func removeApplied(id: String) throws {
+        try db.write { db in
+            try db.execute(sql: "DELETE FROM applied WHERE id = ?", arguments: [id])
+        }
+    }
+
+    func applied() throws -> [AppliedWallpaper] {
+        try db.read { db in
+            try Row.fetchAll(db, sql: "SELECT * FROM applied ORDER BY appliedAt DESC")
+                .map { row -> AppliedWallpaper in
+                    AppliedWallpaper(
+                        id: (row["id"] as String?) ?? "",
+                        thumbnailURL: (row["thumbnailURL"] as String?).flatMap { URL(string: $0) },
+                        originalURL: URL(string: (row["originalURL"] as String?) ?? "") ?? URL(fileURLWithPath: "/"),
+                        localPath: (row["localPath"] as String?) ?? "",
+                        width: (row["width"] as Int?) ?? 0,
+                        height: (row["height"] as Int?) ?? 0,
+                        appliedAt: Date(timeIntervalSince1970: (row["appliedAt"] as Double?) ?? 0)
+                    )
+                }
+        }
     }
 
     func favorites() throws -> [Favorite] {
