@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>                <string>IHaven</string>
+    <key>CFBundleDisplayName</key>         <string>IHaven</string>
+    <key>CFBundleIdentifier</key>          <string>com.ihaven.app</string>
+    <key>CFBundleExecutable</key>          <string>IHavenApp</string>
+    <key>CFBundleIconFile</key>            <string>AppIcon</string>
+    <key>CFBundlePackageType</key>         <string>APPL</string>
+    <key>CFBundleVersion</key>             <string>1</string>
+    <key>CFBundleShortVersionString</key>  <string>0.1.0</string>
+    <key>LSMinimumSystemVersion</key>      <string>26.0</string>
+    <key>NSHighResolutionCapable</key>     <true/>
+    <key>NSPrincipalClass</key>            <string>NSApplication</string>
+    <!-- 不设 LSUIElement → 前台 App：拥有 Dock 图标 + 顶部菜单栏（含 IHaven App 菜单） -->
+</dict>
+</plist>
