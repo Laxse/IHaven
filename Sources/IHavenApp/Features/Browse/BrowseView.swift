@@ -88,8 +88,7 @@ struct BrowseView: View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass").foregroundStyle(IHaven.Color.meta)
             TextField("搜索壁纸、标签、上传者", text: $viewModel.query.q)
-                .textFieldStyle(.plain)
-                .onSubmit { Task { await reloadForNav() } }
+                .textFieldStyle(.plain).onSubmit { Task { await reloadForNav() } }
         }
         .padding(.horizontal, IHaven.Space.s4.rawValue)
         .frame(width: 280, height: 28)
@@ -133,6 +132,8 @@ struct BrowseView: View {
                 Image(systemName: item.icon)
                     .font(.system(size: IHaven.Icon.sm))
                     .foregroundStyle(selected ? IHaven.Color.fg : IHaven.Color.fg2)
+                    // 固定图标槽：SF Symbol 宽窄不一会顶偏标签，左对齐成列使所有标签对齐到同一 x（线稿 x=46 意图）
+                    .frame(width: 20, alignment: .leading)
                 Text(item.label)
                     .font(IHaven.Font.system(.md))
                     .foregroundStyle(selected ? IHaven.Color.fg : IHaven.Color.fg2)
