@@ -13,7 +13,6 @@ struct BrowseView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            BrowseTitleBar()
             toolbar
             HStack(spacing: 0) {
                 if showSidebar { sidebar }
@@ -34,6 +33,7 @@ struct BrowseView: View {
     // MARK: - 工具栏（52px，chrome 底 + 1px hairline）
     private var toolbar: some View {
         HStack(spacing: 0) {
+            Spacer().frame(width: 72)   // 交通灯让位：hiddenTitleBar 下系统浮于工具栏左上，去掉自绘标题栏后改由这里预留
             toolbarIconButton("sidebar.left") { withAnimation { showSidebar.toggle() } }
             searchField.padding(.leading, 20)
             Spacer(minLength: 0)
@@ -44,7 +44,6 @@ struct BrowseView: View {
             toolbarIconButton("gearshape") { showSettings = true }
                 .padding(.leading, 8)
         }
-        .padding(.leading, 8)
         .padding(.trailing, 16)
         .frame(maxWidth: .infinity)
         .frame(height: IHaven.Layout.toolbarHeight)
