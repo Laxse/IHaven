@@ -20,6 +20,9 @@ struct IHavenApp: App {
         // 线稿画布 1280×800：默认窗口若只有 minWidth 880，瀑布流会退化到 2 列，观感与线稿不符。
         .defaultSize(width: 1280, height: 800)
         .windowStyle(.hiddenTitleBar)   // 隐藏系统标题栏，改由 BrowseTitleBar 自绘 38pt 对齐线稿
+        // 把内容最小尺寸（根 .frame(minWidth:880,minHeight:600)）钉成窗口可拖拽最小值：
+        // 否则用户可把窗口缩到下限以下，根布局超出窗口被裁、侧栏被挤出左缘（瀑布流宽度回归的诱因之一）。
+        .windowResizability(.contentMinSize)
     }
 
     /// "system" → nil（跟随系统）；否则覆盖整窗外观（设置 · 外观页签）。
