@@ -4,6 +4,8 @@ import SwiftUI
 struct BrowseView: View {
     @Bindable var viewModel: BrowseViewModel
     let keyStore: KeyStore
+    /// 设置面板（关于页复制微信号）用；实现由 `IHavenApp.bootstrap()` 装配注入（ARCH §4）。
+    let clipboard: ClipboardWriting
 
     @State private var showFilter = false
     @State private var showSettings = false
@@ -33,6 +35,7 @@ struct BrowseView: View {
             // initialTab：普通入口落「密钥」，从筛选面板锁定的 NSFW 档点进来则直达「内容」。
             // onContentPolicyChanged：关掉开关时收回已勾选的 NSFW 档并重查（ADR-012）。
             SettingsView(store: keyStore,
+                         clipboard: clipboard,
                          initialTab: settingsTab,
                          onSaved: { Task { await reloadForNav() } },
                          onContentPolicyChanged: { viewModel.disableNSFWIfNeeded() },

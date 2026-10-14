@@ -47,6 +47,23 @@ if [ -d "$SPM_BUNDLE" ]; then
     echo "    spm bundle: $(basename "$SPM_BUNDLE")"
 fi
 
+# 版本号一致性：唯一事实来源是 Core/Models/AppInfo.swift 的 AppInfo.version。
+# 早先版本从 Bundle.main.infoDictionary 读，开发态（裸二进制）没有 Info.plist 只能吃兜底值，
+# 于是「改了版本号界面上还是旧的」。现在两边都写死，靠这里主动报错防止漂移。
+APP_VERSION=$(sed -n 's/.*static let version = "\(.*\)".*/\1/p' \
+              "$ROOT/Sources/IHavenApp/Core/Models/AppInfo.swift" | head -1)
+PLIST_VERSION=$(plutil -extract CFBundleShortVersionString raw -o - \
+                "$APP/Contents/Info.plist" 2>/dev/null || echo "")
+if [ -z "$APP_VERSION" ]; then
+    echo "error: 未能从 AppInfo.swift 解析出版本号" >&2
+    exit 1
+fi
+echo "    version: AppInfo=$APP_VERSION Info.plist=$PLIST_VERSION"
+if [ "$APP_VERSION" != "$PLIST_VERSION" ]; then
+    echo "error: 版本号不一致（AppInfo.swift=$APP_VERSION，Packaging/Info.plist=$PLIST_VERSION）" >&2
+    exit 1
+fi
+
 RES="$ROOT/Sources/IHavenApp/Resources"
 if [ -d "$RES" ]; then
     cp -R "$RES"/*.lproj "$APP/Contents/Resources/"

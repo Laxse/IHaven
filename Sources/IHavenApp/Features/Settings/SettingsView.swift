@@ -16,6 +16,8 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 /// 「内容 · 允许成人内容」被关掉时回调 `onContentPolicyChanged`（ADR-012）。
 struct SettingsView: View {
     let store: KeyStore
+    /// 关于页复制微信号用。只声明协议，实现由 `IHavenApp.bootstrap()` 装配注入（ARCH §4）。
+    let clipboard: ClipboardWriting
     /// 打开时落在哪个页签（筛选面板里点灰置的 NSFW 档会直接跳到「内容」页签）。
     var initialTab: SettingsTab = .apiKey
     var onSaved: () -> Void
@@ -31,11 +33,13 @@ struct SettingsView: View {
     @AppStorage(UserPreferenceKey.nsfwAllowed) private var nsfwAllowed = false
 
     init(store: KeyStore,
+         clipboard: ClipboardWriting,
          initialTab: SettingsTab = .apiKey,
          onSaved: @escaping () -> Void,
          onContentPolicyChanged: @escaping () -> Void = {},
          onClose: @escaping () -> Void) {
         self.store = store
+        self.clipboard = clipboard
         self.initialTab = initialTab
         self.onSaved = onSaved
         self.onContentPolicyChanged = onContentPolicyChanged
@@ -76,7 +80,7 @@ struct SettingsView: View {
             case .apiKey: apiKeyTab
             case .appearance: appearanceTab
             case .content: contentTab
-            case .about: aboutTab
+            case .about: SettingsAboutTab(clipboard: clipboard)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -174,29 +178,6 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - 页签 · 关于
-    private var aboutTab: some View {
-        VStack(alignment: .leading, spacing: IHaven.Space.s5.rawValue) {
-            sectionTitle("关于 IHaven")
-            Text("macOS 原生壁纸工具：从 Wallhaven 发现壁纸，一键设为桌面壁纸。")
-                .font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.muted)
-            infoRow("版本", appVersion)
-            infoRow("技术栈", "Swift 6 · SwiftUI · Nuke · GRDB")
-            infoRow("数据位置", "~/.ihaven/apikey")
-            // value 是 String 通道（要参与拼接/判断），用 String(localized:) 而非裸字面量。
-            infoRow("数据来源", isMock ? String(localized: "Mock（免 VPN）")
-                                      : String(localized: "Wallhaven 在线服务"))
-        }
-    }
-
-    private func infoRow(_ label: LocalizedStringKey, _ value: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: IHaven.Space.s5.rawValue) {
-            Text(label).font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.fg2).frame(width: 72, alignment: .leading)
-            Text(value).font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.fg).textSelection(.enabled)
-            Spacer(minLength: 0)
-        }
-    }
-
     private func sectionTitle(_ s: LocalizedStringKey) -> some View {
         Text(s).font(IHaven.Font.system(.md, IHaven.Font.weightEmphasize)).foregroundStyle(IHaven.Color.fg)
     }
@@ -212,10 +193,6 @@ struct SettingsView: View {
 
     // MARK: - 行为
     private var isConfigured: Bool { !store.currentKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-    private var isMock: Bool { ProcessInfo.processInfo.environment["IHAVEN_MOCK"] == "1" }
-    private var appVersion: String {
-        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "0.1.0"
-    }
 
     private func save(clear: Bool = false) {
         try? store.save(clear ? "" : draft)

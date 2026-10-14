@@ -8,8 +8,10 @@
     <key>CFBundleExecutable</key>          <string>IHavenApp</string>
     <key>CFBundleIconFile</key>            <string>AppIcon</string>
     <key>CFBundlePackageType</key>         <string>APPL</string>
-    <key>CFBundleVersion</key>             <string>1</string>
-    <key>CFBundleShortVersionString</key>  <string>0.1.0</string>
+    <!-- 版本号：唯一事实来源是 Core/Models/AppInfo.swift 的 AppInfo.version，
+         build-and-package.sh 打包时会校验此处与它一致，不一致直接失败（避免两处漂移）。 -->
+    <key>CFBundleVersion</key>             <string>2.0</string>
+    <key>CFBundleShortVersionString</key>  <string>2.0</string>
     <key>LSMinimumSystemVersion</key>      <string>26.0</string>
     <key>NSHighResolutionCapable</key>     <true/>
     <key>NSPrincipalClass</key>            <string>NSApplication</string>

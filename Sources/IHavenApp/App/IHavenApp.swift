@@ -4,6 +4,9 @@ import SwiftUI
 struct IHavenApp: App {
     @State private var keyStore = FileKeyProvider()
     @State private var browseViewModel: BrowseViewModel?
+    /// 剪贴板（关于页复制微信号用）。与 `savePanel` 同为 Platform 实现：**只在装配点创建一次**
+    /// 再往下传，因为 Feature 层不允许出现 `SystemClipboard` 这个具体类型名（ARCH §4）。
+    private let clipboard: ClipboardWriting = SystemClipboard()
     @AppStorage(UserPreferenceKey.appearance) private var appearance: String = "system"
 
     init() {
@@ -15,7 +18,7 @@ struct IHavenApp: App {
         WindowGroup("IHaven") {
             Group {
                 if let vm = browseViewModel {
-                    BrowseView(viewModel: vm, keyStore: keyStore)
+                    BrowseView(viewModel: vm, keyStore: keyStore, clipboard: clipboard)
                 } else {
                     ProgressView("初始化…").task { await bootstrap() }
                 }
@@ -50,7 +53,6 @@ struct IHavenApp: App {
         let engine = SystemWallpaperEngine()
         let downloader = ImageFileDownloader()
         let savePanel = SystemSavePanel()
-        let clipboard = SystemClipboard()
         browseViewModel = BrowseViewModel(
             client: client,
             keyProvider: keyStore,
