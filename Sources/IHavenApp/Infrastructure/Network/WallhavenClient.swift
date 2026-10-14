@@ -77,7 +77,9 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
 
     private static func assertSuccess(_ response: URLResponse) throws {
         // /search 的 401 只有一义（Trap 16）。
-        try assertStatus(response) { .unauthorizedKey }
+        // ⚠️ 404 / 429 **刻意不在这里分流**：那是详情页才验证过的可达状态，
+        // `/search` 的 404 可达性未实测，共用会把详情专属文案外推到列表页 —— 见 `assertStatus`。
+        try assertStatus(response) { $0 == 401 ? .unauthorizedKey : nil }
     }
 
     /// ⚠️ **本方法只适用于 `/api/v1/w/<id>`，不得外推到 `/search`。**
@@ -87,27 +89,39 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
     /// 因此这里只能靠**本地 Key 状态**分叉，绝不解析错误响应体（401/404 用 `error` 键，
     /// 429 却用 `message` 键 —— 单一 envelope 会把限流误报成解析失败）。
     private static func assertDetailSuccess(_ response: URLResponse, keyStatus: KeyStatus) throws {
-        try assertStatus(response) {
-            keyStatus == .absent ? .nsfwRequiresKey : .unauthorizedKey
+        try assertStatus(response) { code in
+            switch code {
+            case 401: return keyStatus == .absent ? .nsfwRequiresKey : .unauthorizedKey
+            // 404 / 429 单独分流：这两个在详情页是可达且常见的状态（壁纸会被下架；
+            // 详情请求每次消耗 1 次配额，滚动 + 进详情容易触顶 45/min）。落到通用的
+            // `.http(status:)` 只会显示一个状态码，不满足 SPEC §7.3「错误文案必须指向
+            // 可执行的下一步」。**只对详情生效**，理由见 `assertStatus`。
+            case 404: return .notFound
+            case 429: return .rateLimited
+            default: return nil
+            }
         }
     }
 
     /// 状态码判定（Trap 10：先判状态码，非 2xx 直接抛错，不碰 data）。
-    /// `unauthorized` 以闭包传入，是因为 401 的语义随端点而变（见两个调用方）。
-    private static func assertStatus(_ response: URLResponse, unauthorized: () -> APIError) throws {
+    ///
+    /// `specific` 由调用方按**端点**提供：传入状态码，返回该端点的专属错误；返回 `nil` 表示
+    /// 该状态码在本端点上没有更具体的含义，退回通用的 `.http(status:)`。
+    ///
+    /// ⚠️ **为什么状态码映射必须按端点分开传，而不是写在这里**：两个端点的语义不同，写死
+    /// 在共享函数里就等于默认「一个端点的结论适用于另一个端点」—— 而 ADR-007 的 Trap 16
+    /// 与 Trap 19 记录的正反两面都在警告这件事：Trap 16（`/search` 的 401 只有一义）曾经被
+    /// 外推到详情端点，结果把「未配 Key」误报成「Key 无效」（Trap 19）；反过来，详情端点的
+    /// 404 若共用，列表页会显示「**这张壁纸**已不存在」这种与场景不符的文案。
+    /// 因此「哪些状态码有专属含义」是**端点的属性**，不是状态码的属性。
+    private static func assertStatus(_ response: URLResponse, specific: (Int) -> APIError?) throws {
         guard let http = response as? HTTPURLResponse else {
             throw APIError.transport(NSError(domain: "IHaven", code: -1,
                                             userInfo: [NSLocalizedDescriptionKey: String(localized: "非 HTTP 响应")]))
         }
-        switch http.statusCode {
-        case 200..<300: return
-        case 401: throw unauthorized()
-        // 404 / 429 单独分流：这两个在详情页是可达且常见的状态，落到通用的 `.http(status:)`
-        // 只会显示一个状态码，不满足 SPEC §7.3「错误文案必须指向可执行的下一步」。
-        case 404: throw APIError.notFound
-        case 429: throw APIError.rateLimited
-        default: throw APIError.http(status: http.statusCode)
-        }
+        let code = http.statusCode
+        if (200..<300).contains(code) { return }
+        throw specific(code) ?? APIError.http(status: code)
     }
 
     private static func buildURL(_ q: BrowseQuery) throws -> URL {
