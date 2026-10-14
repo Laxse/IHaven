@@ -124,3 +124,5 @@
 "响应解析失败：%@" = "Failed to parse response: %@";
 "参数非法：%@" = "Invalid parameter: %@";
 "网络错误：%@" = "Network error: %@";
+"这张壁纸已不存在，可能已被作者或站点下架。返回列表看看其它壁纸" = "This wallpaper no longer exists — it may have been removed by its uploader or by the site. Go back to the list to browse others";
+"请求太频繁，已触发每分钟 45 次的调用上限。请稍候再试" = "Too many requests — the 45 calls per minute limit was reached. Wait a moment and try again";

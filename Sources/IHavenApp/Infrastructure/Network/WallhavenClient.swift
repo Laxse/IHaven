@@ -102,6 +102,10 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
         switch http.statusCode {
         case 200..<300: return
         case 401: throw unauthorized()
+        // 404 / 429 单独分流：这两个在详情页是可达且常见的状态，落到通用的 `.http(status:)`
+        // 只会显示一个状态码，不满足 SPEC §7.3「错误文案必须指向可执行的下一步」。
+        case 404: throw APIError.notFound
+        case 429: throw APIError.rateLimited
         default: throw APIError.http(status: http.statusCode)
         }
     }
