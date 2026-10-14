@@ -12,8 +12,9 @@ struct FilterView: View {
     /// 点击锁定态的 NSFW 档时的出口：打开设置 · 内容页签。锁定态必须有可达出口，否则就是
     /// ADR-011 里批评过的「看得见点不了、且无处解锁」。
     var onOpenContentSettings: () -> Void = {}
-    /// 「完成」按钮：仅收起 popover。筛选为即时生效（见 `BrowseViewModel.scheduleFilterReload`，150ms 防抖）。
-    var onApply: () -> Void
+    /// 无「完成 / 应用」按钮：任一维度改动都经 `BrowseViewModel.scheduleFilterReload`
+    /// 150ms 防抖即时重查，按钮唯一能做的事只剩收起面板 —— 而 popover 点外部或 Esc 就能收起，
+    /// 多一个按钮只是摩擦（与 DESIGN §6.5「多余的确认是摩擦」同因）。
 
     /// 设置 · 内容页签的「允许成人内容」开关（ADR-012）。默认 false → NSFW 档锁定。
     @AppStorage(UserPreferenceKey.nsfwAllowed) private var nsfwAllowed = false
@@ -67,7 +68,7 @@ struct FilterView: View {
         }
     }
 
-    // MARK: - 页脚（线稿未定义；用户要求「确认按钮」，故补一条 44pt 页脚：清除全部 + 完成）
+    // MARK: - 页脚（线稿未定义；只有「清除全部」，没有确认/完成按钮 —— 见 `onOpenContentSettings` 注释）
 
     private var footer: some View {
         VStack(spacing: 0) {
@@ -78,15 +79,6 @@ struct FilterView: View {
                 }
                 .buttonStyle(.plain)
                 Spacer(minLength: 0)
-                Button { onApply() } label: {
-                    Text("完成")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(IHaven.Color.accentOn)
-                        .padding(.horizontal, 18)
-                        .frame(height: 28)
-                        .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(IHaven.Color.accent))
-                }
-                .buttonStyle(.plain)
             }
             .padding(.horizontal, 16)
             .frame(height: 44)

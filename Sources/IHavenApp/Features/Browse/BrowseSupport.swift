@@ -112,11 +112,10 @@ func browseFilterButton(isPresented: Binding<Bool>,
     .buttonStyle(.plain)
     // 关闭回调只收起 popover：筛选即时生效（FilterView 内 150ms 防抖已回到第 1 页重查），再 reload 会重复请求。
     .popover(isPresented: isPresented, arrowEdge: .bottom) {
-        FilterView(viewModel: viewModel, onOpenContentSettings: onOpenContentSettings) {
-            isPresented.wrappedValue = false
-        }
-        // 同 `.sheet`：被呈现的子树自己挂一次语言，不依赖环境从外向内传。
-        .appLocale()
+        // 面板内没有「完成」按钮（筛选即时生效），收起点外部或按 Esc 即可。
+        FilterView(viewModel: viewModel, onOpenContentSettings: onOpenContentSettings)
+            // 同 `.sheet`：被呈现的子树自己挂一次语言，不依赖环境从外向内传。
+            .appLocale()
     }
 }
 
