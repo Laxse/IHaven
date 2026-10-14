@@ -46,6 +46,23 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
         }
     }
 
+    func detail(id: String) async throws -> WallpaperDetail {
+        // 每次调用消耗 1 次配额（与翻页同价），故本方法不做任何重试 —— 见协议注释。
+        let url = WallhavenEndpoint.wallpaper(id: id)
+        let (data, response) = try await session.data(for: Self.makeRequest(url: url, key: keyProvider.currentKey))
+        try Self.assertDetailSuccess(response, keyStatus: keyStatus)
+        do {
+            // 顶层是 `{"data":{…}}`（无 `meta`）：必须经 envelope 取里层对象，
+            // 直接 decode(WallpaperDetail.self) 只会看到 `data` 这一个键。
+            let detail = try JSONDecoder().decode(WallpaperDetailEnvelope.self, from: data).data
+            // 详情页先出大图：预取 large（而非列表用的 small），缩略图此时已命中缓存。
+            NukeImagePipeline.prefetch([detail.base.thumbs.large].compactMap { $0 })
+            return detail
+        } catch {
+            throw APIError.decode(error)
+        }
+    }
+
     // MARK: - 内部
 
     private static func makeRequest(url: URL, key: String) -> URLRequest {
@@ -59,13 +76,32 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
     }
 
     private static func assertSuccess(_ response: URLResponse) throws {
+        // /search 的 401 只有一义（Trap 16）。
+        try assertStatus(response) { .unauthorizedKey }
+    }
+
+    /// ⚠️ **本方法只适用于 `/api/v1/w/<id>`，不得外推到 `/search`。**
+    /// `/search` 的 401 恒等于「Key 无效」（Trap 16，见 `assertSuccess`）；而详情端点的 401 是
+    /// **双语义** —— 「NSFW 壁纸 + 未配 Key」与「任意壁纸 + Key 无效」返回逐字节相同的
+    /// `{"error":"Unauthorized"}`，无法从响应体区分（Trap 19 / VERIFIED-WALLHAVEN-DETAIL.md §5）。
+    /// 因此这里只能靠**本地 Key 状态**分叉，绝不解析错误响应体（401/404 用 `error` 键，
+    /// 429 却用 `message` 键 —— 单一 envelope 会把限流误报成解析失败）。
+    private static func assertDetailSuccess(_ response: URLResponse, keyStatus: KeyStatus) throws {
+        try assertStatus(response) {
+            keyStatus == .absent ? .nsfwRequiresKey : .unauthorizedKey
+        }
+    }
+
+    /// 状态码判定（Trap 10：先判状态码，非 2xx 直接抛错，不碰 data）。
+    /// `unauthorized` 以闭包传入，是因为 401 的语义随端点而变（见两个调用方）。
+    private static func assertStatus(_ response: URLResponse, unauthorized: () -> APIError) throws {
         guard let http = response as? HTTPURLResponse else {
             throw APIError.transport(NSError(domain: "IHaven", code: -1,
                                             userInfo: [NSLocalizedDescriptionKey: String(localized: "非 HTTP 响应")]))
         }
         switch http.statusCode {
         case 200..<300: return
-        case 401: throw APIError.unauthorizedKey                               // Trap 16：401 仅表示 Key 无效
+        case 401: throw unauthorized()
         default: throw APIError.http(status: http.statusCode)
         }
     }
@@ -105,12 +141,22 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
 /// 端点与常量（ARCH §6.4.0 第四条：绝不使用 /settings 验证 Key 或判 NSFW）。
 enum WallhavenEndpoint {
     private static let realBase = URL(string: "https://wallhaven.cc/api/v1")!
-    /// 常规搜索。**绝不为** Key 验证 / NSFW 探测 使用 /settings（Trap 15/17）。
+
     /// 默认指向真实服务（需 VPN）；`IHAVEN_MOCK=1` 时指向本地 mock 主机（见 MockWallhaven）。
-    static var search: URL {
-        let base = MockWallhaven.isEnabled
+    /// 两个端点必须共用同一个 base 判定，否则会出现「搜索走 mock、详情打真实服务」的错配。
+    private static var currentBase: URL {
+        MockWallhaven.isEnabled
             ? URL(string: "https://\(MockWallhaven.host)/api/v1")!
             : realBase
-        return base.appendingPathComponent("search")
+    }
+
+    /// 常规搜索。**绝不为** Key 验证 / NSFW 探测 使用 /settings（Trap 15/17）。
+    static var search: URL { currentBase.appendingPathComponent("search") }
+
+    /// 壁纸详情 `w/<id>`。`<id>` 形如 `jel1jq`（实测恒 6 位字母数字）。
+    /// 官方 help 页的示例 id `94x38z` **实测已 404**，切勿用于测试或 fixture
+    /// （VERIFIED-WALLHAVEN-DETAIL.md §1）。
+    static func wallpaper(id: String) -> URL {
+        currentBase.appendingPathComponent("w").appendingPathComponent(id)
     }
 }

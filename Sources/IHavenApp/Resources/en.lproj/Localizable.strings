@@ -118,6 +118,7 @@
 // MARK: - 网络 / 系统错误（String(localized:) 取用）
 
 "API Key 失效（401，唯一含义：Key 无效）" = "API key rejected (401 — the only meaning: the key is invalid)";
+"这是 NSFW 壁纸，需要 API Key 才能查看。请在设置中填写 API Key 后重试" = "This is an NSFW wallpaper, which requires an API key. Add your API key in Settings, then try again";
 "非 HTTP 响应" = "Non-HTTP response";
 "无可用的屏幕来设置壁纸" = "No available screen to set the wallpaper";
 "响应解析失败：%@" = "Failed to parse response: %@";
