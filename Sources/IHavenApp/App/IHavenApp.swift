@@ -4,8 +4,8 @@ import SwiftUI
 struct IHavenApp: App {
     @State private var keyStore = FileKeyProvider()
     @State private var browseViewModel: BrowseViewModel?
-    @AppStorage("ihaven.appearance") private var appearance: String = "system"
-    @AppStorage("ihaven.language") private var language: String = AppLanguage.default.rawValue
+    @AppStorage(UserPreferenceKey.appearance) private var appearance: String = "system"
+    @AppStorage(UserPreferenceKey.language) private var language: String = AppLanguage.default.rawValue
 
     var body: some Scene {
         WindowGroup("IHaven") {

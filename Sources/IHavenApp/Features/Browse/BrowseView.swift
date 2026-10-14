@@ -7,6 +7,8 @@ struct BrowseView: View {
 
     @State private var showFilter = false
     @State private var showSettings = false
+    /// 打开设置时落在哪个页签（点筛选面板里锁定的 NSFW 档 → 直接到「内容」）。
+    @State private var settingsTab: SettingsTab = .apiKey
     @State private var showSidebar = true
     @State private var nav: NavItem = .discover
     @State private var toast: String?
@@ -20,12 +22,21 @@ struct BrowseView: View {
             }
             // HStack 占满宽度并左对齐，避免主区内容超出窗口宽时整体居中溢出把 sidebar 挤到左缘外被裁剪。
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            statusBar
+            browseStatusBar(resultsIncomplete: viewModel.resultsIncomplete,
+                            count: nav == .favorites ? viewModel.favorites.count : viewModel.wallpapers.count)
         }
         .frame(minWidth: 880, minHeight: 600)
         .task { await reloadForNav() }
         .sheet(isPresented: $showSettings) {
-            SettingsView(store: keyStore, onSaved: { Task { await reloadForNav() } }, onClose: { showSettings = false })
+            // initialTab：普通入口落「密钥」，从筛选面板锁定的 NSFW 档点进来则直达「内容」。
+            // onContentPolicyChanged：关掉开关时收回已勾选的 NSFW 档并重查（ADR-012）。
+            SettingsView(store: keyStore,
+                         initialTab: settingsTab,
+                         onSaved: { Task { await reloadForNav() } },
+                         onContentPolicyChanged: { viewModel.disableNSFWIfNeeded() },
+                         onClose: { showSettings = false })
+                // @State 只在首次构造时取 initialTab，换页签必须靠 id 强制重建，否则停在上一个页签。
+                .id(settingsTab)
         }
         .overlay(alignment: .bottom) { if let toast { browseToastView(toast) } }
     }
@@ -41,7 +52,7 @@ struct BrowseView: View {
             filterButton.padding(.leading, 20)
             toolbarIconButton("star") { select(.favorites) }
                 .padding(.leading, 28)
-            toolbarIconButton("gearshape") { showSettings = true }
+            toolbarIconButton("gearshape") { openSettings(.apiKey) }
                 .padding(.leading, 8)
         }
         .padding(.trailing, 16)
@@ -69,7 +80,7 @@ struct BrowseView: View {
         .buttonStyle(.plain)
         // 关闭回调只收起 popover：筛选即时生效（FilterView 内 150ms 防抖已回到第 1 页重查），再 reload 会重复请求。
         .popover(isPresented: $showFilter, arrowEdge: .bottom) {
-            FilterView(viewModel: viewModel) { showFilter = false }
+            FilterView(viewModel: viewModel, onOpenContentSettings: { openSettings(.content) }) { showFilter = false }
         }
     }
 
@@ -234,28 +245,10 @@ struct BrowseView: View {
         }
     }
 
-    // MARK: - 状态栏（32px，chrome 底 + 1px hairline）
-    private var statusBar: some View {
-        HStack(spacing: 12) {
-            if viewModel.resultsIncomplete {
-                Label("结果不完整（未配置 Key）", systemImage: "exclamationmark.triangle").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.warn)
-            }
-            Spacer(minLength: 0)
-            Text("已加载 \(nav == .favorites ? viewModel.favorites.count : viewModel.wallpapers.count) 张").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
-        }
-        .padding(.horizontal, IHaven.Space.s6.rawValue)
-        .frame(maxWidth: .infinity)
-        .frame(height: IHaven.Layout.statusBarHeight)
-        .background(IHaven.Color.bgChrome)
-        .overlay(alignment: .top) {
-            Rectangle().fill(IHaven.Color.border).frame(height: 1)
-        }
-    }
-
     // MARK: - 行为
     private func select(_ item: NavItem) {
         switch item {
-        case .settings: showSettings = true; return
+        case .settings: openSettings(.apiKey); return
         case .favorites: nav = .favorites; viewModel.loadFavorites(); return
         // 「已设置」读本地记录，不发网络请求；落入 default 会走 reload 白打一次搜索。
         case .wallpaperSet: nav = item; viewModel.loadApplied(); return
@@ -278,6 +271,13 @@ struct BrowseView: View {
     }
 
     private func clearFilters() { viewModel.clearFilters(); Task { await reloadForNav() } }
+
+    /// 打开设置面板并落在指定页签；须先收起筛选 popover（它会盖住 sheet，并存还会抢焦点）。
+    private func openSettings(_ tab: SettingsTab) {
+        showFilter = false
+        settingsTab = tab
+        showSettings = true
+    }
 
     private func reloadForNav() async {
         switch nav {

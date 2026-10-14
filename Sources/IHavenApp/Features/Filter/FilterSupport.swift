@@ -46,9 +46,13 @@ struct FilterSegmented<Value: Hashable>: View {
 struct PurityTextChip: View {
     let title: LocalizedStringKey
     @Binding var isOn: Bool
+    /// 锁定态（NSFW 档在设置开关关闭时）：不可勾选，点击走 `onLockedTap` 引导去开启 ——
+    /// 「灰置且无处解锁」正是 ADR-011 否决线稿方案的理由，所以锁定态必须给出可达的出口。
+    var isLocked = false
+    var onLockedTap: () -> Void = {}
 
     var body: some View {
-        Button { isOn.toggle() } label: {
+        Button { isLocked ? onLockedTap() : isOn.toggle() } label: {
             Text(title)
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(isOn ? IHaven.Color.accentHover : IHaven.Color.fg2)
@@ -64,6 +68,13 @@ struct PurityTextChip: View {
                 )
         }
         .buttonStyle(.plain)
+        .opacity(isLocked ? 0.45 : 1)
+        .help(chipHelp)
+    }
+
+    /// 锁定态才有提示；未锁定时给空串（空 tooltip 不显示），避免在三元里塞两个字面量。
+    private var chipHelp: LocalizedStringKey {
+        isLocked ? "需先在设置 · 内容中启用" : ""
     }
 }
 

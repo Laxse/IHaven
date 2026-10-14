@@ -70,6 +70,7 @@
 
 "密钥" = "API Key";
 "外观" = "Appearance";
+"内容" = "Content";
 "关于" = "About";
 "Key 经 X-API-Key 请求头下发；空 / 纯空白视为未配置（Trap 14）。" = "The key is sent via the X-API-Key header; empty or whitespace-only counts as not configured.";
 "已配置" = "Configured";
@@ -99,6 +100,15 @@
 "Mock（免 VPN）" = "Mock (no VPN needed)";
 "Wallhaven 在线服务" = "Wallhaven online service";
 "完成" = "Done";
+
+// MARK: - 设置 · 内容（NSFW 开关，ADR-012）
+
+"成人内容" = "Adult Content";
+"默认关闭。开启后，筛选面板的 NSFW 档位才允许勾选，结果中可能包含裸露、暴力或色情等不适合在工作场合浏览的内容。" = "Off by default. Turning it on unlocks the NSFW tier in the filter panel; results may then include nudity, violence or pornography — content not suitable for viewing in the workplace.";
+"允许成人内容（NSFW）" = "Allow adult content (NSFW)";
+"已开启" = "On";
+"已关闭" = "Off";
+"需先在设置 · 内容中启用" = "Enable it first in Settings · Content";
 
 // MARK: - 工具栏筛选 chip（拼接型，用 String(localized:) 取用）
 

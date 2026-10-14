@@ -2,32 +2,45 @@ import SwiftUI
 
 /// 设置面板页签（原独立「密钥」侧栏项的归宿）。
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case apiKey, appearance, about
+    case apiKey, appearance, content, about
     var id: String { rawValue }
-    var label: String {
+    var label: LocalizedStringKey {
         switch self {
-        case .apiKey: "密钥"; case .appearance: "外观"; case .about: "关于"
+        case .apiKey: "密钥"; case .appearance: "外观"; case .content: "内容"; case .about: "关于"
         }
     }
 }
 
-/// 设置面板：页签式（密钥 / 外观 / 关于）。密钥并入此面板，不再是独立入口。
-/// 保存密钥后回调 `onSaved` 让浏览层重载；关闭由「完成」触发 `onClose`。
+/// 设置面板：页签式（密钥 / 外观 / 内容 / 关于）。密钥并入此面板，不再是独立入口。
+/// 保存密钥后回调 `onSaved` 让浏览层重载；关闭由「完成」触发 `onClose`；
+/// 「内容 · 允许成人内容」被关掉时回调 `onContentPolicyChanged`（ADR-012）。
 struct SettingsView: View {
     let store: KeyStore
+    /// 打开时落在哪个页签（筛选面板里点灰置的 NSFW 档会直接跳到「内容」页签）。
+    var initialTab: SettingsTab = .apiKey
     var onSaved: () -> Void
+    /// 内容策略开关被关掉时回调：由调用方收回已开启的 NSFW 档并重查（ADR-012）。
+    var onContentPolicyChanged: () -> Void = {}
     var onClose: () -> Void
 
     @State private var tab: SettingsTab = .apiKey
     @State private var draft: String
     @State private var savedHint = false
-    @AppStorage("ihaven.appearance") private var appearance: String = "system"
-    @AppStorage("ihaven.language") private var language: String = AppLanguage.default.rawValue
+    @AppStorage(UserPreferenceKey.appearance) private var appearance: String = "system"
+    @AppStorage(UserPreferenceKey.language) private var language: String = AppLanguage.default.rawValue
+    @AppStorage(UserPreferenceKey.nsfwAllowed) private var nsfwAllowed = false
 
-    init(store: KeyStore, onSaved: @escaping () -> Void, onClose: @escaping () -> Void) {
+    init(store: KeyStore,
+         initialTab: SettingsTab = .apiKey,
+         onSaved: @escaping () -> Void,
+         onContentPolicyChanged: @escaping () -> Void = {},
+         onClose: @escaping () -> Void) {
         self.store = store
+        self.initialTab = initialTab
         self.onSaved = onSaved
+        self.onContentPolicyChanged = onContentPolicyChanged
         self.onClose = onClose
+        _tab = State(initialValue: initialTab)
         _draft = State(initialValue: store.currentKey)
     }
 
@@ -62,6 +75,7 @@ struct SettingsView: View {
             switch tab {
             case .apiKey: apiKeyTab
             case .appearance: appearanceTab
+            case .content: contentTab
             case .about: aboutTab
             }
         }
@@ -132,6 +146,30 @@ struct SettingsView: View {
             Text(name).font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - 页签 · 内容（NSFW 开关，ADR-012）
+
+    /// 开关只表达「本机使用者是否愿意看到成人内容」，与账号权限无关：
+    /// 不做任何探测（ADR-011 已论证探测会吃掉配额、且失败态会被误报成「无权限」）。
+    private var contentTab: some View {
+        VStack(alignment: .leading, spacing: IHaven.Space.s5.rawValue) {
+            sectionTitle("成人内容")
+            Text("默认关闭。开启后，筛选面板的 NSFW 档位才允许勾选，结果中可能包含裸露、暴力或色情等不适合在工作场合浏览的内容。")
+                .font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.muted)
+            Toggle(isOn: $nsfwAllowed) {
+                Text("允许成人内容（NSFW）").font(IHaven.Font.system(.md)).foregroundStyle(IHaven.Color.fg)
+            }
+            .toggleStyle(.switch)
+            .onChange(of: nsfwAllowed) { _, allowed in
+                if !allowed { onContentPolicyChanged() }   // 关掉时把已勾选的 NSFW 档收回并重查
+            }
+            HStack(spacing: IHaven.Space.s4.rawValue) {
+                Circle().fill(nsfwAllowed ? IHaven.Color.warn : IHaven.Color.success).frame(width: 8, height: 8)
+                Text(nsfwAllowed ? LocalizedStringKey("已开启") : LocalizedStringKey("已关闭"))
+                    .font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.fg2)
+            }
+        }
     }
 
     // MARK: - 页签 · 关于

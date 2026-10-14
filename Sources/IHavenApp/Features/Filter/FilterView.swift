@@ -9,8 +9,14 @@ import SwiftUI
 ///     线稿给的就是自绘规格：容器 h24 / r6 / 等宽项（分类·排序 72pt，分辨率 48pt）、选中项为内缩药丸。
 struct FilterView: View {
     @Bindable var viewModel: BrowseViewModel
+    /// 点击锁定态的 NSFW 档时的出口：打开设置 · 内容页签。锁定态必须有可达出口，否则就是
+    /// ADR-011 里批评过的「看得见点不了、且无处解锁」。
+    var onOpenContentSettings: () -> Void = {}
     /// 「完成」按钮：仅收起 popover。筛选为即时生效（见 `BrowseViewModel.scheduleFilterReload`，150ms 防抖）。
     var onApply: () -> Void
+
+    /// 设置 · 内容页签的「允许成人内容」开关（ADR-012）。默认 false → NSFW 档锁定。
+    @AppStorage(UserPreferenceKey.nsfwAllowed) private var nsfwAllowed = false
 
     /// 最低分辨率 6 档（绑定 `atleast`，值为下发给 API 的 "WxH" 串）；线稿 6 项 × 48pt。
     /// label 用 `LocalizedStringKey`：存成 `String` 会在编译期固化，永远查不到 Localizable.strings。
@@ -102,12 +108,14 @@ struct FilterView: View {
 
     // MARK: - 2. 纯度（三档 chip 90×28 / 间距 9 → 3×90+2×9 = 288）
 
-    /// 三档一律可点（NSFW 不做门禁灰置，ADR-011）。默认档：全年龄 ON + 轻微暗示 ON + NSFW OFF。
+    /// 默认档：全年龄 ON + 轻微暗示 ON + NSFW OFF。NSFW 档在设置开关关闭时锁定（ADR-012），
+    /// 点击不勾选、而是引导去设置里开启。
     private var purityGroup: some View {
         HStack(spacing: 9) {
             PurityTextChip(title: "全年龄", isOn: $viewModel.query.purity.sfw)
             PurityTextChip(title: "轻微暗示", isOn: $viewModel.query.purity.sketchy)
-            PurityTextChip(title: "NSFW", isOn: $viewModel.query.purity.nsfw)
+            PurityTextChip(title: "NSFW", isOn: $viewModel.query.purity.nsfw,
+                           isLocked: !nsfwAllowed, onLockedTap: onOpenContentSettings)
         }
     }
 

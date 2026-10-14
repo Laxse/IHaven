@@ -79,6 +79,24 @@ func browsePlaceholder(item: NavItem) -> some View {
     .frame(maxWidth: .infinity, maxHeight: .infinity)
 }
 
+/// 状态栏（32px，chrome 底 + 顶部 1px hairline）。移出 BrowseView 只为守住 ADR-009 的 300 行上限。
+@MainActor
+func browseStatusBar(resultsIncomplete: Bool, count: Int) -> some View {
+    HStack(spacing: 12) {
+        if resultsIncomplete {
+            Label("结果不完整（未配置 Key）", systemImage: "exclamationmark.triangle")
+                .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.warn)
+        }
+        Spacer(minLength: 0)
+        Text("已加载 \(count) 张").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
+    }
+    .padding(.horizontal, IHaven.Space.s6.rawValue)
+    .frame(maxWidth: .infinity)
+    .frame(height: IHaven.Layout.statusBarHeight)
+    .background(IHaven.Color.bgChrome)
+    .overlay(alignment: .top) { Rectangle().fill(IHaven.Color.border).frame(height: 1) }
+}
+
 /// 空态 / 错误态 / Toast（对齐线稿占位与反馈）。
 @MainActor
 func browseEmptyState(title: LocalizedStringKey, body: LocalizedStringKey, action: LocalizedStringKey,

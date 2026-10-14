@@ -150,6 +150,15 @@ final class BrowseViewModel {
         }
     }
 
+    /// 设置里关掉「允许成人内容」后调用：把已勾选的 NSFW 档收回并回到第 1 页重查（ADR-012）。
+    /// 开关表达的是本机意愿，与账号权限无关，因此不做任何探测。
+    func disableNSFWIfNeeded() {
+        guard query.purity.nsfw else { return }
+        query.purity.nsfw = false
+        query.page = 1
+        Task { await reload() }
+    }
+
     /// 从「已设置」移除一条记录（只删记录，不动桌面当前壁纸、不动收藏）。
     func removeApplied(id: String) {
         try? database.removeApplied(id: id)

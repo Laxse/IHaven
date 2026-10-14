@@ -42,7 +42,8 @@ public struct PurityFilter: Sendable, Hashable {
     }
 
     /// 浏览默认档：全年龄 + 轻微暗示 开、NSFW 关（filter-panel.svg：全年龄 ON / 轻微暗示 ON / NSFW OFF）。
-    /// NSFW 不再做权限门禁 —— 三档一律可自由切换（2026-10-11 产品决定，见 ADR-011）。
+    /// NSFW 不做账号权限探测（ADR-011：探测吃配额、失败态会被误报成无权限）；
+    /// 改为本机开关门禁（ADR-012）：设置 · 内容里未开启时，筛选面板的 NSFW 档锁定不可勾选。
     public static let browseDefault = PurityFilter(sfw: true, sketchy: true, nsfw: false)
 }
 
