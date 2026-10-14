@@ -12,6 +12,8 @@ struct BrowseView: View {
     @State private var showSidebar = true
     @State private var nav: NavItem = .discover
     @State private var toast: String?
+    /// 详情页：非 nil 即进入二级页面（`←` / `→` 在 `viewModel.wallpapers` 结果集内切换）。
+    @State private var detail: Wallpaper?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -45,14 +47,18 @@ struct BrowseView: View {
     private var toolbar: some View {
         HStack(spacing: 0) {
             // 交通灯在系统保留的标题栏安全区内（实测 y10~22pt）：左侧 12pt 使开关按钮槽中心 x=26 对齐侧栏图标列。
-            toolbarIconButton("sidebar.left") { withAnimation { showSidebar.toggle() } }.padding(.leading, 12)
-            searchField.padding(.leading, 16)   // 线稿基准：搜索框左缘 x=56
+            BrowseIconButton(systemName: "sidebar.left") { withAnimation { showSidebar.toggle() } }
+                .padding(.leading, 12)
+            browseSearchField(text: $viewModel.query.q) { Task { await reloadForNav() } }
+                .padding(.leading, 16)   // 线稿基准：搜索框左缘 x=56
             Spacer(minLength: 0)
             browseFilterChips(query: viewModel.query) { clearFilters() }
-            filterButton.padding(.leading, 20)
-            toolbarIconButton("star") { select(.favorites) }
+            browseFilterButton(isPresented: $showFilter, viewModel: viewModel,
+                               onOpenContentSettings: { openSettings(.content) })
+                .padding(.leading, 20)
+            BrowseIconButton(systemName: "star") { select(.favorites) }
                 .padding(.leading, 28)
-            toolbarIconButton("gearshape") { openSettings(.apiKey) }
+            BrowseIconButton(systemName: "gearshape") { openSettings(.apiKey) }
                 .padding(.leading, 8)
         }
         .padding(.trailing, 16)
@@ -62,49 +68,6 @@ struct BrowseView: View {
         .overlay(alignment: .bottom) {
             Rectangle().fill(IHaven.Color.border).frame(height: 1)
         }
-    }
-
-    /// 「筛选」按钮：线稿固定 76×28，系统 `Label` + `.controlSize(.small)` 只有 62×22.7，故自绘底+描边。
-    private var filterButton: some View {
-        Button { showFilter = true } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "line.3.horizontal.decrease").font(.system(size: 11))
-                Text("筛选").font(IHaven.Font.system(.md, IHaven.Font.weightEmphasize))
-            }
-            .padding(.horizontal, 12)
-            .frame(width: 76, height: 28)
-            .background(IHaven.Color.surface, in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue))
-            .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).stroke(IHaven.Color.border))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        // 关闭回调只收起 popover：筛选即时生效（FilterView 内 150ms 防抖已回到第 1 页重查），再 reload 会重复请求。
-        .popover(isPresented: $showFilter, arrowEdge: .bottom) {
-            FilterView(viewModel: viewModel, onOpenContentSettings: { openSettings(.content) }) { showFilter = false }
-        }
-    }
-
-    /// 工具栏图标按钮统一规格：28×28 + 圆角 6 + 1px 描边（侧栏开关 / 星标 / 齿轮共用）。
-    private func toolbarIconButton(_ systemName: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: IHaven.Icon.sm))
-                .frame(width: 28, height: 28)
-        }
-        .buttonStyle(.plain)
-        .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).stroke(IHaven.Color.border))
-    }
-
-    private var searchField: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "magnifyingglass").foregroundStyle(IHaven.Color.meta)
-            TextField("搜索壁纸、标签、上传者", text: $viewModel.query.q)
-                .textFieldStyle(.plain).onSubmit { Task { await reloadForNav() } }
-        }
-        .padding(.horizontal, IHaven.Space.s4.rawValue)
-        .frame(width: 280, height: 28)
-        .background(IHaven.Color.surface, in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue))
-        .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).stroke(IHaven.Color.border))
     }
 
     // MARK: - 侧栏（208px，chrome 底 + 1px hairline）
@@ -164,17 +127,34 @@ struct BrowseView: View {
     // MARK: - 主内容区
     @ViewBuilder
     private var mainArea: some View {
-        VStack(spacing: 0) {
-            switch nav {
-            case .favorites: favoritesContent
-            case .wallpaperSet:
-                AppliedWallpapersView(viewModel: viewModel, onDiscover: { select(.discover) }, onMessage: { showToast($0) })
-            case .live, .import: browsePlaceholder(item: nav)
-            default: searchContent
+        if let detail {
+            detailPage(detail)
+        } else {
+            VStack(spacing: 0) {
+                switch nav {
+                case .favorites: favoritesContent
+                case .wallpaperSet:
+                    AppliedWallpapersView(viewModel: viewModel, onDiscover: { select(.discover) }, onMessage: { showToast($0) })
+                case .live, .import: browsePlaceholder(item: nav)
+                default: searchContent
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(IHaven.Color.bg)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(IHaven.Color.bg)
+    }
+
+    /// 详情页（二级页面）。`.id` 让切换壁纸时整体重建：详情请求、大图、缩放档位都要跟着换。
+    private func detailPage(_ wallpaper: Wallpaper) -> some View {
+        DetailView(wallpaper: wallpaper,
+                   context: viewModel.wallpapers,
+                   viewModel: viewModel,
+                   onClose: { detail = nil },
+                   onNavigate: { detail = $0 },
+                   onSearch: { query in detail = nil; viewModel.search(query) },
+                   onToggleFavorite: { viewModel.toggleFavorite(wallpaper) },
+                   onMessage: { showToast($0) })
+            .id(wallpaper.id)
     }
 
     @ViewBuilder
@@ -196,6 +176,7 @@ struct BrowseView: View {
                                     aspectRatio: { CGFloat($0.width) / CGFloat($0.height) }) { wp in
                             WallpaperCard(wallpaper: wp,
                                           isFavorite: viewModel.favoriteIDs.contains(wp.id),
+                                          onOpen: { detail = wp },
                                           onToggleFavorite: { viewModel.toggleFavorite(wp) },
                                           onSetWallpaper: { setWallpaper(wp) })
                         }

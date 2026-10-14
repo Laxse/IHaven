@@ -90,6 +90,11 @@ enum IHaven {
         static let rowHeight: CGFloat = 32
         static let sidebarWidth: CGFloat = 208
         static let statusBarHeight: CGFloat = 32
+        /// 详情页右侧信息栏宽度（design-tokens A1-structure `inspectorWidth`）。
+        /// macOS HIG：检视器在右（Finder / 照片，`⌘⌥I`）；主窗口左侧已有 208px 侧栏，放左会叠成 500px。
+        static let inspectorWidth: CGFloat = 300
+        /// 详情页页头条（返回按钮 + id · 分辨率）。
+        static let detailHeaderHeight: CGFloat = 40
         static let masonryColMin: CGFloat = 240
         static let masonryColMax: CGFloat = 340
         static let masonryGap: CGFloat = 8

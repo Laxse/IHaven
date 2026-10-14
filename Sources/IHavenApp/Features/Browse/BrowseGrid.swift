@@ -97,6 +97,8 @@ struct MasonryView<Item: Identifiable, Content: View>: View {
 struct WallpaperCard: View {
     let wallpaper: Wallpaper
     let isFavorite: Bool
+    /// 单击整卡 → 进入详情页（二级页面）。
+    var onOpen: () -> Void
     var onToggleFavorite: () -> Void
     var onSetWallpaper: () -> Void
     @State private var hovered = false
@@ -107,6 +109,9 @@ struct WallpaperCard: View {
                 ThumbnailImage(url: wallpaper.thumbs.small)
                     .frame(width: geo.size.width, height: geo.size.height)
                     .clipped()
+                    // 手势挂在**缩略图层**而不是整卡：hover 浮层里的「收藏 / 设为壁纸」在它上层，
+                    // 会先吃到点击，两者不打架（整卡挂手势会把浮层按钮吞掉）。
+                    .onTapGesture(perform: onOpen)
                 if hovered { hoverOverlay.transition(.opacity) }
             }
         }

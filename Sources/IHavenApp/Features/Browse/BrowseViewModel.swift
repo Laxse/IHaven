@@ -27,17 +27,23 @@ final class BrowseViewModel {
     private let database: WallpaperDatabase
     private let wallpaperEngine: WallpaperEngine
     private let downloader: ImageDownloading
+    private let savePanel: FileSavePresenting
+    private let clipboard: ClipboardWriting
 
     init(client: WallhavenAPIProtocol,
          keyProvider: KeyProvider,
          database: WallpaperDatabase,
          wallpaperEngine: WallpaperEngine,
-         downloader: ImageDownloading) {
+         downloader: ImageDownloading,
+         savePanel: FileSavePresenting = SystemSavePanel(),
+         clipboard: ClipboardWriting = SystemClipboard()) {
         self.client = client
         self.keyProvider = keyProvider
         self.database = database
         self.wallpaperEngine = wallpaperEngine
         self.downloader = downloader
+        self.savePanel = savePanel
+        self.clipboard = clipboard
         // 以当前（默认）筛选键打底：启动时若 page/seed 之类的字段被改一次，onChange 也会触发
         // scheduleFilterReload，此时 filterKey 并未变化，靠这个初值直接拦掉，避免多打一次搜索请求。
         lastFilterKey = query.filterKey
@@ -54,6 +60,15 @@ final class BrowseViewModel {
         } catch {
             loadState = .failed(error.localizedDescription)
         }
+    }
+
+    /// 详情页点标签 / 「更多类似」：用 `+tag` 表达式回到第 1 页重查（多词标签的空格必须原样保留）。
+    func search(_ text: String) {
+        query.q = text
+        query.page = 1
+        // 同步防抖基准：否则随后一次筛选变更会因为 filterKey 与基准不一致而多打一次请求。
+        lastFilterKey = query.filterKey
+        Task { await reload() }
     }
 
     func nextPage() async {
@@ -169,6 +184,20 @@ final class BrowseViewModel {
     func removeFavorite(id: String) {
         try? database.removeFavorite(id: id)
         favoriteIDs.remove(id)
+    }
+
+    /// 详情页状态工厂：把本视图持有的领域协议注入 `DetailViewState`。
+    /// 放在这里是为了不动 `IHavenApp.swift` 的装配代码；`DetailViewState` 侧只见协议（ARCH §4）。
+    func makeDetailState(wallpaper: Wallpaper) -> DetailViewState {
+        DetailViewState(wallpaper: wallpaper,
+                        client: client,
+                        engine: wallpaperEngine,
+                        downloader: downloader,
+                        savePanel: savePanel,
+                        clipboard: clipboard) { [weak self] item, file in
+            self?.recordApplied(id: item.id, thumbnailURL: item.thumbs.small, originalURL: item.path,
+                                localPath: file.path, width: item.width, height: item.height)
+        }
     }
 
     /// 清空全部筛选维度（工具栏「清除全部筛选」）。保留当前分类（由侧栏控制）。

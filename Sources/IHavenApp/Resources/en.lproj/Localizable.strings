@@ -66,6 +66,28 @@
 "重新设为壁纸" = "Set as wallpaper again";
 "从已设置中移除" = "Remove from Applied";
 
+// MARK: - 壁纸详情页（/wall/:id）
+
+"设为壁纸" = "Set as Wallpaper";
+"正在设置…" = "Setting…";
+"下载原图" = "Download Original";
+"正在下载…" = "Downloading…";
+"属性" = "Properties";
+"标签" = "Tags";
+"更多类似" = "More Like This";
+"大小" = "Size";
+"浏览" = "Views";
+"上传者" = "Uploader";
+"时间" = "Added";
+"一般" = "General";
+"已复制链接" = "Link Copied";
+"返回" = "Back";
+"显示 / 隐藏信息栏" = "Show or Hide the Inspector";
+"适合窗口" = "Fit to Window";
+"1:1" = "1:1";
+"这张图暂时取不回来" = "This image can't be fetched right now";
+"重试" = "Retry";
+
 // MARK: - 设置面板
 
 "密钥" = "API Key";

@@ -55,7 +55,8 @@ func browseFilterChips(query: BrowseQuery, onClear: @escaping () -> Void) -> som
             Text(chip)
                 .font(IHaven.Font.system(.xs, IHaven.Font.weightEmphasize))
                 .padding(.horizontal, 10).padding(.vertical, 4)
-                .foregroundStyle(IHaven.Color.accent)
+                // DESIGN v4.2：accent 在 accent.opacity(0.12) 底上对比度只有 3.20:1（浅色），不达标；accentHover 为 4.64:1。
+                .foregroundStyle(IHaven.Color.accentHover)
                 .background(IHaven.Color.accent.opacity(0.12), in: Capsule())
                 .overlay(Capsule().stroke(IHaven.Color.accent.opacity(0.34)))
         }
@@ -66,6 +67,69 @@ func browseFilterChips(query: BrowseQuery, onClear: @escaping () -> Void) -> som
             .buttonStyle(.plain)
         }
     }
+}
+
+/// 工具栏图标按钮：28×28 + 圆角 6 + 1px 描边，hover 补 `void` 底（工具栏与详情页页头条共用）。
+/// 提成类型而不是函数：hover 态要 `@State`，函数返回值里挂不住。
+struct BrowseIconButton: View {
+    let systemName: String
+    var help: LocalizedStringKey = ""
+    var action: () -> Void
+    @State private var hovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: IHaven.Icon.sm))
+                .frame(width: 28, height: 28)
+                .background(hovered ? IHaven.Color.void : SwiftUI.Color.clear,
+                            in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).stroke(IHaven.Color.border))
+        .help(help)
+        .onHover { hovered = $0 }
+    }
+}
+
+/// 「筛选」按钮：线稿固定 76×28，系统 `Label` + `.controlSize(.small)` 只有 62×22.7，故自绘底+描边。
+@MainActor
+func browseFilterButton(isPresented: Binding<Bool>,
+                        viewModel: BrowseViewModel,
+                        onOpenContentSettings: @escaping () -> Void) -> some View {
+    Button { isPresented.wrappedValue = true } label: {
+        HStack(spacing: 6) {
+            Image(systemName: "line.3.horizontal.decrease").font(.system(size: 11))
+            Text("筛选").font(IHaven.Font.system(.md, IHaven.Font.weightEmphasize))
+        }
+        .padding(.horizontal, 12)
+        .frame(width: 76, height: 28)
+        .background(IHaven.Color.surface, in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue))
+        .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).stroke(IHaven.Color.border))
+        .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    // 关闭回调只收起 popover：筛选即时生效（FilterView 内 150ms 防抖已回到第 1 页重查），再 reload 会重复请求。
+    .popover(isPresented: isPresented, arrowEdge: .bottom) {
+        FilterView(viewModel: viewModel, onOpenContentSettings: onOpenContentSettings) {
+            isPresented.wrappedValue = false
+        }
+    }
+}
+
+/// 工具栏搜索框（280×28）。
+@MainActor
+func browseSearchField(text: Binding<String>, onSubmit: @escaping () -> Void) -> some View {
+    HStack(spacing: 6) {
+        Image(systemName: "magnifyingglass").foregroundStyle(IHaven.Color.meta)
+        TextField("搜索壁纸、标签、上传者", text: text)
+            .textFieldStyle(.plain).onSubmit(onSubmit)
+    }
+    .padding(.horizontal, IHaven.Space.s4.rawValue)
+    .frame(width: 280, height: 28)
+    .background(IHaven.Color.surface, in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue))
+    .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).stroke(IHaven.Color.border))
 }
 
 /// 未实现功能的占位态（动态壁纸 / 导入）。
