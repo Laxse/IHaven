@@ -16,7 +16,6 @@ struct DetailView: View {
 
     @State private var state: DetailViewState
     @State private var inspectorVisible = true
-    @State private var zoom: DetailZoom = .fit
     /// 键盘入口依赖焦点：`onKeyPress` 只在被聚焦的子树上触发，故进入详情页时主动把焦点落在根视图。
     @FocusState private var rootFocused: Bool
 
@@ -43,9 +42,10 @@ struct DetailView: View {
             header
             HStack(spacing: 0) {
                 DetailImageView(wallpaper: wallpaper,
-                                failed: state.detailFailed,
-                                onRetry: { Task { await state.retryDetail() } },
-                                zoom: $zoom)
+                                failure: state.detailFailure,
+                                message: state.detailMessage,
+                                retryable: state.detailRetryable,
+                                onRetry: { Task { await state.retryDetail() } })
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 Rectangle().fill(IHaven.Color.border).frame(width: 1)
                 if inspectorVisible {
@@ -98,9 +98,8 @@ struct DetailView: View {
     private func handle(_ press: KeyPress) -> KeyPress.Result {
         switch press.key {
         case .escape:
-            // 分层：先在 1:1 就退回「适合窗口」，否则才关闭详情页。
-            if zoom == .actual { zoom = .fit } else { onClose() }
-            return .handled
+            // 不再有缩放档位：大图恒为「完整显示」，Esc 没有中间层可退，直接关闭详情页。
+            onClose(); return .handled
         case .leftArrow:
             step(-1); return .handled
         case .rightArrow:
