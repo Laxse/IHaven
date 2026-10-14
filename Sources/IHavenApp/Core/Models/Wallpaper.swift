@@ -31,6 +31,14 @@ public struct Wallpaper: Codable, Identifiable, Sendable, Hashable {
         public let small: URL?
     }
 
+    /// 等比缩略图 URL。
+    ///
+    /// ⚠️ `thumbs` 三档里**只有 `original` 保持原图比例**（长边 ≤300px，实测 8 份样本）。
+    /// `large` 恒 **432×243**、`small` 恒 **300×200** —— 都是固定比例的**硬裁件**，与原图比例
+    /// 无关：竖图 3805×5700 的 `large` 同样是一张 432×243 的横图（2026-10-15 `sips` 实测）。
+    /// 所以任何「按原图比例显示」的地方都必须走 `original`，用另两档必然被裁。
+    public var aspectThumb: URL? { thumbs.original }
+
     private enum CodingKeys: String, CodingKey {
         case id, url
         case shortURL = "short_url"

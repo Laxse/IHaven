@@ -223,15 +223,20 @@ private enum MockData {
     /// 实际像素却是横的 —— 结果就是「竖图看起来被裁掉/拉伸」（`.fill` 裁上下，`.fit` 缩成一条）。
     static func image(path: String) -> Data {
         let name = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
-        let longEdge: Int
-        if path.hasPrefix("/wallpaper/") { longEdge = 1920 }
-        else if path.contains("/orig/") { longEdge = 960 }
-        else if path.contains("/large/") { longEdge = 640 }
-        else { longEdge = 480 }
-        let (w, h) = scaled(shapes[index(of: name) % shapes.count], longEdge: longEdge)
+        let shape = shapes[index(of: name) % shapes.count]
+        // ⚠️ 尺寸必须照真实 CDN 的行为（2026-10-15，8 份样本 `sips` 量像素）：
+        // `/orig/` 是**等比**缩略图（长边 ≤300）；`/large/` 恒 432×243、`/small/` 恒 300×200，
+        // 二者都是**固定比例硬裁件**，与原图比例无关。把三档一律做成等比的话，mock 会把
+        // 「选错缩略图档位 → 竖图被裁成横条」这类真实缺陷直接掩盖掉（上一轮就是这么漏的）。
+        let pixels: (w: Int, h: Int)
+        if path.hasPrefix("/wallpaper/") { pixels = scaled(shape, longEdge: 1920) }
+        else if path.contains("/orig/") { pixels = scaled(shape, longEdge: 300) }
+        else if path.contains("/large/") { pixels = (432, 243) }
+        else if path.contains("/small/") { pixels = (300, 200) }
+        else { pixels = scaled(shape, longEdge: 480) }     // 头像等
         let n = name.unicodeScalars.reduce(0) { $0 + Int($1.value) }
         let c = palettes[n % palettes.count]
-        return jpegGradient(width: w, height: h, r: c.r, g: c.g, b: c.b)
+        return jpegGradient(width: pixels.w, height: pixels.h, r: c.r, g: c.g, b: c.b)
     }
 
     /// 按长边等比缩放并保持原比例。

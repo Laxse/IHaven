@@ -128,26 +128,34 @@ struct BrowseView: View {
     }
 
     // MARK: - 主内容区
-    @ViewBuilder
+
+    /// ⚠️ **详情页是 overlay 盖在主区上，不是 `if/else` 二选一** —— 这是「详情页返回后滚动条
+    /// 跑到顶上」的根因。`if/else` 会在进入详情那一刻把 `searchContent` 的 `ScrollView`
+    /// **整个从视图树上摘掉**，`detail = nil` 返回时只能新建一棵，而新建的 ScrollView 偏移恒为 0，
+    /// 于是无论之前滚到哪里都回到顶部。改成 overlay 后底层 ScrollView 自始至终没离开过视图树，
+    /// 偏移原样保留；详情页自己是不透明整块，视觉上与「换了页」完全一致。
     private var mainArea: some View {
-        if let detail {
-            detailPage(detail)
-        } else {
-            VStack(spacing: 0) {
-                switch nav {
-                case .favorites: favoritesContent
-                case .wallpaperSet:
-                    AppliedWallpapersView(viewModel: viewModel, onDiscover: { select(.discover) }, onMessage: { showToast($0) })
-                case .live, .import: browsePlaceholder(item: nav)
-                default: searchContent
-                }
+        VStack(spacing: 0) {
+            switch nav {
+            case .favorites: favoritesContent
+            case .wallpaperSet:
+                AppliedWallpapersView(viewModel: viewModel, onDiscover: { select(.discover) }, onMessage: { showToast($0) })
+            case .live, .import: browsePlaceholder(item: nav)
+            default: searchContent
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(IHaven.Color.bg)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(IHaven.Color.bg)
+        .overlay {
+            if let detail {
+                detailPage(detail)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(IHaven.Color.bg)
+            }
         }
     }
 
-    /// 详情页（二级页面）。`.id` 让切换壁纸时整体重建：详情请求、大图、缩放档位都要跟着换。
+    /// 详情页（二级页面）。`.id` 让切换壁纸时整体重建：详情请求、大图都要跟着换。
     private func detailPage(_ wallpaper: Wallpaper) -> some View {
         DetailView(wallpaper: wallpaper,
                    context: viewModel.wallpapers,

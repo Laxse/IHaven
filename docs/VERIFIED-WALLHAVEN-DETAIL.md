@@ -101,9 +101,9 @@ key-set same: True
 | `data.created_at` | String(19) | `String` | `"2026-09-22 07:53:43"`，空格分隔，**无时区后缀**。时区**文档未写明** | 照常 |
 | `data.colors` | [String] | `[String]` | **恒为 5 个**，带 `#` 前缀小写 hex：`["#000000","#424153",...]`（8/8 样本） | 照常 |
 | `data.path` | URL String | `URL` | **原图直链**，实测恒含 `/full/`：`https://w.wallhaven.cc/full/je/wallhaven-jel1jq.jpg` | 照常 |
-| `data.thumbs.large` | URL String | `URL?` | 大缩略图 `https://th.wallhaven.cc/lg/<2char>/<id>.<ext>` | 照常 |
-| `data.thumbs.original` | URL String | `URL?` | 原始缩略图 `.../orig/...` | 照常 |
-| `data.thumbs.small` | URL String | `URL?` | 小缩略图 `.../small/...` | 照常 |
+| `data.thumbs.large` | URL String | `URL?` | `https://th.wallhaven.cc/lg/<2char>/<id>.<ext>`。**注意：恒 432×243，是固定 16:9 硬裁件，不是等比缩略图** —— 见 §缩略图三档实测像素 | 照常 |
+| `data.thumbs.original` | URL String | `URL?` | `.../orig/...`。**注意：三档里唯一的等比缩略图**（长边 ≤300px） | 照常 |
+| `data.thumbs.small` | URL String | `URL?` | `.../small/...`。**注意：恒 300×200，是固定 3:2 硬裁件** | 照常 |
 | `data.uploader.username` | String | `String` | 上传者用户名，如 `jrmnt` | 照常返回 |
 | `data.uploader.group` | String | `String` | 实测仅见 `"User"`。**完整取值域文档未写明，不得枚举硬编码** | 照常 |
 | `data.uploader.avatar.200px` | URL String | `URL` | 头像 200px | 照常 |
@@ -117,6 +117,29 @@ key-set same: True
 | `data.tags[].category` | String | `String` | 标签分类名，如 `"Art & Design"` / `"Digital"` | 照常 |
 | `data.tags[].purity` | String | `String` | 标签自身纯度：`sfw` / `sketchy` / `nsfw` | 照常 |
 | `data.tags[].created_at` | String | `String` | 标签创建时间，同为 `"YYYY-MM-DD HH:mm:ss"` | 照常 |
+
+### 缩略图三档实测像素（2026-10-15，`curl` 下载 + `sips -g pixelWidth -g pixelHeight`）
+
+**结论：只有 `thumbs.original` 保持原图比例；`large` / `small` 是固定比例硬裁件。**
+
+| id | 原图 `dimension_x × dimension_y` | `large` | `original` | `small` |
+| --- | --- | --- | --- | --- |
+| `3q7vzy` | 4016 × 6016（竖） | 432 × 243 | 200 × 300 | 300 × 200 |
+| `5ypv78` | 3805 × 5700（竖） | 432 × 243 | 200 × 300 | 300 × 200 |
+| `d8vjpo` | 3709 × 6591（竖） | 432 × 243 | 169 × 300 | 300 × 200 |
+| `vp2j93` | 3840 × 2160（16:9） | 432 × 243（恰好对） | 300 × 169 | 300 × 200 |
+| `rqe9dj` | 6887 × 3876（16:9） | 432 × 243（恰好对） | 300 × 169 | 300 × 200 |
+| `8g8wqy` | 2370 × 1000（21:9） | 432 × 243 | 300 × 127 | 300 × 200 |
+| `jeljgy` | 3440 × 1440（21:9） | 432 × 243 | 300 × 126 | 300 × 200 |
+| `lygo7y` | 3840 × 1646（21:9） | 432 × 243 | 300 × 129 | 300 × 200 |
+
+- `large`：8/8 样本**恒 432×243**，与原图比例无关 —— 竖图被裁成 16:9 横图，超宽图被压成 16:9。
+- `small`：8/8 样本**恒 300×200**，同理是 3:2 硬裁件。
+- `original`：长边**恒 ≤300**（短边按原图比例），8/8 样本比例与原图一致。体积 12–27 KB。
+- `path`（原图直链）：实测 `5ypv78` = 3805 × 5700、4,661,312 bytes —— 与 `dimension_x/y` 严格一致。
+
+**工程含义**：任何「按原图比例显示」的位置（详情大图、瀑布流卡片）都必须用 `original`；
+用 `large` / `small` 必然被裁。项目内统一走 `Wallpaper.aspectThumb`（即 `thumbs.original`），见 ADR-013。
 
 ### 结构不变量（8 份样本穷举，可直接用于 Codable 设计）
 

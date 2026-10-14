@@ -115,7 +115,7 @@ final class BrowseViewModel {
             favoriteIDs.remove(wp.id)
         } else {
             let fav = Favorite(id: wp.id,
-                              thumbnailURL: wp.thumbs.small,
+                              thumbnailURL: wp.aspectThumb,
                               originalURL: wp.path,
                               addedAt: Date())
             try? database.addFavorite(fav)
@@ -195,7 +195,7 @@ final class BrowseViewModel {
                         downloader: downloader,
                         savePanel: savePanel,
                         clipboard: clipboard) { [weak self] item, file in
-            self?.recordApplied(id: item.id, thumbnailURL: item.thumbs.small, originalURL: item.path,
+            self?.recordApplied(id: item.id, thumbnailURL: item.aspectThumb, originalURL: item.path,
                                 localPath: file.path, width: item.width, height: item.height)
         }
     }
@@ -220,7 +220,7 @@ final class BrowseViewModel {
         do {
             let file = try await downloader.download(wp.path)
             try wallpaperEngine.setWallpaper(fileURL: file, for: nil, mode: .fill, fillColor: nil)
-            recordApplied(id: wp.id, thumbnailURL: wp.thumbs.small, originalURL: wp.path,
+            recordApplied(id: wp.id, thumbnailURL: wp.aspectThumb, originalURL: wp.path,
                           localPath: file.path, width: wp.width, height: wp.height)
             return nil
         } catch {

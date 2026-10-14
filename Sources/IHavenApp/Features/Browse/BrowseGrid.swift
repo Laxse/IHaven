@@ -105,7 +105,9 @@ struct WallpaperCard: View {
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .bottom) {
-                ThumbnailImage(url: wallpaper.thumbs.small)
+                // 等比缩略图：`thumbs.small` 恒 300×200 硬裁件，配按声明比例算出的卡片框
+                // 会把竖图裁成一条（瀑布流里每张竖图都中招）。
+                ThumbnailImage(url: wallpaper.aspectThumb)
                     .frame(width: geo.size.width, height: geo.size.height)
                     .clipped()
                     // 手势挂在**缩略图层**而不是整卡：hover 浮层里的「收藏 / 设为壁纸」在它上层，

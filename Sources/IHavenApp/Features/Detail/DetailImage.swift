@@ -14,8 +14,13 @@ import SwiftUI
 /// 另外「适合窗口」原先还兜了一个 0.35 的缩放下限（本意是让超宽图别缩得太小），结果下限一兜
 /// 图就溢出可视区、变成裁切 —— 与 1:1 犯的是同一个错。**任何兜底倍率都会破坏「完整显示」。**
 ///
-/// 预览用 `thumbs.large`（秒开，缓存已预热）；原图 `path` 5–20MB，预览不需要，
-/// 要看全尺寸走「下载原图」。
+/// 图源：原图 `path` 到货前先出 `thumbs.original` 低清占位（长边 ≤300px，秒开且**比例正确**），
+/// 到货后原地替换。最终显示的像素与 `wallpaper.width/height` 严格同源，`displayFrame` 才算得准。
+///
+/// ⚠️ **为什么不能拿 `thumbs.large` 当预览**（实测 2026-10-15，8 份样本 `sips` 量像素）：
+/// `large` 恒为 **432×243**、`small` 恒为 **300×200** —— 二者都是固定比例的**硬裁件**，与原图
+/// 比例无关（竖图 3805×5700 的 `large` 也是 432×243 横图）。只有 `original` 是等比缩略图。
+/// 这是「竖向图在详情页居中但尺寸不对、像被裁掉」的根因：竖框里塞一张硬裁的横图。
 struct DetailImageView: View {
     let wallpaper: Wallpaper
     /// 详情请求失败的分类：`gone`（404）→ 整块失败态；`transient` → 图照常渲染 + 顶部提示条。
@@ -77,13 +82,13 @@ struct DetailImageView: View {
             // 壁纸已下架：没有内容可渲染，整块失败态（文案来自 `APIError.notFound`）。
             failureView(message: message, retryable: retryable) { onRetry() }
         } else {
-            LazyImage(url: wallpaper.thumbs.large) { state in
+            // 最终显示的是**原图** `path`：与 `wallpaper.width/height` 同源，所以 `displayFrame`
+            // 算出来的框和真实像素比例一致 —— 竖图就是竖框配竖像素，不会被压成一条横带。
+            LazyImage(url: wallpaper.path) { state in
                 if let image = state.image {
-                    // ⚠️ 必须是 `.fit` 而不是 `.fill`：框的尺寸是按 `wallpaper.width/height`
-                    // （**声明的**原图尺寸）算的，实际像素来自 `thumbs.large`。两者只要比例不一致
-                    // （例如 mock 给错尺寸的字节、或某个缩略图比例与原图不符），`.fill` 会直接
-                    // 裁掉超出部分 —— 而本视图的硬要求是「完整显示、绝不裁切」。
-                    // 比例一致时两者画出来完全一样，所以 `.fit` 是无代价的保险。
+                    // ⚠️ 必须是 `.fit` 而不是 `.fill`：比例一致时两者画出来一样，但一旦某个源的
+                    // 比例与声明尺寸不符（历史上 `thumbs.large` 就是硬裁件），`.fill` 会直接
+                    // 裁掉超出部分 —— 而本视图的硬要求是「完整显示、绝不裁切」。无代价的保险。
                     image.resizable().aspectRatio(contentMode: .fit)
                         .frame(width: frame.width, height: frame.height)
                 } else if state.error != nil {
@@ -92,10 +97,23 @@ struct DetailImageView: View {
                         reloadToken += 1
                     }
                 } else {
-                    skeleton(frame: frame)
+                    lowResPreview(frame: frame)
                 }
             }
             .id(reloadToken)
+        }
+    }
+
+    /// 原图到货前的低清占位：**必须**用 `thumbs.original`（等比、长边 ≤300px），
+    /// 用 `large` / `small` 会在原图到货前闪一下被硬裁的比例（竖图上最明显）。
+    private func lowResPreview(frame: CGSize) -> some View {
+        LazyImage(url: wallpaper.aspectThumb) { state in
+            if let image = state.image {
+                image.resizable().aspectRatio(contentMode: .fit)
+                    .frame(width: frame.width, height: frame.height)
+            } else {
+                skeleton(frame: frame)
+            }
         }
     }
 
@@ -128,9 +146,10 @@ struct DetailImageView: View {
 
     /// 目标尺寸：`min(宽比, 高比)` 等比缩放，封顶 1（小图不放大到糊）。
     ///
-    /// 宽高哪个方向更紧就自适应哪个 —— 这就是「完整显示」的全部实现。注意 `wallpaper.width/height`
-    /// 是**原图**尺寸，而这里渲染的是 `thumbs.large`：原图 4K 而容器 ~1000pt 时缩放系数 < 1，
-    /// 缩略图被进一步缩小，依然清晰；只有「原图比容器还小」才会出现轻微放大。
+    /// 宽高哪个方向更紧就自适应哪个 —— 这就是「完整显示」的全部实现。
+    ///
+    /// ⚠️ `wallpaper.width/height` 必须与**最终渲染的那张图**同源，否则框按声明值算、像素来自
+    /// 另一个源，比例对不上就是裁切或压扁。这也是本视图渲染原图 `path`、而非任何缩略图的原因。
     private func displayFrame(in size: CGSize) -> CGSize {
         let width = CGFloat(wallpaper.width)
         let height = CGFloat(wallpaper.height)

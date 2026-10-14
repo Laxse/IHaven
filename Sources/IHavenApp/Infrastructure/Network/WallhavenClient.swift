@@ -39,7 +39,9 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
         do {
             let page = try JSONDecoder().decode(WallhavenPage.self, from: data)
             // ImagePipeline 层（Nuke）：结果返回即预取缩略图，避免滚动空白闪烁（ADR-001）。
-            NukeImagePipeline.prefetch(page.data.compactMap { $0.thumbs.small })
+            // 预取 `aspectThumb`（等比缩略图）：`thumbs.small` 恒为 300×200 硬裁件，
+            // 预取它等于把裁坏的图提前塞进缓存（竖图上最明显）。
+            NukeImagePipeline.prefetch(page.data.compactMap(\.aspectThumb))
             return page
         } catch {
             throw APIError.decode(error)
@@ -55,8 +57,8 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
             // 顶层是 `{"data":{…}}`（无 `meta`）：必须经 envelope 取里层对象，
             // 直接 decode(WallpaperDetail.self) 只会看到 `data` 这一个键。
             let detail = try JSONDecoder().decode(WallpaperDetailEnvelope.self, from: data).data
-            // 详情页先出大图：预取 large（而非列表用的 small），缩略图此时已命中缓存。
-            NukeImagePipeline.prefetch([detail.base.thumbs.large].compactMap { $0 })
+            // 详情页的**低清占位**先到：预取等比缩略图（列表页已预热，通常直接命中缓存）。
+            NukeImagePipeline.prefetch([detail.base.aspectThumb].compactMap { $0 })
             return detail
         } catch {
             throw APIError.decode(error)
