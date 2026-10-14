@@ -115,6 +115,8 @@ func browseFilterButton(isPresented: Binding<Bool>,
         FilterView(viewModel: viewModel, onOpenContentSettings: onOpenContentSettings) {
             isPresented.wrappedValue = false
         }
+        // 同 `.sheet`：被呈现的子树自己挂一次语言，不依赖环境从外向内传。
+        .appLocale()
     }
 }
 

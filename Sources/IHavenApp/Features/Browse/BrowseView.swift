@@ -39,6 +39,9 @@ struct BrowseView: View {
                          onClose: { showSettings = false })
                 // @State 只在首次构造时取 initialTab，换页签必须靠 id 强制重建，否则停在上一个页签。
                 .id(settingsTab)
+                // 语言要自己挂一次：被呈现的 sheet 不跟根视图的环境更新，挂上后由 sheet 自己
+                // 读偏好重注入 —— 否则主窗口切了英文、设置面板还是中文。
+                .appLocale()
         }
         .overlay(alignment: .bottom) { if let toast { browseToastView(toast) } }
     }

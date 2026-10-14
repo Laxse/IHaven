@@ -139,7 +139,9 @@ struct SettingsView: View {
         }
     }
 
-    private func swatch(_ color: SwiftUI.Color, _ name: String) -> some View {
+    /// `name` 必须是 `LocalizedStringKey`：写成 `String` 会走 `Text(_: StringProtocol)` 重载，
+    /// 编译期就固化，永远不查表 —— 切英文时这四个色名会钉在中文上。
+    private func swatch(_ color: SwiftUI.Color, _ name: LocalizedStringKey) -> some View {
         VStack(spacing: IHaven.Space.s3.rawValue) {
             RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).fill(color).frame(height: 40)
                 .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).stroke(IHaven.Color.border))

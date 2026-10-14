@@ -5,7 +5,6 @@ struct IHavenApp: App {
     @State private var keyStore = FileKeyProvider()
     @State private var browseViewModel: BrowseViewModel?
     @AppStorage(UserPreferenceKey.appearance) private var appearance: String = "system"
-    @AppStorage(UserPreferenceKey.language) private var language: String = AppLanguage.default.rawValue
 
     init() {
         // 必须早于任何 `Text` 渲染：`.lproj` 得先落到 `Bundle.main`，随后 SwiftUI 查表才查得到。
@@ -22,7 +21,7 @@ struct IHavenApp: App {
                 }
             }
             .preferredColorScheme(appearanceScheme)
-            .locale(appLocale)
+            .appLocale()
         }
         // 线稿画布 1280×800：默认窗口若只有 minWidth 880，瀑布流会退化到 2 列，观感与线稿不符。
         .defaultSize(width: 1280, height: 800)
@@ -35,12 +34,6 @@ struct IHavenApp: App {
     /// "system" → nil（跟随系统）；否则覆盖整窗外观（设置 · 外观页签）。
     private var appearanceScheme: ColorScheme? {
         switch appearance { case "light": .light; case "dark": .dark; default: nil }
-    }
-
-    /// 界面语言（设置 · 外观页签）：`.system` → nil，交给系统语言；其余覆盖整窗。
-    /// 注入 `\.locale` 后，界面上所有 `Text("…")` 字面量都会按 `Localizable.strings` 取对应语言。
-    private var appLocale: Locale? {
-        AppLanguage(rawValue: language)?.locale ?? AppLanguage.default.locale
     }
 
     /// 装配依赖：文件 KeyStore（KeyProvider/KeyStore，ADR-010）+ GRDB（WallpaperDatabase，失败降级 InMemory）
