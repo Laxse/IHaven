@@ -218,16 +218,26 @@ private enum MockData {
         return id.unicodeScalars.reduce(0) { $0 + Int($1.value) } % total
     }
 
+    /// ⚠️ 尺寸必须**跟着该条目的声明比例走**，不能写死 16:9：`shapes` 里有竖图 (1080×1920)
+    /// 和方图 (1440×1440)，而字节一律生成横向的话，详情页大图区按声明比例给出竖框、
+    /// 实际像素却是横的 —— 结果就是「竖图看起来被裁掉/拉伸」（`.fill` 裁上下，`.fit` 缩成一条）。
     static func image(path: String) -> Data {
-        let (w, h): (Int, Int)
-        if path.hasPrefix("/wallpaper/") { (w, h) = (1920, 1080) }
-        else if path.contains("/orig/") { (w, h) = (960, 540) }
-        else if path.contains("/large/") { (w, h) = (640, 360) }
-        else { (w, h) = (480, 270) }
         let name = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
+        let longEdge: Int
+        if path.hasPrefix("/wallpaper/") { longEdge = 1920 }
+        else if path.contains("/orig/") { longEdge = 960 }
+        else if path.contains("/large/") { longEdge = 640 }
+        else { longEdge = 480 }
+        let (w, h) = scaled(shapes[index(of: name) % shapes.count], longEdge: longEdge)
         let n = name.unicodeScalars.reduce(0) { $0 + Int($1.value) }
         let c = palettes[n % palettes.count]
         return jpegGradient(width: w, height: h, r: c.r, g: c.g, b: c.b)
+    }
+
+    /// 按长边等比缩放并保持原比例。
+    private static func scaled(_ shape: (w: Int, h: Int), longEdge: Int) -> (Int, Int) {
+        let s = Double(longEdge) / Double(max(shape.w, shape.h))
+        return (max(1, Int(Double(shape.w) * s)), max(1, Int(Double(shape.h) * s)))
     }
 
     /// 生成一张上深下浅的渐变 JPEG（纯进程内，无网络），用于缩略图 / 原图占位。

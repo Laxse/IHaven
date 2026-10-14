@@ -79,7 +79,12 @@ struct DetailImageView: View {
         } else {
             LazyImage(url: wallpaper.thumbs.large) { state in
                 if let image = state.image {
-                    image.resizable().aspectRatio(contentMode: .fill)
+                    // ⚠️ 必须是 `.fit` 而不是 `.fill`：框的尺寸是按 `wallpaper.width/height`
+                    // （**声明的**原图尺寸）算的，实际像素来自 `thumbs.large`。两者只要比例不一致
+                    // （例如 mock 给错尺寸的字节、或某个缩略图比例与原图不符），`.fill` 会直接
+                    // 裁掉超出部分 —— 而本视图的硬要求是「完整显示、绝不裁切」。
+                    // 比例一致时两者画出来完全一样，所以 `.fit` 是无代价的保险。
+                    image.resizable().aspectRatio(contentMode: .fit)
                         .frame(width: frame.width, height: frame.height)
                 } else if state.error != nil {
                     // 图片自身取不回来：重试只重发图片请求（id 变化即重建 LazyImage）。
