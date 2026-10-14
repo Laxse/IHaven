@@ -42,6 +42,16 @@ RES="$ROOT/Sources/IHavenApp/Resources"
 if [ -d "$RES" ]; then
     cp -R "$RES"/*.lproj "$APP/Contents/Resources/"
     echo "    lproj: $(ls "$APP/Contents/Resources" | grep '\.lproj' | tr '\n' ' ')"
+    # 防「产物与源码不同步」：两份表 key 数不一致时界面会一半英文一半中文（key 即中文原文，
+    # 缺翻译的项静默回退成中文），看起来就是「切换语言没生效」—— 这里主动报错而不是静默打包。
+    count_keys() { grep -cE '^"' "$1" || true; }
+    EN_KEYS=$(count_keys "$APP/Contents/Resources/en.lproj/Localizable.strings")
+    ZH_KEYS=$(count_keys "$APP/Contents/Resources/zh-Hans.lproj/Localizable.strings")
+    echo "    keys: en=$EN_KEYS zh-Hans=$ZH_KEYS"
+    if [ "$EN_KEYS" != "$ZH_KEYS" ]; then
+        echo "error: 两份 Localizable.strings 的 key 数不一致（en=$EN_KEYS zh-Hans=$ZH_KEYS）" >&2
+        exit 1
+    fi
 fi
 
 echo "==> [3/4] build AppIcon.icns from master PNG"

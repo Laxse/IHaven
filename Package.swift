@@ -19,9 +19,13 @@ let package = Package(
                 .product(name: "GRDB", package: "GRDB.swift"),
             ],
             path: "Sources/IHavenApp",
-            // 本地化资源（Resources/*.lproj）。用 .copy 而非 .process：.lproj 必须原样保留目录结构，
-            // 否则 Bundle 查不到对应语言的 Localizable.strings。
-            resources: [.copy("Resources")]
+            // 本地化资源。两个约束：
+            // 1. 用 .copy 而非 .process：.lproj 必须原样保留目录结构，否则 Bundle 查不到对应语言的
+            //    Localizable.strings。
+            // 2. 逐个声明 .lproj 而不是整个 `Resources` 目录：写 `.copy("Resources")` 时 SwiftPM 会
+            //    把目录名一起保留，产物是 `…bundle/Contents/Resources/Resources/zh-Hans.lproj`，
+            //    .lproj 被埋深一层，`Bundle.module` 自己都查不到（开发态补资源的来源就是它）。
+            resources: [.copy("Resources/zh-Hans.lproj"), .copy("Resources/en.lproj")]
         )
     ]
 )

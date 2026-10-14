@@ -7,6 +7,11 @@ struct IHavenApp: App {
     @AppStorage(UserPreferenceKey.appearance) private var appearance: String = "system"
     @AppStorage(UserPreferenceKey.language) private var language: String = AppLanguage.default.rawValue
 
+    init() {
+        // 必须早于任何 `Text` 渲染：`.lproj` 得先落到 `Bundle.main`，随后 SwiftUI 查表才查得到。
+        MainBundleLocalizations.materializeIfNeeded()
+    }
+
     var body: some Scene {
         WindowGroup("IHaven") {
             Group {
