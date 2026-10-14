@@ -10,10 +10,8 @@ final class GRDBWallpaperDatabase: WallpaperDatabase {
     private let db: DatabasePool
 
     init() throws {
-        let dir = try FileManager.default
-            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            .appendingPathComponent("IHaven", isDirectory: true)
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        // 路径统一走 `AppPaths.root`（ADR-015 §二）：在出现第三处硬编码之前先收敛。
+        let dir = AppPaths.root
         let dbURL = dir.appendingPathComponent("ihaven.sqlite")
 
         let pool = try DatabasePool(path: dbURL.path)
@@ -35,6 +33,23 @@ final class GRDBWallpaperDatabase: WallpaperDatabase {
                 t.column("width", .integer).notNull()
                 t.column("height", .integer).notNull()
                 t.column("appliedAt", .double).notNull()
+            }
+        }
+        // v3：本地导入项（ADR-015 §一）。静态图片与本地视频共用一张表，靠 kind 区分 ——
+        // 两者的导入管线 90% 相同，拆表等于把同一条管线写两遍（PRD 附录 A-6b 已警告）。
+        migrator.registerMigration("v3") { db in
+            try db.create(table: "imported") { t in
+                t.column("id", .text).primaryKey()
+                t.column("fileName", .text).notNull()
+                t.column("filePath", .text).notNull()
+                t.column("thumbnailPath", .text).notNull()
+                t.column("kind", .text).notNull()
+                t.column("width", .integer).notNull()
+                t.column("height", .integer).notNull()
+                t.column("duration", .double)          // 仅视频
+                t.column("fileSize", .integer).notNull()
+                t.column("seamless", .boolean)         // 仅视频：首尾帧是否连续
+                t.column("addedAt", .double).notNull()
             }
         }
         try migrator.migrate(pool)
@@ -121,6 +136,61 @@ final class GRDBWallpaperDatabase: WallpaperDatabase {
                         id: (row["id"] as String?) ?? "",
                         thumbnailURL: (row["thumbnailURL"] as String?).flatMap { URL(string: $0) },
                         originalURL: URL(string: (row["originalURL"] as String?) ?? "") ?? URL(fileURLWithPath: "/"),
+                        addedAt: Date(timeIntervalSince1970: (row["addedAt"] as Double?) ?? 0)
+                    )
+                }
+        }
+    }
+
+    // MARK: - 本地导入（ADR-015）
+
+    func addImported(_ item: ImportedWallpaper) throws {
+        try db.write { db in
+            try db.execute(
+                sql: """
+                INSERT OR REPLACE INTO imported
+                    (id, fileName, filePath, thumbnailPath, kind, width, height,
+                     duration, fileSize, seamless, addedAt)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?)
+                """,
+                arguments: [
+                    item.id,
+                    item.fileName,
+                    item.filePath,
+                    item.thumbnailPath,
+                    item.kind.rawValue,
+                    item.width,
+                    item.height,
+                    item.duration,
+                    item.fileSize,
+                    item.seamless,
+                    item.addedAt.timeIntervalSince1970,
+                ]
+            )
+        }
+    }
+
+    func removeImported(id: String) throws {
+        try db.write { db in
+            try db.execute(sql: "DELETE FROM imported WHERE id = ?", arguments: [id])
+        }
+    }
+
+    func imported() throws -> [ImportedWallpaper] {
+        try db.read { db in
+            try Row.fetchAll(db, sql: "SELECT * FROM imported ORDER BY addedAt DESC")
+                .map { row -> ImportedWallpaper in
+                    ImportedWallpaper(
+                        id: (row["id"] as String?) ?? "",
+                        fileName: (row["fileName"] as String?) ?? "",
+                        filePath: (row["filePath"] as String?) ?? "",
+                        thumbnailPath: (row["thumbnailPath"] as String?) ?? "",
+                        kind: ImportedKind(rawValue: (row["kind"] as String?) ?? "") ?? .image,
+                        width: (row["width"] as Int?) ?? 0,
+                        height: (row["height"] as Int?) ?? 0,
+                        duration: row["duration"] as Double?,
+                        fileSize: (row["fileSize"] as Int?) ?? 0,
+                        seamless: row["seamless"] as Bool?,
                         addedAt: Date(timeIntervalSince1970: (row["addedAt"] as Double?) ?? 0)
                     )
                 }

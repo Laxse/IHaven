@@ -69,30 +69,6 @@ func browseFilterChips(query: BrowseQuery, onClear: @escaping () -> Void) -> som
     }
 }
 
-/// 工具栏图标按钮：28×28 + 圆角 6 + 1px 描边，hover 补 `void` 底（工具栏与详情页页头条共用）。
-/// 提成类型而不是函数：hover 态要 `@State`，函数返回值里挂不住。
-struct BrowseIconButton: View {
-    let systemName: String
-    var help: LocalizedStringKey = ""
-    var action: () -> Void
-    @State private var hovered = false
-
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: IHaven.Icon.sm))
-                .frame(width: 28, height: 28)
-                .background(hovered ? IHaven.Color.void : SwiftUI.Color.clear,
-                            in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue))
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).stroke(IHaven.Color.border))
-        .help(help)
-        .onHover { hovered = $0 }
-    }
-}
-
 /// 「筛选」按钮：线稿固定 76×28，系统 `Label` + `.controlSize(.small)` 只有 62×22.7，故自绘底+描边。
 @MainActor
 func browseFilterButton(isPresented: Binding<Bool>,
@@ -131,17 +107,6 @@ func browseSearchField(text: Binding<String>, onSubmit: @escaping () -> Void) ->
     .frame(width: 280, height: 28)
     .background(IHaven.Color.surface, in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue))
     .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).stroke(IHaven.Color.border))
-}
-
-/// 未实现功能的占位态（动态壁纸 / 导入）。
-@MainActor
-func browsePlaceholder(item: NavItem) -> some View {
-    VStack(spacing: 12) {
-        Image(systemName: item.icon).font(.system(size: 40)).foregroundStyle(IHaven.Color.meta)
-        Text(item.label).font(IHaven.Font.system(.lg, IHaven.Font.weightEmphasize)).foregroundStyle(IHaven.Color.fg)
-        Text("此功能将在后续版本提供。").font(IHaven.Font.system(.md)).foregroundStyle(IHaven.Color.muted)
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
 }
 
 /// 状态栏（32px，chrome 底 + 顶部 1px hairline）。移出 BrowseView 只为守住 ADR-009 的 300 行上限。

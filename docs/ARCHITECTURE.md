@@ -217,7 +217,7 @@ IHaven/
     AppDelegate.swift生命周期
     AppEnvironment.swift         依赖注入容器
   Core/
-    Models/                纯值类型（Wallpaper / Filter / Assignment）
+    Models/                纯值类型（Wallpaper / Filter / Assignment / ImportedWallpaper / AppInfo / AppPaths）
     Protocols/             领域协议定义
     Extensions/
   Features/
@@ -227,6 +227,9 @@ IHaven/
     Assign/                多屏分配
     Editor/                动态壁纸编辑器（V3）
     Settings/
+    Import/                本地图片导入（F8，ADR-015）
+    DynamicWallpaper/      本地视频库 + 播放控制（F9，ADR-015）
+    Shared/                跨 Feature 复用件（MasonryView / BrowseIconButton / ThumbnailImage）
   Infrastructure/
     Database/
       Database.swift         DatabasePool 装配
@@ -242,6 +245,10 @@ IHaven/
     Image/
       ImagePipeline.swift   Nuke 配置
       ImagePrefetcher.swift
+    LocalLibrary/
+      LocalImportService.swift  导入管线（F8/F9 共用唯一入口，ADR-015）
+    Media/
+      AVMediaProbe.swift       探测 + 缩略图/首帧产出（ADR-015）
     Security/
       FileKeyStore.swift        ~/.ihaven/apikey（ADR-010）
       KeychainStore.swift       已旁路，保留待签名稳定后启用
@@ -252,11 +259,15 @@ IHaven/
       WallpaperEngine.swift  协议
       SystemWallpaperEngine.swift  静态壁纸（NSWorkspace）
       DynamicWallpaperEngine.swift  动态壁纸（AVFoundation）
-      WallpaperWindow.swift          桌面层窗口
-      DynamicWallpaperService.swift  XPC helper（V2）
+      DesktopWallpaperWindow.swift 桌面层窗口工厂
+      DynamicWallpaperService.swift  XPC helper（V2，本轮延后，见 ADR-015 §五）
     Screen/
       ScreenWatcher.swift
       DisplayTopology.swift
+    System/
+      SystemSavePanel.swift
+      SystemClipboard.swift
+      SystemFileImportPanel.swift  本地文件选择面板（F8）
     Media/
       VideoExporter.swift
       VideoFormatProbe.swift

@@ -8,6 +8,7 @@ import Foundation
 final class InMemoryWallpaperDatabase: WallpaperDatabase, @unchecked Sendable {
     private var store: [String: Favorite] = [:]
     private var appliedStore: [String: AppliedWallpaper] = [:]
+    private var importedStore: [String: ImportedWallpaper] = [:]
     private let lock = NSLock()
 
     func addFavorite(_ fav: Favorite) throws { lock.withLock { store[fav.id] = fav } }
@@ -21,5 +22,11 @@ final class InMemoryWallpaperDatabase: WallpaperDatabase, @unchecked Sendable {
     func removeApplied(id: String) throws { lock.withLock { _ = appliedStore.removeValue(forKey: id) } }
     func applied() throws -> [AppliedWallpaper] {
         lock.withLock { Array(appliedStore.values).sorted { $0.appliedAt > $1.appliedAt } }
+    }
+
+    func addImported(_ item: ImportedWallpaper) throws { lock.withLock { importedStore[item.id] = item } }
+    func removeImported(id: String) throws { lock.withLock { _ = importedStore.removeValue(forKey: id) } }
+    func imported() throws -> [ImportedWallpaper] {
+        lock.withLock { Array(importedStore.values).sorted { $0.addedAt > $1.addedAt } }
     }
 }

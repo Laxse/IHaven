@@ -6,6 +6,9 @@ struct BrowseView: View {
     let keyStore: KeyStore
     /// 设置面板（关于页复制微信号）用；实现由 `IHavenApp.bootstrap()` 装配注入（ARCH §4）。
     let clipboard: ClipboardWriting
+    /// 本地库（导入图片 / 本地视频）。F8 与 F9 共用同一个实例：导入管线只有一份
+    /// （PRD 附录 A-6b），两个页签只是按 `kind` 过滤出不同子集。
+    @Bindable var library: LocalLibraryViewModel
 
     @State private var showFilter = false
     @State private var showSettings = false
@@ -16,12 +19,14 @@ struct BrowseView: View {
     @State private var toast: String?
     /// 详情页：非 nil 即进入二级页面（`←` / `→` 在 `viewModel.wallpapers` 结果集内切换）。
     @State private var detail: Wallpaper?
+    /// 瀑布流里本地项的删除确认（与导入页同一套确认语义）。
+    @State private var pendingLocalDelete: ImportedWallpaper?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             toolbar
             HStack(spacing: 0) {
-                if showSidebar { sidebar }
+                if showSidebar { BrowseSidebar(nav: nav, onSelect: select) }
                 mainArea
             }
             // HStack 占满宽度并左对齐，避免主区内容超出窗口宽时整体居中溢出把 sidebar 挤到左缘外被裁剪。
@@ -47,6 +52,13 @@ struct BrowseView: View {
                 .appLocale()
         }
         .overlay(alignment: .bottom) { if let toast { browseToastView(toast) } }
+        .alert(item: $pendingLocalDelete) { item in
+            Alert(
+                title: Text("确定删除这个导入项？"),
+                message: Text(item.fileName),
+                primaryButton: .destructive(Text("删除")) { library.remove(item) },
+                secondaryButton: .cancel(Text("取消")))
+        }
     }
 
     // MARK: - 工具栏（52px，chrome 底 + 1px hairline）
@@ -76,60 +88,6 @@ struct BrowseView: View {
         }
     }
 
-    // MARK: - 侧栏（208px，chrome 底 + 1px hairline）
-    private var sidebar: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 2) {
-                sidebarRow(.discover)
-                sidebarDivider
-                sidebarRow(.landscape); sidebarRow(.anime); sidebarRow(.people)
-                sidebarDivider
-                sidebarRow(.favorites); sidebarRow(.wallpaperSet)
-                sidebarDivider
-                sidebarRow(.live); sidebarRow(.import)
-                sidebarDivider
-                sidebarRow(.settings)
-            }
-            .padding(.vertical, 8)
-        }
-        .frame(width: IHaven.Layout.sidebarWidth)  // 先固定宽度再填充高度，保证 ScrollView 恰好 208px、不溢出挤偏主区
-        .frame(maxHeight: .infinity)
-        .background(IHaven.Color.bgChrome)
-        .overlay(alignment: .trailing) {
-            Rectangle().fill(IHaven.Color.border).frame(width: 1)
-        }
-    }
-
-    private var sidebarDivider: some View {
-        Rectangle().fill(IHaven.Color.borderSoft).frame(height: 1)
-            .padding(.horizontal, IHaven.Space.s5.rawValue).padding(.vertical, IHaven.Space.s2.rawValue)
-    }
-
-    private func sidebarRow(_ item: NavItem) -> some View {
-        let selected = nav == item
-        return Button { select(item) } label: {
-            HStack(spacing: 10) {
-                Image(systemName: item.icon)
-                    .font(.system(size: IHaven.Icon.sm))
-                    .foregroundStyle(selected ? IHaven.Color.fg : IHaven.Color.fg2)
-                    // 固定图标槽：SF Symbol 宽窄不一，槽内居中使图标成列、标签对齐到同一 x
-                    .frame(width: 20, alignment: .center)
-                Text(item.label)
-                    .font(IHaven.Font.system(.md))
-                    .foregroundStyle(selected ? IHaven.Color.fg : IHaven.Color.fg2)
-                Spacer(minLength: 0)
-            }
-            // 行内 8pt：图标槽落在 16~36（中心 26，与工具栏开关图标同列）、标签左缘 46（线稿基准）
-            .padding(.horizontal, IHaven.Space.s4.rawValue)
-            .frame(height: IHaven.Layout.rowHeight)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .background(selected ? IHaven.Color.void : SwiftUI.Color.clear,
-                    in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue))
-        .padding(.horizontal, IHaven.Space.s4.rawValue)
-    }
-
     // MARK: - 主内容区
 
     /// ⚠️ **详情页是 overlay 盖在主区上，不是 `if/else` 二选一** —— 这是「详情页返回后滚动条
@@ -143,7 +101,10 @@ struct BrowseView: View {
             case .favorites: favoritesContent
             case .wallpaperSet:
                 AppliedWallpapersView(viewModel: viewModel, onDiscover: { select(.discover) }, onMessage: { showToast($0) })
-            case .live, .import: browsePlaceholder(item: nav)
+            case .live:
+                DynamicWallpaperView(library: library, onMessage: { showToast($0) })
+            case .import:
+                ImportView(library: library, onMessage: { showToast($0) })
             default: searchContent
             }
         }
@@ -155,6 +116,34 @@ struct BrowseView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(IHaven.Color.bg)
             }
+        }
+    }
+
+    /// 瀑布流统一网格项：网络项 + 本地导入项（PRD:697 要求两者在同一瀑布流展示，
+    /// 本地项有可区分标识）。本地项**不参与筛选与翻页** —— 筛选参数是 wallhaven 搜索参数，
+    /// 对本地文件无意义；翻页由 `nextPage()` 只推网络项。
+    private var gridItems: [WallpaperGridItem] {
+        viewModel.wallpapers.map(WallpaperGridItem.network)
+            + library.images.map(WallpaperGridItem.local)
+    }
+
+    @ViewBuilder
+    private func gridCard(_ item: WallpaperGridItem) -> some View {
+        switch item {
+        case .network(let wp):
+            WallpaperCard(wallpaper: wp,
+                          isFavorite: viewModel.favoriteIDs.contains(wp.id),
+                          onOpen: { detail = wp },
+                          onToggleFavorite: { viewModel.toggleFavorite(wp) },
+                          onSetWallpaper: { setWallpaper(wp) })
+        case .local(let local):
+            // 本地项没有网络详情页可开（详情页的字段全是 wallhaven 响应形状），
+            // 因此单击 = 直接设为壁纸，与导入页卡片的主操作一致。
+            LocalWallpaperCard(item: local,
+                               primarySystemName: "display",
+                               primaryHelp: "设为壁纸",
+                               onPrimary: { setLocalWallpaper(local) },
+                               onDelete: { pendingLocalDelete = local })
         }
     }
 
@@ -184,15 +173,11 @@ struct BrowseView: View {
             } else {
                 ScrollView {
                     VStack(spacing: 0) {
-                        MasonryView(items: viewModel.wallpapers,
+                        MasonryView(items: gridItems,
                                     spacing: IHaven.Layout.masonryGap,
                                     minColumnWidth: IHaven.Layout.masonryColMin,
-                                    aspectRatio: { CGFloat($0.width) / CGFloat($0.height) }) { wp in
-                            WallpaperCard(wallpaper: wp,
-                                          isFavorite: viewModel.favoriteIDs.contains(wp.id),
-                                          onOpen: { detail = wp },
-                                          onToggleFavorite: { viewModel.toggleFavorite(wp) },
-                                          onSetWallpaper: { setWallpaper(wp) })
+                                    aspectRatio: { $0.aspectRatio }) { item in
+                            gridCard(item)
                         }
                         .padding(IHaven.Space.s6.rawValue)
 
@@ -283,6 +268,15 @@ struct BrowseView: View {
     }
 
     private func setWallpaper(_ wp: Wallpaper) { Task { showToast((await viewModel.setAsWallpaper(wp)) ?? String(localized: "已设为壁纸")) } }
+    private func setLocalWallpaper(_ item: ImportedWallpaper) {
+        Task {
+            if let message = await library.setAsWallpaper(item) {
+                showToast(message)
+            } else {
+                showToast(String(localized: "已设为壁纸"))
+            }
+        }
+    }
     private func setWallpaperFromFavorite(_ fav: Favorite) { Task { showToast((await viewModel.setWallpaperFromFavorite(fav)) ?? String(localized: "已设为壁纸")) } }
 
     private func showToast(_ msg: String) {

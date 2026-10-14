@@ -17,4 +17,12 @@ public protocol WallpaperDatabase: Sendable {
     func removeApplied(id: String) throws
     /// 按设置时间倒序返回（最近设置的在最前）。
     func applied() throws -> [AppliedWallpaper]
+
+    // MARK: - 本地导入（F8 / F9，ADR-015）
+
+    /// 新增一条导入记录（同 id 覆盖）。
+    func addImported(_ item: ImportedWallpaper) throws
+    func removeImported(id: String) throws
+    /// 按导入时间倒序返回（最近导入的在最前）。
+    func imported() throws -> [ImportedWallpaper]
 }

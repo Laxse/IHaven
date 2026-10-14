@@ -55,7 +55,6 @@
 "当前筛选组合下没有结果。放宽分辨率或比例通常能找到更多。" = "No results for the current filters. Relaxing the resolution or aspect ratio usually finds more.";
 "清除全部筛选" = "Clear All Filters";
 "加载失败" = "Failed to load";
-"此功能将在后续版本提供。" = "This feature will arrive in a later version.";
 "还没有收藏" = "No favorites yet";
 "在瀑布流中悬停任意壁纸并点亮星标，或按 ⌘D。" = "Hover any wallpaper in the grid and light up the star, or press ⌘D.";
 "去发现壁纸" = "Discover Wallpapers";
@@ -155,3 +154,43 @@
 "微信" = "WeChat";
 "复制" = "Copy";
 "已复制" = "Copied";
+
+// MARK: - 本地导入 / 动态壁纸（F8 / F9，ADR-015）
+
+"本地图片" = "Local Images";
+"选择文件…" = "Choose Files…";
+"从访达拖入你自己的图片文件" = "Drag your own image files from Finder";
+"从访达拖入你自己的视频文件" = "Drag your own video files from Finder";
+"支持：JPEG / PNG / HEIC / WebP" = "Supported: JPEG / PNG / HEIC / WebP";
+"支持：MP4 / MOV（H.264、HEVC）" = "Supported: MP4 / MOV (H.264, HEVC)";
+"不支持：WEBM / MKV（macOS 没有原生解码器）、GIF（逐帧解码功耗与效果均不达标）" = "Not supported: WEBM / MKV (macOS has no native decoder), GIF (frame-by-frame decoding costs too much power for too little gain)";
+"导入中…" = "Importing…";
+"取消导入" = "Cancel Import";
+"%lld / %lld" = "%lld / %lld";
+"删除" = "Delete";
+"确定" = "OK";
+"取消" = "Cancel";
+"确定删除这个导入项？" = "Delete this imported item?";
+"本地" = "Local";
+"设为动态壁纸" = "Set as Dynamic Wallpaper";
+"停止动态壁纸" = "Stop Dynamic Wallpaper";
+"已停止动态壁纸" = "Dynamic wallpaper stopped";
+"正在播放" = "Playing";
+"已暂停" = "Paused";
+"播放" = "Play";
+"暂停" = "Pause";
+"恢复" = "Resume";
+"还没有导入图片" = "No imported images yet";
+"导入的图片不参与网络壁纸的筛选与翻页，点「选择文件…」或直接从访达拖入。" = "Imported images don't take part in network filters or paging. Choose files, or drag them in from Finder.";
+"还没有动态壁纸" = "No dynamic wallpapers yet";
+"动态壁纸从本地视频文件导入。支持 MP4 / MOV，不支持 WEBM / MKV / GIF。" = "Dynamic wallpapers come from local video files. MP4 / MOV supported; WEBM / MKV / GIF are not.";
+"此视频首尾帧不连续，循环时可能有明显跳变" = "The first and last frames don't match — the loop may jump visibly";
+"仍然使用" = "Use Anyway";
+"%lld 个文件不支持已跳过" = "%lld unsupported files skipped";
+"%lld 张" = "%lld items";
+"%lld 个" = "%lld items";
+"已取消导入，没有文件入库" = "Import cancelled — nothing was added";
+"%lld 个文件已导入" = "%lld files imported";
+"，其中 %lld 个视频" = ", including %lld videos";
+"，%lld 个不支持已跳过" = ", %lld unsupported skipped";
+"（已取消）" = " (cancelled)";

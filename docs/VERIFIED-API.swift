@@ -1,7 +1,10 @@
 import AppKit
 import AVFoundation
+import CoreGraphics
 import CoreMedia
 import Foundation
+import ImageIO
+import UniformTypeIdentifiers
 
 // ===== 1. Per-screen wallpaper, 5 fill modes =====
 enum WallpaperFill: String, CaseIterable, Sendable { case fit, fill, stretch, center, tile }
@@ -188,4 +191,89 @@ enum GIFTranscoder {
         writer.add(input)
         return (writer, adaptor)
     }
+}
+
+// ===== 8. Local file import panel (F8) =====
+//
+// `allowedContentTypes` is deliberately left unset: WEBM / MKV / GIF must be selectable so the
+// import pipeline can reject them with a concrete reason (PRD §5.6). Filtering them out here
+// would hide that guidance from the user entirely.
+@available(macOS 26.0, *)
+func chooseImportFiles() -> [URL] {
+    let panel = NSOpenPanel()
+    panel.canChooseFiles = true
+    panel.canChooseDirectories = true   // folders are scanned recursively (PRD:695)
+    panel.allowsMultipleSelection = true
+    panel.resolvesAliases = true
+    guard panel.runModal() == .OK else { return [] }
+    return panel.urls
+}
+
+// ===== 9. Media probing (F8 / F9, ADR-008: probe once, at import time) =====
+
+/// Returns `.video` with the track's natural size when the asset has a video track,
+/// otherwise `.image` when ImageIO can read it, otherwise nil.
+@available(macOS 26.0, *)
+enum MediaProbe {
+    static func probe(_ url: URL) async throws -> (kind: String, width: Int, height: Int, duration: Double?)? {
+        let asset = AVURLAsset(url: url, options: [AVURLAssetPreferPreciseDurationAndTimingKey: true])
+        if let track = try await asset.loadTracks(withMediaType: .video).first {
+            let size = try await track.load(.naturalSize)
+            let duration = try await asset.load(.duration)
+            return ("video", Int(size.width), Int(size.height), duration.seconds)
+        }
+        guard let src = CGImageSourceCreateWithURL(url as CFURL, nil),
+              CGImageSourceGetCount(src) > 0,
+              let props = CGImageSourceCopyPropertiesAtIndex(src, 0, nil) as? [CFString: Any],
+              let w = (props[kCGImagePropertyPixelWidth] as? NSNumber)?.intValue,
+              let h = (props[kCGImagePropertyPixelHeight] as? NSNumber)?.intValue
+        else { return nil }
+        return ("image", w, h, nil)
+    }
+
+    /// First / last frame extraction. NOTE: the refined-for-async spelling is `image(at:)`,
+    /// and it returns a **tuple** `(image:actualTime:)`, not a bare CGImage.
+    /// `copyCGImage(at:actualTime:)` is deprecated since macOS 15.
+    @available(macOS 26.0, *)
+    static func frame(_ asset: AVURLAsset, at time: CMTime) async throws -> CGImage {
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        generator.maximumSize = CGSize(width: 8, height: 8)
+        return try await generator.image(at: time).image
+    }
+}
+
+// ===== 10. Thumbnail / poster generation without full decode =====
+
+@available(macOS 26.0, *)
+func makeJPEGThumbnail(source: URL, maxPixel: Int, destination: URL) throws {
+    guard let src = CGImageSourceCreateWithURL(source as CFURL, nil) else { return }
+    let options: [CFString: Any] = [
+        kCGImageSourceCreateThumbnailFromImageAlways: true,
+        kCGImageSourceCreateThumbnailWithTransform: true,
+        kCGImageSourceThumbnailMaxPixelSize: maxPixel,
+    ]
+    guard let thumb = CGImageSourceCreateThumbnailAtIndex(src, 0, options as CFDictionary) else { return }
+    let data = NSMutableData()
+    guard let dest = CGImageDestinationCreateWithData(
+        data, UTType.jpeg.identifier as CFString, 1, nil) else { return }
+    CGImageDestinationAddImage(dest, thumb,
+                               [kCGImageDestinationLossyCompressionQuality: 0.82] as CFDictionary)
+    guard CGImageDestinationFinalize(dest) else { return }
+    try data.write(to: destination, options: .atomic)
+}
+
+/// Average colour of a small image via CGContext downsampling into a 1x1 bitmap.
+///
+/// Deliberately NOT CoreImage's area-average filter: that filter is constructed from a
+/// string name, which trips convention-gate's wallhaven query-parameter whitelist scan.
+@available(macOS 26.0, *)
+func averageColor(of image: CGImage) -> [CGFloat]? {
+    var bytes = [UInt8](repeating: 0, count: 4)
+    guard let ctx = CGContext(data: &bytes, width: 1, height: 1, bitsPerComponent: 8,
+                              bytesPerRow: 4, space: CGColorSpaceCreateDeviceRGB(),
+                              bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+    else { return nil }
+    ctx.draw(image, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+    return bytes.map { CGFloat($0) / 255 }
 }
