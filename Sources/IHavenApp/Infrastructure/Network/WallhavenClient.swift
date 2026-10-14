@@ -4,7 +4,12 @@ import Foundation
 ///
 /// 已固化的实测纪律（ADR-007 / SPEC §9.2 / §9.8 / ARCH §6.4.0）：
 /// 1. 始终发送 `Accept: application/json`（Trap 10b）—— 否则错误路径返回 HTML，JSONDecoder 误报。
-/// 2. Key 经 `X-API-Key` 头下发，**绝不作为查询参数**（旧版错误做法）；空 / 纯空白 Key 与未配置不可区分（Trap 14）。
+/// 2. Key 经 `X-API-Key` 头下发，**绝不作为查询参数**；空 / 纯空白 Key 与未配置不可区分（Trap 14）。
+///    澄清（2026-10-14 实测）：服务端**确实也接受**把 Key 放进 URL 查询串的形式 —— 详情端点实测
+///    返回 200，无效值时同样正确返回 401。所以禁令的理由是**不安全**（Key 会出现在服务器日志、
+///    `Referer` 与代理缓存里），**而不是「服务端不支持」**。**禁令本身继续有效，不得削弱。**
+///    （本行刻意不写出该查询参数名的字面形式 —— `scripts/security-gate.sh` 禁止其出现在源码中。
+///     该参数形态的实测记录见 `docs/VERIFIED-WALLHAVEN-DETAIL.md` §1。）
 /// 3. 先判 HTTP 状态码，非 2xx 走错误分支不碰 data（Trap 10）；禁止先解码再判状态码。
 /// 4. 四条全局禁令（ARCH §6.4.0）：不用 /settings 验 Key；不用 200 判 Key 有效；探测不带用户筛选；不用 data.purity 判 NSFW。
 /// 5. ratios / resolutions 为封闭枚举，非法值在构造时即抛错，绝不下发（Trap 13）。
