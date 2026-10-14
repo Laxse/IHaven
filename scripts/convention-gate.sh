@@ -67,8 +67,11 @@ fi
 # 用户侧表现为「筛选不生效」且极难自查。这里用实测通过的参数名清单兜住（实测记录见 WallhavenClient.buildURL 注释）。
 echo "[gate] 检查 wallhaven 搜索参数名（实测白名单）..."
 ALLOWED='q|purity|categories|sorting|order|topRange|atleast|resolutions|ratios|colors|page|seed'
-BAD=$(grep -rhoE 'name: "[^"]+"' Infrastructure 2>/dev/null \
-      | sed -E 's/^name: "([^"]+)"$/\1/' | sort -u \
+# [!] `name:` 前面必须不是字母：裸 `name: "` 会把 `username: "…"`、`moduleName: "…"` 这类**以 name 结尾的
+# 其它键名**也匹配进来（2026-10-14 真实误报：WallpaperDetail.Uploader 的 `username:` 被判成非法搜索参数名）。
+# 这是提高精度、不是放宽：`URLQueryItem(name: "q")` 的 `name` 前是 `(` 或空格，仍然照常被检出。
+BAD=$(grep -rhoE '(^|[^A-Za-z])name: "[^"]+"' Infrastructure 2>/dev/null \
+      | sed -E 's/^.*name: "([^"]+)"$/\1/' | sort -u \
       | grep -vE "^(${ALLOWED})$")
 if [ -n "$BAD" ]; then
   echo "[gate] FAIL 出现白名单外的搜索参数名（写错会被服务端静默忽略）:"; echo "$BAD"; FAIL=1
