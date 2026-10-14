@@ -89,3 +89,17 @@ fastlane/test_output
 # https://github.com/johnno1962/injectionforxcode
 
 iOSInjectionProject/
+
+# macOS
+.DS_Store
+.AppleDouble
+._*
+.Spotlight-V100
+.Trashes
+
+# Xcode / SwiftPM 本地配置
+.swiftpm/
+xcuserdata/
+
+# AI 工作区数据（本地开发笔记，不入版本库）
+.workbuddy/
