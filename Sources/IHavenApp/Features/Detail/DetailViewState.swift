@@ -13,7 +13,25 @@ final class DetailViewState {
 
     let wallpaper: Wallpaper
     private(set) var detail: WallpaperDetail?
-    private(set) var detailFailed = false
+    /// 详情请求失败的分类：决定大图区是「整块失败」还是「照常渲染 + 顶部提示条」。
+    ///
+    /// 分两档的理由：两个动作（下载 / 设壁纸）用的是列表项 `wallpaper.path`，**根本不依赖详情请求**，
+    /// 详情失败就把它们禁掉是纯自伤。而最常撞的失败恰恰是 429（详情与搜索共享 45 次/分钟的
+    /// 配额桶，滚动 + 进详情很容易触顶）与 `URLError`，都是瞬时的 —— 只有 404 才是真的没内容可渲染。
+    enum DetailLoadFailure: Sendable {
+        /// 404：壁纸已下架 —— 大图区整块失败态，动作与底部短链一并隐藏（给按钮也是白点）。
+        case gone
+        /// 其余：大图照常渲染 `thumbs.large`，信息栏照常用列表项兜底，动作照常可用，
+        /// 只在大图区顶部挂一条 `meta` 色提示条。
+        case transient
+    }
+
+    private(set) var detailFailure: DetailLoadFailure?
+    /// 失败文案（提示条 / 失败态共用，取 `error.localizedDescription`）。
+    private(set) var detailMessage = ""
+    /// 可否重试：**只有网络层错误（`URLError`）才给「重试」** —— 429 立刻重试必再撞限流，
+    /// 而且每次重试再扣 1 次配额（限流比重试严一档）。
+    private(set) var detailRetryable = false
     private(set) var inFlight: InFlight?
     /// 动作失败的内联错误。不进 toast：2 秒消失读不完一行错误，且 toast 里放不下「下一步」。
     var actionError: String?
@@ -46,14 +64,32 @@ final class DetailViewState {
 
     /// 详情请求。一次进入 = 一次配额（与翻页同价），结果在视图内缓存复用，绝不轮询。
     func loadDetail() async {
-        guard detail == nil, !detailFailed else { return }
-        do { detail = try await client.detail(id: wallpaper.id) } catch { detailFailed = true }
+        guard detail == nil, detailFailure == nil else { return }
+        do { detail = try await client.detail(id: wallpaper.id) } catch { classify(error) }
     }
 
-    /// 大图区失败态的「重试」：清掉失败标记后重发详情请求。
+    /// 提示条上的「重试」：清掉失败标记后重发详情请求（调用方只在 `detailRetryable` 为真时给按钮）。
     func retryDetail() async {
-        detailFailed = false
+        detailFailure = nil
+        detailRetryable = false
         await loadDetail()
+    }
+
+    /// [!] 为了区分 404，这里直接认识了 Infrastructure 的 `APIError` —— 这是 ARCH §4「Feature
+    /// 只依赖 Core」的一处破例，与之前删掉的 `SystemSavePanel` 默认值同类，只因门禁查不到才留得住。
+    /// 干净做法：让 `WallhavenClient.detail` 抛一个 Core 层的分类错误类型（要动 Infrastructure，
+    /// 不在我的文件边界内）—— 已上报，等裁定后替换掉这一个 `as?`。
+    private func classify(_ error: Error) {
+        detailMessage = error.localizedDescription
+        detailRetryable = error is URLError
+        if let api = error as? APIError {
+            switch api {
+            case .notFound: detailFailure = .gone
+            default: detailFailure = .transient
+            }
+        } else {
+            detailFailure = .transient
+        }
     }
 
     /// 设为壁纸。返回 `nil` 表示成功（由调用方弹 toast，文案复用「已设为壁纸」），否则为内联错误文案。

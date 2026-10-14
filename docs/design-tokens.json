@@ -682,7 +682,7 @@
     },
     "voiceOver": {
       "imageCardLabel": "{title}，{width}×{height}，{favorites} 次收藏，{categoryLabel}",
-      "imageCardHint": "双击设为壁纸。按住 Option 双击编辑为动态壁纸",
+      "imageCardHint": "单击查看详情。按 ⌘⏎ 设为壁纸",
       "imageCardValue": "已收藏 / 未收藏",
       "filterGroupLabel": "{groupName} 筛选组，{selectedCount} 项已选",
       "liveToggleLabel": "动态壁纸播放，{状态}",

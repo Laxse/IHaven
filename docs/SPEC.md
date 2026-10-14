@@ -340,7 +340,7 @@
 | 页面 | 路由 | 核心组件 | 对应 API | Token 主题 | 引用章节 |
 |---|---|---|---|---|---|
 | 浏览 | `/` | 瀑布流 + 筛选面板 | `search` | `color.semantic.bg` + `surface` | DESIGN §4.1 / §4.3 |
-| 详情 | `/wall/:id` | 大图 + inspector（可拖出） | `search`（单id） | `surface` + `border` | §4.4 |
+| 详情 | `/wall/:id` | 大图 + 右侧 300px inspector（可折叠） | `w/<id>`（详情端点；字段是 `search` 的超集，多 `uploader` / `tags`） | `surface` + `border` | §4.4 |
 | 多屏分配 | `/assign/:id` | 屏幕矩阵 + 裁切预览 | —（本地） | `surfaceSunken` | §4.5 / §4.5.1 |
 | 收藏 | `/favorites` | 收藏网格 | —（本地） | `surface` | 见 §8.5 待补 |
 | 本地导入 | `/import` | drop zone + 图片网格 | —（本地） | `surfaceSunken` | 见 §8.5 待补 |
@@ -369,8 +369,8 @@
 
 | 层 | 触发 | 内容 | Token 主题 |
 |---|---|---|---|
-| 壁纸详情大图 | 双击瀑布流卡片 | 全屏预览 + 设为壁纸 | `bgChrome` |
-| 下载进度 HUD | 设为壁纸时 | 进度环 + 目标屏名 | 玻璃 G2 |
+| ~~壁纸详情大图~~ | **已改为二级页面**（2026-10-14）：单击瀑布流卡片进入 `/wall/:id`，不再是弹出层。见 §8.1 详情行 | — | — |
+| 下载进度 HUD | 设为壁纸时 | **不确定态**，不是进度环：现有 `ImageFileDownloader` 一次性 `session.data(from:)`，拿不到字节进度。要真进度需改 `URLSessionDownloadDelegate`（动 Infrastructure，未排期） | 玻璃 G2 |
 | Toast | 操作反馈 | `content.microCopy` 的 `hud*` 系列 | `bgChrome` |
 | 格式转换引导 | 导入不支持格式 | §7.4.6 四态 | `danger` / `warn` |
 

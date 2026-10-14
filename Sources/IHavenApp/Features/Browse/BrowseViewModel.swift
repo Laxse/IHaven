@@ -35,8 +35,8 @@ final class BrowseViewModel {
          database: WallpaperDatabase,
          wallpaperEngine: WallpaperEngine,
          downloader: ImageDownloading,
-         savePanel: FileSavePresenting = SystemSavePanel(),
-         clipboard: ClipboardWriting = SystemClipboard()) {
+         savePanel: FileSavePresenting,
+         clipboard: ClipboardWriting) {
         self.client = client
         self.keyProvider = keyProvider
         self.database = database

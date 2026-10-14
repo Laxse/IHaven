@@ -18,16 +18,20 @@ struct DetailInspector: View {
                     resolutionBlock
                     sourceBlock
                     detailColorStrip(colors: wallpaper.colors)
-                    DetailActions(state: state, onMessage: onMessage)
+                    // 404（壁纸已下架）才隐藏操作区：其余失败都是瞬时的，两个动作走的是列表项
+                    // `wallpaper.path`、不依赖详情请求，禁掉它们是纯自伤。
+                    if !isGone { DetailActions(state: state, onMessage: onMessage) }
                     propertiesSection
                     tagsSection
                 }
                 // 左右各 16pt：300 - 32 = 268 内容宽（底部短链接条不受此限制，整宽 300）。
                 .padding(IHaven.Space.s6.rawValue)
             }
-            detailShortLinkBar(url: wallpaper.shortURL) {
-                state.copyShortURL()
-                onMessage(String(localized: "已复制链接"))
+            if !isGone {
+                detailShortLinkBar(url: wallpaper.shortURL) {
+                    state.copyShortURL()
+                    onMessage(String(localized: "已复制链接"))
+                }
             }
         }
         .frame(width: IHaven.Layout.inspectorWidth)
@@ -36,6 +40,9 @@ struct DetailInspector: View {
     }
 
     // MARK: - 区块
+
+    /// 壁纸已下架（404）：没有内容可操作，动作与短链一并隐藏。
+    private var isGone: Bool { state.detailFailure == .gone }
 
     /// 分辨率大字（22pt mono semibold，字距 -0.33）+ 副行（`PNG · 4.5 MB`）。
     private var resolutionBlock: some View {

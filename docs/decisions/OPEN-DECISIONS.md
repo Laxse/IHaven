@@ -69,4 +69,21 @@
 
 **未放宽的部分（仍然硬性）**：`probeNSFWPermission()` 与 `NSFWProbeResult` 不重建；Trap 15 / 17 继续生效；`PurityFilter` 取值与 `purity` 串下发逻辑一字未改。本次只改 UI 层是否允许勾选，不新增任何对账号权限的推断。
 
+---
+
+## 决策变更登记（2026-10-14）：「设为屏保」被再次提出并**维持不做**
+
+**背景**：用户在详情页需求中再次要求「设置为壁纸 / 屏保」，而 `docs/PRD.md` 第九节「明确不做的事」已把「屏保（Screen Saver）整合」列为 Out-of-Scope。该裁定因此被重新审视一次，**结论是维持不做**（用户确认）。
+
+**本次核实到的新事实（完整存档见 `docs/VERIFIED-SCREENSAVER.md` 与 ADR-007 Trap 20）**：
+
+1. **macOS 14 起已不存在单张图形态的屏保**。系统自带屏保全部是 ExtensionKit `.appex` 动画播放器 + 一个 `Photos` 幻灯片；幻灯片屏保的配置粒度是**目录**（`SelectedFolderPath`）而非单文件。历史上唯一能枚举/选择屏保模块的公开类 `ScreenSaverModule.h` 已从 SDK 移除。
+2. **历史 defaults 路径（写 `com.apple.screensaver moduleDict` / `com.apple.ScreenSaverPhotoChooser`）在 14+ 已失效**。Apple DTS 明确回复「no longer consults these (undocumented) user default settings」；本机实测写入可读回、但屏保不生效、系统对该 plist 零回写，`ScreenSaverEngine` 也无法被外部手动拉起。若照此实现并宣称成功，就是「点了没反应」的半功能。
+3. **macOS 26/27 确有「把当前桌面壁纸当作屏保」的一等公民开关**（`Show wallpaper as screen saver`，App Intent 里也有 `ScreenSaverModel` / `changeTheScreenSaver`），语义上正好是「单张图当屏保」。但**没有任何公开 API 可写该开关**，第三方 app 也无法执行别的 app 的 App Intent；间接路径（AppleScript 调 Shortcuts Events）需 Automation 授权，且在 ad-hoc 签名下每次重签都会让已授予的授权失效 → 用户被反复弹窗。因此只能引导，不能自动。
+4. 私有路径（改写 `com.apple.wallpaper` Store、私有 XPC）需要 `com.apple.private.wallpaper` 权限，ad-hoc 签名绝无可能，且 `WallpaperExtensionKit` 被 `scripts/security-gate.sh` 显式禁止。
+
+**裁定**：详情页操作区只提供「设为壁纸」（主）与「下载原图」（次）两个动作，**不提供任何屏保按钮**。PRD 第九节那一条 Out-of-Scope 记载继续有效。
+
+**重新评估的触发条件**（满足其一即可再议）：①Apple 提供设置屏保 / 该开关的公开 API；②出现不依赖私有权限且不触发 TCC 弹窗的可靠写入路径；③`~/Pictures` 等目录的 TCC 约束被解除，使得「复制素材 + 引导」的成本降到可接受。
+
 **新增风险**：失去「防止用户在不知情下打开 NSFW」的提示层；将来重新引入门禁需重建探测基础设施。两项均已接受，见 ADR-011「负面」小节。
