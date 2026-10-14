@@ -22,9 +22,12 @@ enum MainBundleLocalizations {
     private static let folders = ["zh-Hans.lproj", "en.lproj"]
 
     static func materializeIfNeeded() {
-        guard let from = Bundle.module.resourcePath, let to = Bundle.main.resourcePath else { return }
-        // 打包态：`Contents/Resources` 下已齐全，直接返回（不碰应用包体）。
+        // ⚠️ 顺序不能反：打包态必须在碰 `Bundle.module` **之前**就返回。
+        // `Bundle.module` 是 SwiftPM 生成的懒加载静态量，找不到 `IHavenApp_IHavenApp.bundle`
+        // 就 `fatalError`（实测：打包的 .app 启动即崩，报 "unable to find bundle named
+        // IHavenApp_IHavenApp"）。而打包态本来就不需要它 —— `Contents/Resources` 下已齐全。
         guard !Bundle.main.localizations.contains("en") else { return }
+        guard let from = Bundle.module.resourcePath, let to = Bundle.main.resourcePath else { return }
         let fm = FileManager.default
         for folder in folders {
             let src = (from as NSString).appendingPathComponent(folder)

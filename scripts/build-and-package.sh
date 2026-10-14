@@ -38,6 +38,15 @@ cp "$ROOT/Packaging/Info.plist" "$APP/Contents/Info.plist"
 
 # 本地化资源：*.lproj 必须落到 main bundle（Contents/Resources），否则设置里切换语言不会生效
 # （SwiftPM 的 Bundle.module 只服务于 swift build 直接跑，.app 是自己组装的）。
+# SwiftPM 资源 bundle：一并放进 Contents/Resources，让 `Bundle.module` 在 .app 里也能解析。
+# 少了它，任何访问 `Bundle.module` 的代码路径都会撞上生成的 `fatalError`（实测启动即崩）。
+# 界面本地化本身走的是下面复制到 Contents/Resources 的 *.lproj（Bundle.main），不依赖这个 bundle。
+SPM_BUNDLE=".build/release/${BIN}_${BIN}.bundle"
+if [ -d "$SPM_BUNDLE" ]; then
+    cp -R "$SPM_BUNDLE" "$APP/Contents/Resources/"
+    echo "    spm bundle: $(basename "$SPM_BUNDLE")"
+fi
+
 RES="$ROOT/Sources/IHavenApp/Resources"
 if [ -d "$RES" ]; then
     cp -R "$RES"/*.lproj "$APP/Contents/Resources/"
