@@ -39,20 +39,28 @@ struct IHavenApp: App {
     }
 
     /// 装配依赖：文件 KeyStore（KeyProvider/KeyStore，ADR-010）+ GRDB（WallpaperDatabase，失败降级 InMemory）
-    /// + 静态壁纸引擎（WallpaperEngine）+ 下载器（ImageDownloading）+ WallhavenClient（Network）。
+    /// + 静态壁纸引擎（WallpaperEngine）+ 下载器（ImageDownloading）+ WallhavenClient（Network）
+    /// + 存盘面板（FileSavePresenting）+ 剪贴板（ClipboardWriting）。
     /// 全部具体实现落在 Infrastructure / Platform / App，Feature 仅见 Core 协议（ARCH §4 单向依赖）。
+    /// ⚠️ 后两项必须在这里显式传入：若改由 `BrowseViewModel.init` 给默认值，Feature 层就会出现
+    /// `SystemSavePanel` / `SystemClipboard` 这两个 Platform 具体类型名，而 convention-gate 只查
+    /// Core 反向依赖与 F9，查不到这种破例 —— 它会静默腐烂。装配点唯一是硬要求。
     private func bootstrap() async {
         MockWallhaven.configureIfNeeded()   // 开发期 IHAVEN_MOCK=1 时接管请求，无需 VPN
         let client = WallhavenClient(keyProvider: keyStore)
         let database: WallpaperDatabase = (try? GRDBWallpaperDatabase()) ?? InMemoryWallpaperDatabase()
         let engine = SystemWallpaperEngine()
         let downloader = ImageFileDownloader()
+        let savePanel = SystemSavePanel()
+        let clipboard = SystemClipboard()
         browseViewModel = BrowseViewModel(
             client: client,
             keyProvider: keyStore,
             database: database,
             wallpaperEngine: engine,
-            downloader: downloader
+            downloader: downloader,
+            savePanel: savePanel,
+            clipboard: clipboard
         )
     }
 }
