@@ -7,7 +7,8 @@ import SwiftUI
 ///     会把整个面板内容撑到 384 并被 popover 居中裁掉左右各 32pt（组标题整条消失、每行左端少一项）。
 /// 这里按线稿定格：项等宽（分类/排序 72pt、分辨率 48pt，均由 288pt 均分得到），选中项药丸、未选纯文字。
 struct FilterSegmented<Value: Hashable>: View {
-    let options: [(value: Value, label: String)]
+    /// label 必须是 `LocalizedStringKey`：声明成 `String` 会把中文在编译期固化，SwiftUI 不再查表。
+    let options: [(value: Value, label: LocalizedStringKey)]
     let selection: Value
     var onSelect: (Value) -> Void
 
@@ -43,7 +44,7 @@ struct FilterSegmented<Value: Hashable>: View {
 /// 纯度三档纯文字胶囊（filter-panel.svg §2）。
 /// 线稿是纯文字、无图标的胶囊：90×28 / r6 / 11pt medium 居中，选中走 accent 淡底 + 淡描边。
 struct PurityTextChip: View {
-    let title: String
+    let title: LocalizedStringKey
     @Binding var isOn: Bool
 
     var body: some View {
@@ -86,7 +87,7 @@ struct RatioTile: View {
                     .frame(width: drawSize.width, height: drawSize.height)
                     .frame(width: Self.boxMaxWidth, height: Self.boxMaxHeight)   // 居中于最大框
                 Spacer(minLength: 0)
-                Text(group.label)
+                Text(group.localizedLabel)
                     .font(.system(size: 10))
                     .foregroundStyle(isSelected ? IHaven.Color.accentHover : IHaven.Color.muted)
             }
@@ -104,7 +105,7 @@ struct RatioTile: View {
             )
         }
         .buttonStyle(.plain)
-        .help(group.label)
+        .help(group.localizedLabel)
     }
 
     /// 把 `drawWidth:drawHeight` 等比塞进 38×26，长边贴框。
@@ -146,8 +147,11 @@ struct ExactResolutionRow: View {
     }
 
     /// 折叠态/菜单项统一文案：unspecified 显示「不限」，其余把 `1920x1080` 排成「1920 × 1080」。
-    private func title(for resolution: Resolution) -> String {
-        resolution == .unspecified ? "不限" : resolution.rawValue.replacingOccurrences(of: "x", with: " × ")
+    /// 返回 `LocalizedStringKey` 而非 `String`，否则下拉里的文案不会查 Localizable.strings。
+    private func title(for resolution: Resolution) -> LocalizedStringKey {
+        resolution == .unspecified
+            ? "不限"
+            : LocalizedStringKey(resolution.rawValue.replacingOccurrences(of: "x", with: " × "))
     }
 }
 
@@ -176,10 +180,11 @@ enum FilterPaletteCell: Hashable, Identifiable {
         }
     }
 
-    var help: String {
+    /// 悬停提示。用 `LocalizedStringKey`：`.help()` 收 `String` 时不会查表。
+    var help: LocalizedStringKey {
         switch self {
         case .none: return "不限"
-        case .hex(let hex): return "#" + hex
+        case .hex(let hex): return LocalizedStringKey("#" + hex)
         case .grayscale: return "黑白灰"
         }
     }

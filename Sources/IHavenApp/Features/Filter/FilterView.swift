@@ -13,7 +13,8 @@ struct FilterView: View {
     var onApply: () -> Void
 
     /// 最低分辨率 6 档（绑定 `atleast`，值为下发给 API 的 "WxH" 串）；线稿 6 项 × 48pt。
-    private let atleastOptions: [(label: String, value: String)] = [
+    /// label 用 `LocalizedStringKey`：存成 `String` 会在编译期固化，永远查不到 Localizable.strings。
+    private let atleastOptions: [(label: LocalizedStringKey, value: String)] = [
         ("不限", ""), ("≥1080p", "1920x1080"), ("≥1440p", "2560x1440"),
         ("≥4K", "3840x2160"), ("≥5K", "5120x2880"), ("超宽", "3440x1440")
     ]
@@ -51,7 +52,7 @@ struct FilterView: View {
 
     /// 统一组容器：11pt medium muted 标题 + 6pt 间距的无边框控件。
     @ViewBuilder
-    private func group<C: View>(_ title: String, @ViewBuilder content: () -> C) -> some View {
+    private func group<C: View>(_ title: LocalizedStringKey, @ViewBuilder content: () -> C) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
                 .font(.system(size: 11, weight: .medium))
@@ -90,8 +91,12 @@ struct FilterView: View {
     // MARK: - 1. 分类（全部 / 风景 / 动漫 / 人物，各 72pt）
 
     private var categoryGroup: some View {
-        FilterSegmented(options: [(CategoryFilter.all, "全部"), (.general, "风景"),
-                                  (.anime, "动漫"), (.people, "人物")],
+        // 元组数组字面量里的字符串会被推断成 String（泛型 + ExpressibleByStringLiteral 推不出
+        // LocalizedStringKey），故显式包一层；atleastOptions 因为声明了元素类型，字面量能正确推断。
+        FilterSegmented(options: [(value: CategoryFilter.all, label: LocalizedStringKey("全部")),
+                                  (value: .general, label: LocalizedStringKey("风景")),
+                                  (value: .anime, label: LocalizedStringKey("动漫")),
+                                  (value: .people, label: LocalizedStringKey("人物"))],
                         selection: viewModel.query.categories) { viewModel.query.categories = $0 }
     }
 
@@ -146,8 +151,10 @@ struct FilterView: View {
     // MARK: - 6. 排序（最新 / 热门 / 收藏最多 / 随机，各 72pt）
 
     private var sortingGroup: some View {
-        FilterSegmented(options: [(Sorting.dateAdded, "最新"), (.toplist, "热门"),
-                                  (.favorites, "收藏最多"), (.random, "随机")],
+        FilterSegmented(options: [(value: Sorting.dateAdded, label: LocalizedStringKey("最新")),
+                                  (value: .toplist, label: LocalizedStringKey("热门")),
+                                  (value: .favorites, label: LocalizedStringKey("收藏最多")),
+                                  (value: .random, label: LocalizedStringKey("随机"))],
                         selection: viewModel.query.sorting) { viewModel.query.sorting = $0 }
     }
 }

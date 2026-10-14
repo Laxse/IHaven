@@ -10,11 +10,14 @@ public enum APIError: LocalizedError {
 
     public var errorDescription: String? {
         switch self {
+        // 这些描述会直接显示在错误态里，故走 String(localized:) 而非裸字面量（否则固化成中文）。
         case .http(let s): return "HTTP \(s)"
-        case .decode(let e): return "响应解析失败：\(e)"
-        case .invalidParameter(let p): return "参数非法：\(p)"
-        case .transport(let e): return "网络错误：\(e.localizedDescription)"
-        case .unauthorizedKey: return "API Key 失效（401，唯一含义：Key 无效）"
+        // 用 localizedDescription 显式取文案：直接插值 Error 会触发 appendInterpolation 弃用警告
+        // （本地化插值对未知类型只给调试描述）。
+        case .decode(let e): return String(localized: "响应解析失败：\(e.localizedDescription)")
+        case .invalidParameter(let p): return String(localized: "参数非法：\(p)")
+        case .transport(let e): return String(localized: "网络错误：\(e.localizedDescription)")
+        case .unauthorizedKey: return String(localized: "API Key 失效（401，唯一含义：Key 无效）")
         }
     }
 }

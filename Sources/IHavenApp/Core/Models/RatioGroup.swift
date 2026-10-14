@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 /// 比例分组（filter-panel.svg §4.3 ②「5 组归并」）。
 ///
@@ -43,6 +44,11 @@ public struct RatioGroup: Sendable, Hashable, Identifiable {
         RatioGroup(id: "ultrawide", label: "超宽", members: [.r32x9, .r48x9],
                    drawWidth: 32, drawHeight: 9)
     ]
+
+    /// 分组名的可本地化版本，供 `Text` / `.help` 使用。
+    /// `label` 本身保持 `String`：工具栏摘要 chip 要拿它做「比例: 横构图」拼接，而
+    /// `LocalizedStringKey` 不支持拼接；直接把 `label` 丢进 `Text` 则会在编译期固化成中文、不查表。
+    public var localizedLabel: LocalizedStringKey { LocalizedStringKey(label) }
 
     /// 把任意具体 ratio 归回所属分组名（工具栏摘要 chip 用「比例: 横构图」而非原始值）。
     /// 未命中分组（如 `.unspecified`）返回 nil，由调用方决定展示原始值。

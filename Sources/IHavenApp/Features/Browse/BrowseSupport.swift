@@ -3,7 +3,9 @@ import SwiftUI
 /// 侧栏导航项（对齐线稿 SF Symbols 对照）。密钥不再是独立项，已并入设置面板页签。
 enum NavItem: Hashable {
     case discover, landscape, anime, people, favorites, wallpaperSet, live, `import`, settings
-    var label: String {
+    /// 用 `LocalizedStringKey` 而非 `String`：侧栏标签直接进 `Text(...)`，
+    /// 落成 String 就固化成中文、永远查不到 Localizable.strings。
+    var label: LocalizedStringKey {
         switch self {
         case .discover: "发现"; case .landscape: "风景"; case .anime: "动漫"; case .people: "人物"
         case .favorites: "收藏"; case .wallpaperSet: "已设置"; case .live: "动态壁纸"
@@ -25,11 +27,12 @@ func browseActiveFilterChips(query: BrowseQuery) -> [String] {
     var r: [String] = []
     if !query.atleast.isEmpty { r.append(browseResolutionLabel(query.atleast)) }
     // 摘要对用户展示分组名（「比例: 横构图」）而非下发值；未命中分组时回退原始值。
+    // chip 文案是「固定标签 + 动态值」的拼接，用 String(localized:) 让固定部分可翻译（插值仍生效）。
     if query.ratio != .unspecified {
-        r.append("比例: \(RatioGroup.label(for: query.ratio) ?? query.ratio.rawValue)")
+        r.append(String(localized: "比例: \(RatioGroup.label(for: query.ratio) ?? query.ratio.rawValue)"))
     }
-    if !query.color.isEmpty { r.append("色: #\(query.color)") }
-    if query.purity != PurityFilter.browseDefault { r.append("纯度") }
+    if !query.color.isEmpty { r.append(String(localized: "色: #\(query.color)")) }
+    if query.purity != PurityFilter.browseDefault { r.append(String(localized: "纯度")) }
     return r
 }
 
@@ -78,7 +81,8 @@ func browsePlaceholder(item: NavItem) -> some View {
 
 /// 空态 / 错误态 / Toast（对齐线稿占位与反馈）。
 @MainActor
-func browseEmptyState(title: String, body: String, action: String, onAction: @escaping () -> Void) -> some View {
+func browseEmptyState(title: LocalizedStringKey, body: LocalizedStringKey, action: LocalizedStringKey,
+                      onAction: @escaping () -> Void) -> some View {
     VStack(spacing: 12) {
         Text(title).font(IHaven.Font.system(.xl, IHaven.Font.weightAnnounce)).foregroundStyle(IHaven.Color.fg)
         Text(body).font(IHaven.Font.system(.md)).foregroundStyle(IHaven.Color.muted)

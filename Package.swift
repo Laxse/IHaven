@@ -18,7 +18,10 @@ let package = Package(
                 .product(name: "NukeUI", package: "Nuke"),
                 .product(name: "GRDB", package: "GRDB.swift"),
             ],
-            path: "Sources/IHavenApp"
+            path: "Sources/IHavenApp",
+            // 本地化资源（Resources/*.lproj）。用 .copy 而非 .process：.lproj 必须原样保留目录结构，
+            // 否则 Bundle 查不到对应语言的 Localizable.strings。
+            resources: [.copy("Resources")]
         )
     ]
 )

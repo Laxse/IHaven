@@ -56,7 +56,7 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
     private static func assertSuccess(_ response: URLResponse) throws {
         guard let http = response as? HTTPURLResponse else {
             throw APIError.transport(NSError(domain: "IHaven", code: -1,
-                                            userInfo: [NSLocalizedDescriptionKey: "非 HTTP 响应"]))
+                                            userInfo: [NSLocalizedDescriptionKey: String(localized: "非 HTTP 响应")]))
         }
         switch http.statusCode {
         case 200..<300: return

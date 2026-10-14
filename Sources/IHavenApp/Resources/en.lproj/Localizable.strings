@@ -1,0 +1,115 @@
+/*
+ IHaven — English localization.
+
+ 开发语言是简体中文：所有 key 就是界面上的中文原文。zh-Hans 下即便查不到也回退显示 key 本身（即中文），
+ 因此这里只需要给出英文一份。改动界面文案时，中文改代码里的字面量，英文改本文件 —— 两边 key 必须一致。
+*/
+
+// MARK: - 侧栏导航 / 工具栏
+
+"发现" = "Discover";
+"风景" = "Scenery";
+"动漫" = "Anime";
+"人物" = "People";
+"收藏" = "Favorites";
+"已设置" = "Applied";
+"动态壁纸" = "Live Wallpaper";
+"导入…" = "Import…";
+"设置" = "Settings";
+"筛选" = "Filters";
+"搜索壁纸、标签、上传者" = "Search wallpapers, tags, uploaders";
+"初始化…" = "Initializing…";
+"加载中…" = "Loading…";
+"加载更多…" = "Loading more…";
+"已加载 %lld 张" = "Loaded %lld";
+"结果不完整（未配置 Key）" = "Incomplete results (no API key)";
+
+// MARK: - 筛选面板
+
+"分类" = "Category";
+"全部" = "All";
+"纯度" = "Purity";
+"全年龄" = "SFW";
+"轻微暗示" = "Sketchy";
+"分辨率" = "Resolution";
+"不限" = "Any";
+"精确分辨率" = "Exact resolution";
+"比例" = "Aspect Ratio";
+"竖构图" = "Portrait";
+"方图" = "Square";
+"横构图" = "Landscape";
+"宽幅" = "Wide";
+"超宽" = "Ultrawide";
+"色调" = "Color";
+"黑白灰" = "Grayscale";
+"排序" = "Sort";
+"最新" = "Latest";
+"热门" = "Toplist";
+"收藏最多" = "Most Favorited";
+"随机" = "Random";
+"清除全部" = "Clear All";
+
+// MARK: - 空态 / 错误 / 反馈
+
+"没有匹配的壁纸" = "No matching wallpapers";
+"当前筛选组合下没有结果。放宽分辨率或比例通常能找到更多。" = "No results for the current filters. Relaxing the resolution or aspect ratio usually finds more.";
+"清除全部筛选" = "Clear All Filters";
+"加载失败" = "Failed to load";
+"此功能将在后续版本提供。" = "This feature will arrive in a later version.";
+"还没有收藏" = "No favorites yet";
+"在瀑布流中悬停任意壁纸并点亮星标，或按 ⌘D。" = "Hover any wallpaper in the grid and light up the star, or press ⌘D.";
+"去发现壁纸" = "Discover Wallpapers";
+"还没有设置过壁纸" = "No wallpaper applied yet";
+"把任意壁纸设为桌面后，这里会留下记录，可随时一键重新设置。" = "Once you set a wallpaper as your desktop it is recorded here, and can be reapplied anytime.";
+"已设为壁纸" = "Set as wallpaper";
+"已重新设为壁纸" = "Reapplied as wallpaper";
+"重新设为壁纸" = "Set as wallpaper again";
+"从已设置中移除" = "Remove from Applied";
+
+// MARK: - 设置面板
+
+"密钥" = "API Key";
+"外观" = "Appearance";
+"关于" = "About";
+"Key 经 X-API-Key 请求头下发；空 / 纯空白视为未配置（Trap 14）。" = "The key is sent via the X-API-Key header; empty or whitespace-only counts as not configured.";
+"已配置" = "Configured";
+"未配置" = "Not configured";
+"已保存" = "Saved";
+"保存" = "Save";
+"清除" = "Clear";
+"存储位置：~/.ihaven/apikey（ADR-010）—— 仅存本机文件，绝不进日志与崩溃报告。" = "Stored at ~/.ihaven/apikey — local file only, never written to logs or crash reports.";
+"主题" = "Theme";
+"覆盖系统外观；默认跟随系统，修改后立即生效。" = "Overrides the system appearance; follows the system by default and applies immediately.";
+"跟随系统" = "Follow System";
+"浅色" = "Light";
+"深色" = "Dark";
+"语言" = "Language";
+"切换后立即生效，无需重启。" = "Takes effect immediately, no restart needed.";
+"简体中文" = "Chinese, Simplified";
+"背景" = "Background";
+"卡片" = "Card";
+"强调色" = "Accent";
+"文字" = "Text";
+"关于 IHaven" = "About IHaven";
+"macOS 原生壁纸工具：从 Wallhaven 发现壁纸，一键设为桌面壁纸。" = "A native macOS wallpaper tool: discover wallpapers from Wallhaven and set them as your desktop with one click.";
+"版本" = "Version";
+"技术栈" = "Stack";
+"数据位置" = "Data Location";
+"数据来源" = "Data Source";
+"Mock（免 VPN）" = "Mock (no VPN needed)";
+"Wallhaven 在线服务" = "Wallhaven online service";
+"完成" = "Done";
+
+// MARK: - 工具栏筛选 chip（拼接型，用 String(localized:) 取用）
+
+"比例: %@" = "Ratio: %@";
+"色: #%@" = "Color: #%@";
+
+// MARK: - 网络 / 系统错误（String(localized:) 取用）
+
+"API Key 失效（401，唯一含义：Key 无效）" = "API key rejected (401 — the only meaning: the key is invalid)";
+"非 HTTP 响应" = "Non-HTTP response";
+"无可用的屏幕来设置壁纸" = "No available screen to set the wallpaper";
+"响应解析失败：%@" = "Failed to parse response: %@";
+"参数非法：%@" = "Invalid parameter: %@";
+"网络错误：%@" = "Network error: %@";

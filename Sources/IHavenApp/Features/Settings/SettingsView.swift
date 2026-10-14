@@ -22,6 +22,7 @@ struct SettingsView: View {
     @State private var draft: String
     @State private var savedHint = false
     @AppStorage("ihaven.appearance") private var appearance: String = "system"
+    @AppStorage("ihaven.language") private var language: String = AppLanguage.default.rawValue
 
     init(store: KeyStore, onSaved: @escaping () -> Void, onClose: @escaping () -> Void) {
         self.store = store
@@ -76,7 +77,9 @@ struct SettingsView: View {
                 .font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.muted)
             HStack(spacing: IHaven.Space.s4.rawValue) {
                 Circle().fill(isConfigured ? IHaven.Color.success : IHaven.Color.meta).frame(width: 8, height: 8)
-                Text(isConfigured ? "已配置" : "未配置").font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.fg2)
+                // 三元直接写在字面量上会先固化成 String，故两侧各自构造 LocalizedStringKey。
+                Text(isConfigured ? LocalizedStringKey("已配置") : LocalizedStringKey("未配置"))
+                    .font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.fg2)
                 if savedHint { Text("已保存").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.success) }
             }
             SecureField("X-API-Key", text: $draft)
@@ -111,6 +114,14 @@ struct SettingsView: View {
                 swatch(IHaven.Color.accent, "强调色")
                 swatch(IHaven.Color.fg, "文字")
             }
+            sectionTitle("语言")
+            Text("切换后立即生效，无需重启。").font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.muted)
+            Picker("", selection: $language) {
+                ForEach(AppLanguage.allCases) { item in
+                    Text(LocalizedStringKey(item.displayKey)).tag(item.rawValue)
+                }
+            }
+            .pickerStyle(.segmented).labelsHidden()
         }
     }
 
@@ -132,11 +143,13 @@ struct SettingsView: View {
             infoRow("版本", appVersion)
             infoRow("技术栈", "Swift 6 · SwiftUI · Nuke · GRDB")
             infoRow("数据位置", "~/.ihaven/apikey")
-            infoRow("数据来源", isMock ? "Mock（免 VPN）" : "Wallhaven 在线服务")
+            // value 是 String 通道（要参与拼接/判断），用 String(localized:) 而非裸字面量。
+            infoRow("数据来源", isMock ? String(localized: "Mock（免 VPN）")
+                                      : String(localized: "Wallhaven 在线服务"))
         }
     }
 
-    private func infoRow(_ label: String, _ value: String) -> some View {
+    private func infoRow(_ label: LocalizedStringKey, _ value: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: IHaven.Space.s5.rawValue) {
             Text(label).font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.fg2).frame(width: 72, alignment: .leading)
             Text(value).font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.fg).textSelection(.enabled)
@@ -144,7 +157,7 @@ struct SettingsView: View {
         }
     }
 
-    private func sectionTitle(_ s: String) -> some View {
+    private func sectionTitle(_ s: LocalizedStringKey) -> some View {
         Text(s).font(IHaven.Font.system(.md, IHaven.Font.weightEmphasize)).foregroundStyle(IHaven.Color.fg)
     }
 

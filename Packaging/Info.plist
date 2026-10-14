@@ -13,6 +13,13 @@
     <key>LSMinimumSystemVersion</key>      <string>26.0</string>
     <key>NSHighResolutionCapable</key>     <true/>
     <key>NSPrincipalClass</key>            <string>NSApplication</string>
+    <!-- 开发语言：key 即中文原文。与 zh-Hans.lproj 一起保证「默认中文」不回退成英文。 -->
+    <key>CFBundleDevelopmentRegion</key>   <string>zh-Hans</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>zh-Hans</string>
+        <string>en</string>
+    </array>
     <!-- 不设 LSUIElement → 前台 App：拥有 Dock 图标 + 顶部菜单栏（含 IHaven App 菜单） -->
 </dict>
 </plist>

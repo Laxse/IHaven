@@ -40,7 +40,7 @@ struct AppliedWallpapersView: View {
     }
 
     private func reapply(_ item: AppliedWallpaper) {
-        Task { onMessage((await viewModel.reapply(item)) ?? "已重新设为壁纸") }
+        Task { onMessage((await viewModel.reapply(item)) ?? String(localized: "已重新设为壁纸")) }
     }
 }
 

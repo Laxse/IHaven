@@ -36,6 +36,14 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_PATH" "$APP/Contents/MacOS/$BIN"
 cp "$ROOT/Packaging/Info.plist" "$APP/Contents/Info.plist"
 
+# 本地化资源：*.lproj 必须落到 main bundle（Contents/Resources），否则设置里切换语言不会生效
+# （SwiftPM 的 Bundle.module 只服务于 swift build 直接跑，.app 是自己组装的）。
+RES="$ROOT/Sources/IHavenApp/Resources"
+if [ -d "$RES" ]; then
+    cp -R "$RES"/*.lproj "$APP/Contents/Resources/"
+    echo "    lproj: $(ls "$APP/Contents/Resources" | grep '\.lproj' | tr '\n' ' ')"
+fi
+
 echo "==> [3/4] build AppIcon.icns from master PNG"
 if [ -f "$ICON_PNG" ]; then
     ICONSET="$(mktemp -d)/AppIcon.iconset"

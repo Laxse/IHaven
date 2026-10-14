@@ -15,7 +15,7 @@ final class SystemWallpaperEngine: WallpaperEngine {
             throw NSError(
                 domain: "SystemWallpaperEngine",
                 code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "无可用的屏幕来设置壁纸"]
+                userInfo: [NSLocalizedDescriptionKey: String(localized: "无可用的屏幕来设置壁纸")]
             )
         }
         try NSWorkspace.shared.setDesktopImageURL(fileURL, for: target, options: options)
