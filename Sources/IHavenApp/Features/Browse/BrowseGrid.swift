@@ -1,4 +1,3 @@
-import NukeUI
 import SwiftUI
 
 /// 真 masonry 瀑布流：按各卡真实宽高比分配列，列宽 240–340 / 沟槽 8（design-tokens grid）。
@@ -123,6 +122,13 @@ struct WallpaperCard: View {
         .animation(IHaven.Motion.fast, value: hovered)
     }
 
+    /// ⚠️ 命中测试（这是「单击卡片进不了详情页」的根因）：
+    /// 浮层整片盖在缩略图之上，而 SwiftUI 的命中区域就是 View 的边框 —— 渐变层铺满整卡、
+    /// 按钮容器原先还写了 `maxWidth/maxHeight:.infinity`（视觉上是右上角两个小按钮，命中区域
+    /// 却是整张卡）。鼠标一进卡片就 hover，浮层立刻出现，于是**每一次点击都被浮层吃掉**，
+    /// 挂在缩略图上的 `onTapGesture` 永远收不到。
+    /// 修法：整层 `allowsHitTesting(false)` 让点击穿透到下面的缩略图，只有两个按钮单独挂一层
+    /// overlay —— 它的命中区域就是按钮本身那么大。
     private var hoverOverlay: some View {
         ZStack(alignment: .bottomLeading) {
             LinearGradient(colors: [.clear, .black.opacity(0.55), .black.opacity(0.78)],
@@ -137,6 +143,9 @@ struct WallpaperCard: View {
                 }
             }
             .padding(8)
+        }
+        .allowsHitTesting(false)
+        .overlay(alignment: .topTrailing) {
             HStack(spacing: 6) {
                 Button(action: onToggleFavorite) {
                     Image(systemName: isFavorite ? "heart.fill" : "heart")
@@ -151,7 +160,6 @@ struct WallpaperCard: View {
                 .buttonStyle(.borderless)
             }
             .padding(8)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
         }
     }
 }
@@ -200,22 +208,3 @@ struct FavoriteCard: View {
     }
 }
 
-/// 缩略图视图：封装 NukeUI.LazyImage，将 Nuke 类型隔离在 Infrastructure 渲染边界之外。
-struct ThumbnailImage: View {
-    let url: URL?
-    var body: some View {
-        if let url {
-            LazyImage(url: url) { state in
-                if let image = state.image {
-                    image.resizable().aspectRatio(contentMode: .fill)
-                } else if state.error != nil {
-                    Color(IHaven.Color.surfaceSunken)
-                } else {
-                    ProgressView()
-                }
-            }
-        } else {
-            Color(IHaven.Color.surfaceSunken)
-        }
-    }
-}
