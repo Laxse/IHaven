@@ -193,10 +193,7 @@ private enum MockData {
 
     static func uploader(for id: String) -> WallpaperDetail.Uploader {
         let host = "https://\(MockWallhaven.host)"
-        // 单独持有用户名：`username:` 标签里含有 `name: "` 子串，会被
-        // `scripts/convention-gate.sh` 的搜索参数名白名单误判成一个下发参数。
-        let user = "uploader_" + id
-        return .init(username: user,
+        return .init(username: "uploader_\(id)",
                      group: "User",
                      avatar: .init(
                         px200: URL(string: "\(host)/avatar/200px/\(id).jpg")!,
