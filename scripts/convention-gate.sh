@@ -67,10 +67,12 @@ fi
 # 用户侧表现为「筛选不生效」且极难自查。这里用实测通过的参数名清单兜住（实测记录见 WallhavenClient.buildURL 注释）。
 echo "[gate] 检查 wallhaven 搜索参数名（实测白名单）..."
 ALLOWED='q|purity|categories|sorting|order|topRange|atleast|resolutions|ratios|colors|page|seed'
-# [!] `name:` 前面必须不是字母：裸 `name: "` 会把 `username: "…"`、`moduleName: "…"` 这类**以 name 结尾的
-# 其它键名**也匹配进来（2026-10-14 真实误报：WallpaperDetail.Uploader 的 `username:` 被判成非法搜索参数名）。
-# 这是提高精度、不是放宽：`URLQueryItem(name: "q")` 的 `name` 前是 `(` 或空格，仍然照常被检出。
-BAD=$(grep -rhoE '(^|[^A-Za-z])name: "[^"]+"' Infrastructure 2>/dev/null \
+# [!] 必须锚定到「构造查询项」这一上下文（`.init(name:` / `URLQueryItem(name:`），不能裸匹配 `name: "`：
+# - 2026-10-14 真实误报：`username: "…"` 被判成非法搜索参数名（加了「前面不是字母」才压下去）；
+# - 2026-10-16 真实误报：`DataCache(name: "com.ihaven.Images")` 同样不是查询参数。
+# 两次都是同一类问题——`name` 是通用参数标签。锚定到真实查询项构造处才是正解，比逐条豁免更耐久。
+# 这是提高精度、不是放宽：`URLQueryItem(name: "q")` / `.init(name: "q", …)` 仍然照常被检出。
+BAD=$(grep -rhoE '(\.init\(|URLQueryItem\()name: "[^"]+"' Infrastructure 2>/dev/null \
       | sed -E 's/^.*name: "([^"]+)"$/\1/' | sort -u \
       | grep -vE "^(${ALLOWED})$")
 if [ -n "$BAD" ]; then
