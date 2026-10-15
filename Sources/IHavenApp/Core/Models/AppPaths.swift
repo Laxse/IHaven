@@ -7,9 +7,9 @@ import Foundation
 /// （`ImageFileDownloader.swift` 的 `temporaryDirectory + "IHavenOriginals"`）。
 /// 出现第三处之前先收成一处 —— 目录名三处漂移是「改了名字漏改一处」这类静默 bug 的标准入口。
 ///
-/// 目录语义（ADR-015）：
+/// 目录语义（ADR-015 / ADR-016）：
 /// - `Wallpapers/`：本地导入的静态图原文件 + ≤640px 缩略图
-/// - `DynamicWallpapers/`：本地导入的视频原文件 + 首帧 poster（兼作卡片缩略图与静帧兜底）
+/// - `Animations/`：由静态图本地生成的动态壁纸帧序列（每项一个 `<uuid>/` 子目录，内含 `frame-*.jpg`）
 /// 二进制一律不入 SQLite（ARCH §3.2：BLOB 会使 DB 膨胀，只存路径）。
 enum AppPaths {
     /// `Application Support/IHaven`，不存在则创建。
@@ -24,7 +24,7 @@ enum AppPaths {
     }
 
     static var importedImages: URL { sub("Wallpapers") }
-    static var importedVideos: URL { sub("DynamicWallpapers") }
+    static var animations: URL { sub("Animations") }
 
     /// 生成子目录（不存在则创建）并返回。
     static func sub(_ name: String) -> URL {

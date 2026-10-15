@@ -1,17 +1,17 @@
 import Foundation
 import SwiftUI
 
-/// 本地库（导入图片 + 本地视频）的共享状态机（ADR-015）。
+/// 本地库（导入图片 + 生成的动态壁纸）的共享状态机（ADR-015 / ADR-016）。
 ///
-/// 一个 ViewModel 同时服务两个页签：`Features/Import`（静态图）与 `Features/DynamicWallpaper`（视频）。
-/// 两者读同一份 `imported`、共用同一条导入管线（PRD 附录 A-6b：不得为 F9 另建一套导入逻辑），
-/// 只是按 `kind` 过滤出不同子集。
+/// 一个 ViewModel 同时服务两个页签：`Features/Import`（静态图）与 `Features/DynamicWallpaper`（动态壁纸）。
+/// 两者读同一份 `imported`、共用同一条导入管线（PRD 附录 A-6b：不得为动态壁纸另建一套导入逻辑），
+/// 只是按 `kind` 过滤出不同子集。动态壁纸由静态图本地生成，生成也走本 ViewModel。
 @MainActor @Observable
 final class LocalLibraryViewModel {
-    /// 全部导入项（按导入时间倒序）。图片与视频都在这里，由视图层按 `kind` 过滤。
+    /// 全部导入项（按导入时间倒序）。静态图与动态壁纸都在这里，由视图层按 `kind` 过滤。
     private(set) var imported: [ImportedWallpaper] = []
-    var images: [ImportedWallpaper] { imported.filter { !$0.isVideo } }
-    var videos: [ImportedWallpaper] { imported.filter { $0.isVideo } }
+    var images: [ImportedWallpaper] { imported.filter { !$0.isAnimation } }
+    var animations: [ImportedWallpaper] { imported.filter { $0.isAnimation } }
 
     // MARK: 导入中状态
 
@@ -21,8 +21,6 @@ final class LocalLibraryViewModel {
     private(set) var importCurrent = ""
     /// 上一次导入被拒绝的文件与原因（PRD:696 要求的结果摘要）。
     private(set) var lastRejected: [(fileName: String, reason: String)] = []
-    /// 首尾帧不连续的一次性提示（SPEC §7.4.6）。导入完成后出现，用户点「仍然使用」即消失。
-    var seamNotice: ImportedWallpaper?
     private(set) var lastSummaryMessage: String?
 
     // MARK: 动态壁纸播放态
@@ -36,18 +34,21 @@ final class LocalLibraryViewModel {
     private let database: WallpaperDatabase
     private let engine: WallpaperEngine
     private let dynamicEngine: DynamicWallpaperPlaying
+    private let renderer: AnimationRendering
     private var importTask: Task<Void, Never>?
 
     init(importer: LocalImporting,
          panel: FileImportPresenting,
          database: WallpaperDatabase,
          engine: WallpaperEngine,
-         dynamicEngine: DynamicWallpaperPlaying) {
+         dynamicEngine: DynamicWallpaperPlaying,
+         renderer: AnimationRendering) {
         self.importer = importer
         self.panel = panel
         self.database = database
         self.engine = engine
         self.dynamicEngine = dynamicEngine
+        self.renderer = renderer
         dynamicEngine.onStateChange = { [weak self] in
             Task { @MainActor in self?.syncDynamicState() }
         }
@@ -99,7 +100,6 @@ final class LocalLibraryViewModel {
         case .imported(let item):
             // 服务端按 addedAt 倒序返回，导入中最新的一条插到最前，与之一致。
             imported.insert(item, at: 0)
-            if let seamless = item.seamless, !seamless { seamNotice = item }
         case .rejected(let fileName, let reason):
             lastRejected.append((fileName, reason))
         case .finished:
@@ -114,7 +114,7 @@ final class LocalLibraryViewModel {
         lastSummaryMessage = Self.summaryText(summary)
     }
 
-    /// 摘要素材：导入数 / 其中视频数 / 跳过数 / 取消。空导入也要给一句话，不能让用户猜。
+    /// 摘要素材：导入数 / 跳过数 / 取消。空导入也要给一句话，不能让用户猜。
     ///
     /// ⚠️ **不能把数字直接插进 `String(localized:)` 的字面量**：那会先拼成 "3 个文件已导入"
     /// 再拿去查表，key 查不到 → 英文环境下静默回退成中文（与 `Text(_: String)` 同一个陷阱）。
@@ -125,9 +125,6 @@ final class LocalLibraryViewModel {
             return String(localized: "已取消导入，没有文件入库")
         }
         var text = String(format: String(localized: "%lld 个文件已导入"), summary.importedCount)
-        if summary.videoCount > 0 {
-            text += String(format: String(localized: "，其中 %lld 个视频"), summary.videoCount)
-        }
         if !summary.rejected.isEmpty {
             text += String(format: String(localized: "，%lld 个不支持已跳过"), summary.rejected.count)
         }
@@ -182,6 +179,61 @@ final class LocalLibraryViewModel {
     private func syncDynamicState() {
         dynamicPlaying = dynamicEngine.playing
         dynamicPaused = dynamicEngine.isPaused
+    }
+
+    // MARK: 动态壁纸生成（ADR-016）
+
+    /// 生成进行中（驱动生成面板的进度态）。
+    private(set) var isGenerating = false
+
+    /// 由一张静态图本地生成动态壁纸：渲染帧序列 → 落库 → 返回新项。
+    /// 渲染是 CPU 重活，放到后台线程；模型装配与落库在主线程（GRDB 池本身可并发读）。
+    ///
+    /// - Parameters:
+    ///   - source: 已导入的静态图项。
+    ///   - spec: 动画参数（秒数 / 幅度）；帧数按 `秒数 × 12` 推导（12fps 足够慢速运动）。
+    /// - Returns: 生成的动态壁纸项；失败返回 nil。
+    func generateAnimation(source: ImportedWallpaper, spec: AnimationSpec) async -> ImportedWallpaper? {
+        guard let screen = NSScreen.main else { return nil }
+        let aspect = max(0.1, screen.frame.width / screen.frame.height)
+        let sourceURL = URL(fileURLWithPath: source.filePath)
+        let uuid = UUID().uuidString
+        let dir = AppPaths.animations.appendingPathComponent(uuid, isDirectory: true)
+
+        var genSpec = spec
+        genSpec.frameCount = max(24, Int((spec.seconds * 12).rounded()))
+
+        isGenerating = true
+        defer { isGenerating = false }
+        do {
+            let frames = try await Task.detached(priority: .userInitiated) { [renderer = renderer] in
+                try renderer.render(source: sourceURL, spec: genSpec, outputDir: dir, outputAspect: aspect)
+            }.value
+            guard let first = frames.first else { return nil }
+
+            // 帧像素尺寸 ≈ 工作长边 × 输出比例，用于卡片宽高比与分辨率展示。
+            let long = Double(AnimationRenderer.workMaxPixel)
+            let dims: (Int, Int) = aspect >= 1
+                ? (Int(long), Int((long / aspect).rounded()))
+                : (Int((long * aspect).rounded()), Int(long))
+
+            let item = ImportedWallpaper(
+                id: uuid,
+                fileName: "动态-\(source.fileName)",
+                filePath: dir.path,
+                thumbnailPath: first.path,
+                kind: .animation,
+                width: dims.0, height: dims.1,
+                duration: spec.seconds,
+                fileSize: 0,
+                addedAt: Date()
+            )
+            try database.addImported(item)
+            imported.insert(item, at: 0)
+            return item
+        } catch {
+            return nil
+        }
     }
 
     // MARK: 删除

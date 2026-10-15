@@ -1,6 +1,7 @@
 import Foundation
 
-/// 本地导入项（ADR-015 §一）：静态图片与本地视频共用一个模型，靠 `kind` 区分。
+/// 本地导入项（ADR-015 §一，ADR-016 改版）：静态图片与「由静态图生成的动态壁纸」共用
+/// 一个模型，靠 `kind` 区分。
 ///
 /// **为什么不复用 `Wallpaper`**：它的 20 个字段全由 wallhaven 响应形状决定（`purity` /
 /// `category` / `views` / `favorites` / `colors` / `short_url` …）。本地文件没有这些概念，
@@ -17,20 +18,18 @@ public struct ImportedWallpaper: Codable, Identifiable, Sendable, Hashable {
     public let kind: ImportedKind
     public let width: Int
     public let height: Int
-    /// 仅视频：时长（秒）。图片恒 nil。
+    /// 循环时长（秒）。仅 `.animation` 有值；`.image` 恒 nil。
     public let duration: Double?
     public let fileSize: Int
-    /// 仅视频：首尾帧是否连续（SPEC §7.4.6）。图片恒 nil。
-    public let seamless: Bool?
     public let addedAt: Date
 
-    public var isVideo: Bool { kind == .video }
+    public var isAnimation: Bool { kind == .animation }
 
     public var resolutionText: String { "\(width) × \(height)" }
 
     public init(id: String, fileName: String, filePath: String, thumbnailPath: String,
                 kind: ImportedKind, width: Int, height: Int, duration: Double?,
-                fileSize: Int, seamless: Bool?, addedAt: Date) {
+                fileSize: Int, addedAt: Date) {
         self.id = id
         self.fileName = fileName
         self.filePath = filePath
@@ -40,14 +39,18 @@ public struct ImportedWallpaper: Codable, Identifiable, Sendable, Hashable {
         self.height = height
         self.duration = duration
         self.fileSize = fileSize
-        self.seamless = seamless
         self.addedAt = addedAt
     }
 }
 
+/// - `.image`：静态图原文件（`filePath` 指向图片本身）
+/// - `.animation`：由静态图**本地生成**的帧序列（`filePath` 指向帧目录，`duration` 为循环秒数）
+///
+/// ⚠️ 没有 `.video`：ADR-016 起不再支持「导入 MP4/MOV 直接播放」。动态壁纸一律由静态图
+/// 生成，来源单一才能把「生成质量」这条线做扎实；要放本地视频的用户用系统自带的动态桌面。
 public enum ImportedKind: String, Codable, Sendable, Hashable {
     case image
-    case video
+    case animation
 }
 
 /// 瀑布流统一网格项（ADR-015 §四）：网络项与本地项在同一列表里混排，

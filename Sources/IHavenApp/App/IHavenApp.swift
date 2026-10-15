@@ -76,7 +76,8 @@ struct IHavenApp: App {
             panel: SystemFileImportPanel(),
             database: database,
             engine: engine,
-            dynamicEngine: dynamicEngine
+            dynamicEngine: dynamicEngine,
+            renderer: AnimationRenderer()
         )
         browseViewModel = BrowseViewModel(
             client: client,

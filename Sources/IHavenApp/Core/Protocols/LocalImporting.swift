@@ -9,7 +9,7 @@ public protocol LocalImporting: Sendable {
     /// - Parameters:
     ///   - urls: 用户选择的文件或文件夹 URL。
     ///   - onEvent: 进度事件，保证在 `@MainActor` 上回调（实现内部自己切线程做 IO）。
-    /// - Returns: 批量摘要（成功数 / 拒绝清单 / 视频数）。
+    /// - Returns: 批量摘要（成功数 / 拒绝清单）。
     func importFiles(_ urls: [URL],
                      onEvent: @escaping @MainActor (ImportEvent) -> Void) async -> ImportSummary
 }
@@ -29,15 +29,13 @@ public struct ImportSummary: Sendable {
     public var importedCount: Int
     /// `(文件名, 原因)`，顺序即用户选择顺序，便于对照。
     public var rejected: [(fileName: String, reason: String)]
-    public var videoCount: Int
     /// 用户中途取消：已导入的保留，摘要照常返回。
     public var cancelled: Bool
 
     public init(importedCount: Int, rejected: [(fileName: String, reason: String)],
-                videoCount: Int, cancelled: Bool) {
+                cancelled: Bool) {
         self.importedCount = importedCount
         self.rejected = rejected
-        self.videoCount = videoCount
         self.cancelled = cancelled
     }
 }

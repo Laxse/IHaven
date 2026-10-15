@@ -1,15 +1,16 @@
 import Foundation
 
-/// 本地导入服务（ADR-015 §三）：文件选择 / 拖放 → 探测 → 复制进容器 → 生成缩略图 → 落库。
+/// 本地导入服务（ADR-015 §三，ADR-016 改为仅静态图）：文件选择 / 拖放 → 探测 → 复制进容器 →
+/// 生成缩略图 → 落库。
 ///
-/// 这是 F8 与 F9 **共用的唯一入口**（PRD 附录 A-6b：不得为 F9 另建一套导入逻辑）。
-/// 静态图片与本地视频的差异只在「用哪个框架探测」和「多两个字段」，因此共用同一条管线。
+/// 这是 F8 与动态壁纸**共用的唯一入口**（PRD 附录 A-6b：不得为动态壁纸另建一套导入逻辑）。
+/// 动态壁纸改由「静态图本地生成」，因此导入侧只收静态图，视频在此被明确拒绝。
 struct LocalImportService: LocalImporting {
     private let probe: MediaProbing
     private let thumbnails: ThumbnailProducing
     private let store: WallpaperDatabase
 
-    /// 缩略图 / 首帧 poster 的长边上限。卡片列宽 240–340pt，640px 覆盖 @2x 后仍有富余。
+    /// 缩略图的长边上限。卡片列宽 240–340pt，640px 覆盖 @2x 后仍有富余。
     private static let thumbnailMaxPixel = 640
 
     init(probe: MediaProbing, thumbnails: ThumbnailProducing, store: WallpaperDatabase) {
@@ -26,7 +27,6 @@ struct LocalImportService: LocalImporting {
         await onEvent(.started(total: files.count))
 
         var importedCount = 0
-        var videoCount = 0
         var rejected: [(fileName: String, reason: String)] = []
         var cancelled = false
 
@@ -46,7 +46,6 @@ struct LocalImportService: LocalImporting {
                 let item = try await importOne(file, probe: result)
                 try store.addImported(item)
                 importedCount += 1
-                if item.isVideo { videoCount += 1 }
                 await onEvent(.imported(item))
             } catch {
                 // 复制失败、探测异常等一律按「拒绝 + 具体原因」处理，绝不静默跳过。
@@ -58,7 +57,7 @@ struct LocalImportService: LocalImporting {
         }
 
         let summary = ImportSummary(importedCount: importedCount, rejected: rejected,
-                                    videoCount: videoCount, cancelled: cancelled)
+                                    cancelled: cancelled)
         await onEvent(.finished(summary))
         return summary
     }
@@ -101,47 +100,35 @@ struct LocalImportService: LocalImporting {
     /// 导入单个文件：复制 → 生成缩略图 → 装配模型。**不落库**（由调用方统一落，便于失败时整体回退语义清晰）。
     private func importOne(_ source: URL, probe result: MediaProbe) async throws -> ImportedWallpaper {
         let uuid = UUID().uuidString
-        let isVideo = result.kind == .video
-        let dir = isVideo ? AppPaths.importedVideos : AppPaths.importedImages
-        let ext = source.pathExtension.isEmpty
-            ? (isVideo ? "mp4" : "jpg")
-            : source.pathExtension.lowercased()
+        let dir = AppPaths.importedImages
+        let ext = source.pathExtension.isEmpty ? "jpg" : source.pathExtension.lowercased()
         let destination = AppPaths.media(named: uuid, ext: ext, in: dir)
 
         // 复制进容器：本地库自包含，不依赖访达里的原文件不被移动 / 删除（ADR-015 备选方案三）。
         try FileManager.default.copyItem(at: source, to: destination)
 
+        // 缩略图：导入时一次生成（≤640px 长边），避免瀑布流逐卡解码整图（ARCH §6.2.2）。
+        // 生成失败兜底用原图，不让整次导入失败。
         let thumbnail = AppPaths.thumbnail(named: uuid, in: dir)
-        var thumbnailPath = destination.path      // 兜底：缩略图生成失败就用原图，不让整次导入失败
-        if isVideo {
-            if let _ = try? await thumbnails.makePoster(video: destination,
-                                                       maxPixel: Self.thumbnailMaxPixel,
-                                                       destination: thumbnail) {
-                thumbnailPath = thumbnail.path
-            }
-        } else {
-            if let _ = try? thumbnails.makeThumbnail(source: destination,
-                                                    maxPixel: Self.thumbnailMaxPixel,
-                                                    destination: thumbnail) {
-                thumbnailPath = thumbnail.path
-            }
+        var thumbnailPath = destination.path
+        if let _ = try? thumbnails.makeThumbnail(source: destination,
+                                                maxPixel: Self.thumbnailMaxPixel,
+                                                destination: thumbnail) {
+            thumbnailPath = thumbnail.path
         }
 
         let fileSize = (try? FileManager.default.attributesOfItem(atPath: destination.path)[.size] as? Int) ?? 0
-        var seamless: Bool?
-        if isVideo { seamless = await probe.isSeamless(video: destination) }
 
         return ImportedWallpaper(
             id: uuid,
             fileName: source.lastPathComponent,
             filePath: destination.path,
             thumbnailPath: thumbnailPath,
-            kind: result.kind,
+            kind: .image,
             width: result.width,
             height: result.height,
-            duration: result.duration,
+            duration: nil,
             fileSize: fileSize,
-            seamless: seamless,
             addedAt: Date()
         )
     }

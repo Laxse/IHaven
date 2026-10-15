@@ -123,38 +123,6 @@ struct RejectedSummaryView: View {
     }
 }
 
-/// 首尾帧不连续的一次性非阻断提示（SPEC §7.4.6）。
-///
-/// 只在导入完成后出现一次，播放中不重复；用户点「仍然使用」即消失 —— 不是错误，是知情提示。
-struct SeamNoticeView: View {
-    let fileName: String
-    var onDismiss: () -> Void
-
-    var body: some View {
-        HStack(spacing: IHaven.Space.s4.rawValue) {
-            Image(systemName: "exclamationmark.triangle")
-                .foregroundStyle(IHaven.Color.warn)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("此视频首尾帧不连续，循环时可能有明显跳变")
-                    .font(IHaven.Font.system(.sm))
-                    .foregroundStyle(IHaven.Color.fg)
-                Text(fileName)
-                    .font(.system(size: IHaven.Font.Size.xs.rawValue, design: .monospaced))
-                    .foregroundStyle(IHaven.Color.meta)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-            }
-            Spacer(minLength: 0)
-            Button("仍然使用", action: onDismiss)
-                .buttonStyle(.borderless)
-                .font(IHaven.Font.system(.xs))
-        }
-        .padding(IHaven.Space.s5.rawValue)
-        .background(IHaven.Color.surface, in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue, style: .continuous).stroke(IHaven.Color.warn, lineWidth: 1))
-    }
-}
-
 /// 本地项空态：两个入口并列（浏览网络源 / 拖入本地文件），见 PRD:708。
 struct LocalEmptyStateView: View {
     let title: LocalizedStringKey

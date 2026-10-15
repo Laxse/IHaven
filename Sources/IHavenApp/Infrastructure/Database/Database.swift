@@ -46,9 +46,9 @@ final class GRDBWallpaperDatabase: WallpaperDatabase {
                 t.column("kind", .text).notNull()
                 t.column("width", .integer).notNull()
                 t.column("height", .integer).notNull()
-                t.column("duration", .double)          // 仅视频
+                t.column("duration", .double)          // 仅动态壁纸：循环秒数
                 t.column("fileSize", .integer).notNull()
-                t.column("seamless", .boolean)         // 仅视频：首尾帧是否连续
+                t.column("seamless", .boolean)         // 已废弃：视频功能移除后不再写入（保留列以兼容旧库）
                 t.column("addedAt", .double).notNull()
             }
         }
@@ -150,8 +150,8 @@ final class GRDBWallpaperDatabase: WallpaperDatabase {
                 sql: """
                 INSERT OR REPLACE INTO imported
                     (id, fileName, filePath, thumbnailPath, kind, width, height,
-                     duration, fileSize, seamless, addedAt)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?)
+                     duration, fileSize, addedAt)
+                VALUES (?,?,?,?,?,?,?,?,?,?)
                 """,
                 arguments: [
                     item.id,
@@ -163,7 +163,6 @@ final class GRDBWallpaperDatabase: WallpaperDatabase {
                     item.height,
                     item.duration,
                     item.fileSize,
-                    item.seamless,
                     item.addedAt.timeIntervalSince1970,
                 ]
             )
@@ -190,7 +189,6 @@ final class GRDBWallpaperDatabase: WallpaperDatabase {
                         height: (row["height"] as Int?) ?? 0,
                         duration: row["duration"] as Double?,
                         fileSize: (row["fileSize"] as Int?) ?? 0,
-                        seamless: row["seamless"] as Bool?,
                         addedAt: Date(timeIntervalSince1970: (row["addedAt"] as Double?) ?? 0)
                     )
                 }

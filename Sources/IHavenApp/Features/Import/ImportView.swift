@@ -21,8 +21,8 @@ struct ImportView: View {
                         onChoose: { library.chooseFiles() },
                         onFiles: { library.importURLs($0) })
                     FormatNotice(
-                        supported: "支持：JPEG / PNG / HEIC / WebP",
-                        unsupported: "不支持：WEBM / MKV（macOS 没有原生解码器）、GIF（逐帧解码功耗与效果不达标）")
+                        supported: "支持：JPEG / PNG / HEIC / WebP 等静态图片",
+                        unsupported: "不支持：视频（MP4 / MOV 等，动态壁纸已改为由静态图生成）、WEBM / MKV（无原生解码器）、GIF")
                     if library.isImporting {
                         ImportProgressView(done: library.importDone, total: library.importTotal,
                                            current: library.importCurrent,
