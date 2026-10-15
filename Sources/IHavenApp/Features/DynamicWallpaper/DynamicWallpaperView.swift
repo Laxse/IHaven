@@ -8,8 +8,10 @@ import SwiftUI
 struct DynamicWallpaperView: View {
     @Bindable var library: LocalLibraryViewModel
     var onMessage: (String) -> Void
+    /// 删除请求**上交给主窗口统一弹确认**（见 `BrowseView.pendingDelete`）。
+    /// 本视图已挂 `.sheet`（生成面板），再挂 `.alert` 会与之竞争，导致点了删除没反应。
+    var onDeleteRequest: (ImportedWallpaper) -> Void
 
-    @State private var pendingDelete: ImportedWallpaper?
     @State private var showGenerator = false
 
     var body: some View {
@@ -45,7 +47,7 @@ struct DynamicWallpaperView: View {
                                 primarySystemName: library.dynamicPlaying?.id == item.id ? "stop.fill" : "play.fill",
                                 primaryHelp: library.dynamicPlaying?.id == item.id ? "停止动态壁纸" : "设为动态壁纸",
                                 onPrimary: { toggle(item) },
-                                onDelete: { pendingDelete = item })
+                                onDelete: { onDeleteRequest(item) })
                         }
                     }
                 }
@@ -64,13 +66,6 @@ struct DynamicWallpaperView: View {
                     onMessage(String(localized: "已生成并开始播放"))
                 }
             }
-        }
-        .alert(item: $pendingDelete) { item in
-            Alert(
-                title: Text("确定删除这个动态壁纸？"),
-                message: Text(item.fileName),
-                primaryButton: .destructive(Text("删除")) { library.remove(item) },
-                secondaryButton: .cancel(Text("取消")))
         }
     }
 

@@ -52,6 +52,26 @@ final class GRDBWallpaperDatabase: WallpaperDatabase {
                 t.column("addedAt", .double).notNull()
             }
         }
+        // v4：清理 ADR-016 之前的 `kind='video'` 历史记录。
+        //
+        // ADR-016 起 `ImportedKind` 只剩 image / animation，旧库里的 video 记录会被
+        // `ImportedKind(rawValue:)` 判为 nil 而**静默回退 `.image`** —— 于是那条 mp4 以
+        // 「图片」身份混进导入页与瀑布流，点「设为壁纸」还会拿 mp4 去调系统接口。
+        // 这里是唯一能兜住老库的地方；记录与文件一起清掉，不留指向已废弃
+        // `DynamicWallpapers/` 目录的孤儿行。
+        migrator.registerMigration("v4") { db in
+            let stale = try Row.fetchAll(
+                db, sql: "SELECT filePath, thumbnailPath FROM imported WHERE kind NOT IN ('image','animation')")
+            try db.execute(sql: "DELETE FROM imported WHERE kind NOT IN ('image','animation')")
+            // 文件清理放到迁移之外：删文件不可回滚，失败也不该让整次迁移失败。
+            for row in stale {
+                for column in ["filePath", "thumbnailPath"] {
+                    if let path = row[column] as String?, !path.isEmpty {
+                        try? FileManager.default.removeItem(atPath: path)
+                    }
+                }
+            }
+        }
         try migrator.migrate(pool)
         self.db = pool
     }

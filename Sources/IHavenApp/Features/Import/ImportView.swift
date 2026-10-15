@@ -7,9 +7,12 @@ import SwiftUI
 struct ImportView: View {
     @Bindable var library: LocalLibraryViewModel
     var onMessage: (String) -> Void
-
-    /// 删除需确认（DESIGN §4.6.0）：本地库的删除不可撤销，误触成本高。
-    @State private var pendingDelete: ImportedWallpaper?
+    /// 删除请求**上交给主窗口统一弹确认**（见 `BrowseView.pendingDelete`）。
+    ///
+    /// ⚠️ 本视图不要再自己挂 `.alert`：父视图 `BrowseView` 已挂 `.sheet` 与 `.alert`，
+    /// 子视图再挂一个会被父级模态抑制 —— 表现就是「点了删除按钮什么都没发生」。
+    /// 全窗口只保留一个删除确认，既消除竞争，也让三处删除的确认语义天然一致。
+    var onDeleteRequest: (ImportedWallpaper) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -47,7 +50,7 @@ struct ImportView: View {
                                 primarySystemName: "display",
                                 primaryHelp: "设为壁纸",
                                 onPrimary: { setWallpaper(item) },
-                                onDelete: { pendingDelete = item })
+                                onDelete: { onDeleteRequest(item) })
                         }
                     }
                 }
@@ -57,13 +60,6 @@ struct ImportView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(IHaven.Color.bg)
         .task { library.load() }
-        .alert(item: $pendingDelete) { item in
-            Alert(
-                title: Text("确定删除这个导入项？"),
-                message: Text(item.fileName),
-                primaryButton: .destructive(Text("删除")) { library.remove(item) },
-                secondaryButton: .cancel(Text("取消")))
-        }
     }
 
     private var header: some View {

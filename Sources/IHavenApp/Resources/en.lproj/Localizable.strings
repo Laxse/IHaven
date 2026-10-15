@@ -194,3 +194,5 @@
 "，其中 %lld 个视频" = ", including %lld videos";
 "，%lld 个不支持已跳过" = ", %lld unsupported skipped";
 "（已取消）" = " (cancelled)";
+"确定删除这个动态壁纸？" = "Delete this dynamic wallpaper?";
+"已删除" = "Deleted";

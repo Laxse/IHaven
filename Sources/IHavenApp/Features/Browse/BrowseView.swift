@@ -19,12 +19,30 @@ struct BrowseView: View {
     @State private var toast: String?
     /// 详情页：非 nil 即进入二级页面（`←` / `→` 在 `viewModel.wallpapers` 结果集内切换）。
     @State private var detail: Wallpaper?
-    /// 瀑布流里本地项的删除确认（与导入页同一套确认语义）。
-    @State private var pendingLocalDelete: ImportedWallpaper?
+    /// 全窗口**唯一**的删除确认：瀑布流本地项 / 导入页 / 动态壁纸页三处共用。
+    /// 三处各自挂 `.alert` 会彼此竞争并被父级 `.sheet` 抑制（子视图模态被抢占），
+    /// 表现就是「点了删除按钮什么都没发生」；收敛到一处后确认语义也天然一致。
+    @State private var pendingDelete: ImportedWallpaper?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             toolbar
+                // `.sheet` 挂内层，与 body 上的 `.alert` 分处不同层级，避免模态互相抑制。
+                .sheet(isPresented: $showSettings) {
+                    // initialTab：普通入口落「密钥」，从筛选面板锁定的 NSFW 档点进来则直达「内容」。
+                    // onContentPolicyChanged：关掉开关时收回已勾选的 NSFW 档并重查（ADR-012）。
+                    SettingsView(store: keyStore,
+                                 clipboard: clipboard,
+                                 initialTab: settingsTab,
+                                 onSaved: { Task { await reloadForNav() } },
+                                 onContentPolicyChanged: { viewModel.disableNSFWIfNeeded() },
+                                 onClose: { showSettings = false })
+                        // @State 只在首次构造时取 initialTab，换页签必须靠 id 强制重建，否则停在上一个页签。
+                        .id(settingsTab)
+                        // 语言要自己挂一次：被呈现的 sheet 不跟根视图的环境更新，挂上后由 sheet 自己
+                        // 读偏好重注入 —— 否则主窗口切了英文、设置面板还是中文。
+                        .appLocale()
+                }
             HStack(spacing: 0) {
                 if showSidebar { BrowseSidebar(nav: nav, onSelect: select) }
                 mainArea
@@ -36,27 +54,17 @@ struct BrowseView: View {
         }
         .frame(minWidth: 880, minHeight: 600)
         .task { await reloadForNav() }
-        .sheet(isPresented: $showSettings) {
-            // initialTab：普通入口落「密钥」，从筛选面板锁定的 NSFW 档点进来则直达「内容」。
-            // onContentPolicyChanged：关掉开关时收回已勾选的 NSFW 档并重查（ADR-012）。
-            SettingsView(store: keyStore,
-                         clipboard: clipboard,
-                         initialTab: settingsTab,
-                         onSaved: { Task { await reloadForNav() } },
-                         onContentPolicyChanged: { viewModel.disableNSFWIfNeeded() },
-                         onClose: { showSettings = false })
-                // @State 只在首次构造时取 initialTab，换页签必须靠 id 强制重建，否则停在上一个页签。
-                .id(settingsTab)
-                // 语言要自己挂一次：被呈现的 sheet 不跟根视图的环境更新，挂上后由 sheet 自己
-                // 读偏好重注入 —— 否则主窗口切了英文、设置面板还是中文。
-                .appLocale()
-        }
         .overlay(alignment: .bottom) { if let toast { browseToastView(toast) } }
-        .alert(item: $pendingLocalDelete) { item in
-            Alert(
-                title: Text("确定删除这个导入项？"),
+        .alert(item: $pendingDelete) { item in
+            // 三元表达式会推断成 String（走 Text(_:StringProtocol) 不本地化），须显式标注。
+            let title: LocalizedStringKey = item.isAnimation ? "确定删除这个动态壁纸？" : "确定删除这个导入项？"
+            return Alert(
+                title: Text(title),
                 message: Text(item.fileName),
-                primaryButton: .destructive(Text("删除")) { library.remove(item) },
+                primaryButton: .destructive(Text("删除")) {
+                    library.remove(item)
+                    showToast(String(localized: "已删除"))
+                },
                 secondaryButton: .cancel(Text("取消")))
         }
     }
@@ -102,9 +110,9 @@ struct BrowseView: View {
             case .wallpaperSet:
                 AppliedWallpapersView(viewModel: viewModel, onDiscover: { select(.discover) }, onMessage: { showToast($0) })
             case .live:
-                DynamicWallpaperView(library: library, onMessage: { showToast($0) })
+                DynamicWallpaperView(library: library, onMessage: { showToast($0) }, onDeleteRequest: { pendingDelete = $0 })
             case .import:
-                ImportView(library: library, onMessage: { showToast($0) })
+                ImportView(library: library, onMessage: { showToast($0) }, onDeleteRequest: { pendingDelete = $0 })
             default: searchContent
             }
         }
@@ -143,7 +151,7 @@ struct BrowseView: View {
                                primarySystemName: "display",
                                primaryHelp: "设为壁纸",
                                onPrimary: { setLocalWallpaper(local) },
-                               onDelete: { pendingLocalDelete = local })
+                               onDelete: { pendingDelete = local })
         }
     }
 
