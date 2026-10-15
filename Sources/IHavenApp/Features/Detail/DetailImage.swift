@@ -97,7 +97,9 @@ struct DetailImageView: View {
                         reloadToken += 1
                     }
                 } else {
-                    lowResPreview(frame: frame)
+                    lowResPreview(frame: frame,
+                                  fraction: Double(state.progress.fraction),
+                                  totalBytes: state.progress.total)
                 }
             }
             .id(reloadToken)
@@ -106,7 +108,11 @@ struct DetailImageView: View {
 
     /// 原图到货前的低清占位：**必须**用 `thumbs.original`（等比、长边 ≤300px），
     /// 用 `large` / `small` 会在原图到货前闪一下被硬裁的比例（竖图上最明显）。
-    private func lowResPreview(frame: CGSize) -> some View {
+    ///
+    /// ⚠️ **占位图上必须叠出「正在加载高清图」的进度**（`fraction` / `totalBytes` 来自 Nuke 的
+    /// `ImageTask.Progress`）。一张 300px 缩略图拉到上千 pt 就是糊的，没有进度条时用户无从判断
+    /// 「还没下载完」还是「原图本来就这个清晰度」——只会得出后一个结论。
+    private func lowResPreview(frame: CGSize, fraction: Double, totalBytes: Int64) -> some View {
         LazyImage(url: wallpaper.aspectThumb) { state in
             if let image = state.image {
                 image.resizable().aspectRatio(contentMode: .fit)
@@ -115,6 +121,57 @@ struct DetailImageView: View {
                 skeleton(frame: frame)
             }
         }
+        .frame(width: frame.width, height: frame.height)
+        .overlay(alignment: .bottom) { hdLoadingHUD(fraction: fraction, totalBytes: totalBytes) }
+    }
+
+    /// 高清图下载进度：下沿一条贴底进度条 + 左上一枚胶囊标签，压在占位图上。
+    ///
+    /// `totalBytes <= 0`（响应没给 Content-Length）时退化为不确定态转圈 —— 此时 `fraction`
+    /// 恒为 0，硬画一根不动的空条比转圈更像「卡住了」。
+    @ViewBuilder
+    private func hdLoadingHUD(fraction: Double, totalBytes: Int64) -> some View {
+        let known = totalBytes > 0
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: IHaven.Space.s3.rawValue) {
+                if !known { ProgressView().controlSize(.small).scaleEffect(0.7) }
+                Text("正在加载高清图")
+                    .font(IHaven.Font.system(.xs))
+                    .foregroundStyle(IHaven.Color.hudFg)
+                if known {
+                    Text("\(Int((fraction * 100).rounded()))%")
+                        .font(IHaven.Font.system(.xs, .medium))
+                        .foregroundStyle(IHaven.Color.hudFg)
+                        .monospacedDigit()
+                    Text(byteText(fraction: fraction, totalBytes: totalBytes))
+                        .font(IHaven.Font.system(.xs))
+                        .foregroundStyle(IHaven.Color.muted)
+                        .monospacedDigit()
+                }
+            }
+            .padding(.horizontal, IHaven.Space.s5.rawValue)
+            .padding(.vertical, IHaven.Space.s2.rawValue)
+            .background(Capsule().fill(IHaven.Color.hudBg))
+            .overlay(Capsule().stroke(IHaven.Color.border, lineWidth: 1))
+            .padding(IHaven.Space.s5.rawValue)
+
+            if known {
+                ProgressView(value: fraction)
+                    .progressViewStyle(.linear)
+                    // `maxWidth: .infinity` 是必需的：线性进度条自身没有固有宽度，
+                    // 不撑开就只剩 VStack 里那枚胶囊的宽度，看着像「只有一点点」。
+                    .frame(maxWidth: .infinity)
+                    .animation(.easeOut(duration: 0.2), value: fraction)
+            }
+        }
+    }
+
+    /// `已下载 / 总量`，都走 `ByteCountFormatter`（`.file` 进制，1 MB = 1000 KB，与系统一致）。
+    private func byteText(fraction: Double, totalBytes: Int64) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        let done = formatter.string(fromByteCount: Int64(fraction * Double(totalBytes)))
+        return "\(done) / \(formatter.string(fromByteCount: totalBytes))"
     }
 
     private func skeleton(frame: CGSize) -> some View {
