@@ -50,12 +50,26 @@ final class DynamicWallpaperEngine: DynamicWallpaperPlaying {
         if FileManager.default.fileExists(atPath: poster.path) {
             for screen in NSScreen.screens {
                 savedWallpaper.append((screen, NSWorkspace.shared.desktopImageURL(for: screen) ?? poster))
-                try? NSWorkspace.shared.setDesktopImageURL(poster, for: screen, options: Self.posterOptions)
+            }
+            // ⚠️ 必须延后一整轮 run loop。`setDesktopImageURL` 是阻塞式 API，内部自旋 run loop
+            // 等 Dock 应答；在 SwiftUI 的按钮动作那一轮里同步调用会重入，实测内存污染后
+            // 在 autorelease pool drain 时 SIGSEGV。静态壁纸路径没这个问题，是因为它从
+            // `Task { await … }` 里调，天然不在同一轮。
+            let options = Self.posterOptions
+            DispatchQueue.main.async {
+                for screen in NSScreen.screens {
+                    try? NSWorkspace.shared.setDesktopImageURL(poster, for: screen, options: options)
+                }
             }
         }
 
-        installWindows(for: item)
-        players.forEach { $0.play() }
+        // ⚠️ 窗口创建同样必须延后一整轮：在 SwiftUI 的动作/布局这一轮里同步建桌面层
+        // borderless 窗口，会与正在进行的布局重入，实测（2026-10-15）无 AVPlayer 的裸窗口
+        // 也崩。这是「点一下动态壁纸就卡死 / 消失」的真正根因。
+        DispatchQueue.main.async { [weak self] in
+            self?.installWindows(for: item)
+            self?.players.forEach { $0.play() }
+        }
         isPlaying = true
         isPaused = false
         playing = item
@@ -67,8 +81,16 @@ final class DynamicWallpaperEngine: DynamicWallpaperPlaying {
         teardown()
         // 恢复进入前的系统壁纸；没有记录到（例如 poster 缺失）时保持 poster 不动 ——
         // 那也比把桌面恢复成一张来路不明的图更可预期。
-        for entry in savedWallpaper {
-            try? NSWorkspace.shared.setDesktopImageURL(entry.url, for: entry.screen, options: Self.posterOptions)
+        //
+        // ⚠️ 与 `play()` 同理：恢复写入也必须延后到当前这一轮 run loop 之外。
+        // 实测（2026-10-15）同步调用会在 autorelease pool drain 时 use-after-free 崩溃
+        // （堆栈落在 objc_release / NSAutoreleasePool drain）。详见 `play()` 里的说明。
+        let pending = savedWallpaper
+        let options = Self.posterOptions
+        DispatchQueue.main.async {
+            for entry in pending {
+                try? NSWorkspace.shared.setDesktopImageURL(entry.url, for: entry.screen, options: options)
+            }
         }
         savedWallpaper.removeAll()
         isPlaying = false
@@ -131,9 +153,17 @@ final class DynamicWallpaperEngine: DynamicWallpaperPlaying {
 
     /// 静帧层的填充方式与动态层保持一致：`resizeAspectFill` 裁切 = `allowClipping = true`。
     /// 两层用同一套裁切语义，用户不会看到「暂停时构图变了」。
+    ///
+    /// ⚠️ **两个值都必须是显式 `NSNumber`。** 实测（2026-10-15，复刻脚本对照三种写法）：
+    /// Swift 的 `Bool` 与 `NSImageScaling` 枚举放进 `[Key: Any]` 会被装箱成 `__SwiftValue`，
+    /// 字典跨到 Objective-C 时**不会**桥接成 `NSNumber`；AppKit 对这两个 key 都会发
+    /// `integerValue`，于是 `-[__SwiftValue integerValue]: unrecognized selector` ——
+    /// 未捕获的 ObjC 异常，进程直接终止（`do/catch` 抓不到）。
+    /// 这就是「点动态壁纸就卡死 / 消失、删除也没反应」的根因：播放与恢复两条路都写这张字典。
+    /// 静态引擎 `SystemWallpaperEngine.options` 用的是 NSNumber，所以它一直是好的。
     private static let posterOptions: [NSWorkspace.DesktopImageOptionKey: Any] = [
-        .imageScaling: NSImageScaling.scaleProportionallyUpOrDown,
-        .allowClipping: true,
+        .imageScaling: NSNumber(value: NSImageScaling.scaleProportionallyUpOrDown.rawValue),
+        .allowClipping: NSNumber(value: true),
     ]
 
     // MARK: - 系统通知（ADR-007 Trap 6：宿主是 NSApplication 不是 NSWorkspace）
@@ -158,7 +188,24 @@ final class DynamicWallpaperEngine: DynamicWallpaperPlaying {
             center.addObserver(forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main) { [weak self] _ in
                 Task { @MainActor in self?.rebuildForScreenChange() }
             },
+            // 退出前必须收掉桌面层窗口。实测（2026-10-15）：不回收时 AppKit 在终止流程里拆这些
+            // 窗口会 over-release，SIGSEGV 正好落在 `-[NSApplication run]` 的 autorelease pool
+            // drain 上 —— 退出时崩，用户看到的是「闪退」。
+            // `queue: nil` + `assumeIsolated`：该通知由 `terminate:` 在主线程同步投递，
+            // 必须同步收窗口，`Task { @MainActor in }` 在终止流程里来不及跑。
+            center.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: nil) { [weak self] _ in
+                MainActor.assumeIsolated { self?.teardownForTermination() }
+            },
         ]
+    }
+
+    /// 退出时的最小回收：只拆窗口与播放器，不写系统壁纸（进程要没了，写了也不会被看见）。
+    private func teardownForTermination() {
+        players.forEach { $0.pause() }
+        for window in windows { window.orderOut(nil); window.close() }
+        windows.removeAll()
+        players.removeAll()
+        loopers.removeAll()
     }
 
     private func rebuildForScreenChange() {

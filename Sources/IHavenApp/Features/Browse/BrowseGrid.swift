@@ -22,25 +22,45 @@ struct WallpaperCard: View {
                     // 手势挂在**缩略图层**而不是整卡：hover 浮层里的「收藏 / 设为壁纸」在它上层，
                     // 会先吃到点击，两者不打架（整卡挂手势会把浮层按钮吞掉）。
                     .onTapGesture(perform: onOpen)
-                if hovered { hoverOverlay.transition(.opacity) }
+                if hovered { hoverDecoration.transition(.opacity) }
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: IHaven.Radius.lg.rawValue, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.lg.rawValue, style: .continuous)
             .stroke(IHaven.Color.borderSoft, lineWidth: 1))
+        // ⚠️ 命中测试（这是「单击卡片进不了详情页」的根因）：
+        // 浮层整片盖在缩略图之上，而 SwiftUI 的命中区域就是 View 的边框 —— 渐变层铺满整卡、
+        // 按钮容器原先还写了 `maxWidth/maxHeight:.infinity`（视觉上是右上角两个小按钮，命中区域
+        // 却是整张卡）。鼠标一进卡片就 hover，浮层立刻出现，于是**每一次点击都被浮层吃掉**，
+        // 挂在缩略图上的 `onTapGesture` 永远收不到。
+        // 修法：装饰层整层 `allowsHitTesting(false)` 让点击穿透到下面的缩略图；两个按钮必须是
+        // **挂在最外层的独立 overlay**，不能放进那个禁用层里 —— `allowsHitTesting(false)`
+        // 会连带禁用它的整个子树，挂在它身上的 overlay 也算子树，按钮会变成点不到的死按钮。
+        .overlay(alignment: .topTrailing) {
+            if hovered {
+                HStack(spacing: 6) {
+                    Button(action: onToggleFavorite) {
+                        Image(systemName: isFavorite ? "heart.fill" : "heart")
+                            .foregroundStyle(isFavorite ? IHaven.Color.accent : .white)
+                    }
+                    .frame(width: IHaven.Layout.hitPointerMin, height: IHaven.Layout.hitPointerMin)
+                    .buttonStyle(.borderless)
+                    Button(action: onSetWallpaper) {
+                        Image(systemName: "desktopcomputer").foregroundStyle(.white)
+                    }
+                    .frame(width: IHaven.Layout.hitPointerMin, height: IHaven.Layout.hitPointerMin)
+                    .buttonStyle(.borderless)
+                }
+                .padding(8)
+            }
+        }
         .contentShape(Rectangle())
         .onHover { hovered = $0 }
         .animation(IHaven.Motion.fast, value: hovered)
     }
 
-    /// ⚠️ 命中测试（这是「单击卡片进不了详情页」的根因）：
-    /// 浮层整片盖在缩略图之上，而 SwiftUI 的命中区域就是 View 的边框 —— 渐变层铺满整卡、
-    /// 按钮容器原先还写了 `maxWidth/maxHeight:.infinity`（视觉上是右上角两个小按钮，命中区域
-    /// 却是整张卡）。鼠标一进卡片就 hover，浮层立刻出现，于是**每一次点击都被浮层吃掉**，
-    /// 挂在缩略图上的 `onTapGesture` 永远收不到。
-    /// 修法：整层 `allowsHitTesting(false)` 让点击穿透到下面的缩略图，只有两个按钮单独挂一层
-    /// overlay —— 它的命中区域就是按钮本身那么大。
-    private var hoverOverlay: some View {
+    /// 纯装饰层：渐变 + 分辨率 / 收藏数。**整体不吃命中**，点击穿透到下面的缩略图。
+    private var hoverDecoration: some View {
         ZStack(alignment: .bottomLeading) {
             LinearGradient(colors: [.clear, .black.opacity(0.55), .black.opacity(0.78)],
                           startPoint: .center, endPoint: .bottom)
@@ -56,22 +76,6 @@ struct WallpaperCard: View {
             .padding(8)
         }
         .allowsHitTesting(false)
-        .overlay(alignment: .topTrailing) {
-            HStack(spacing: 6) {
-                Button(action: onToggleFavorite) {
-                    Image(systemName: isFavorite ? "heart.fill" : "heart")
-                        .foregroundStyle(isFavorite ? IHaven.Color.accent : .white)
-                }
-                .frame(width: IHaven.Layout.hitPointerMin, height: IHaven.Layout.hitPointerMin)
-                .buttonStyle(.borderless)
-                Button(action: onSetWallpaper) {
-                    Image(systemName: "desktopcomputer").foregroundStyle(.white)
-                }
-                .frame(width: IHaven.Layout.hitPointerMin, height: IHaven.Layout.hitPointerMin)
-                .buttonStyle(.borderless)
-            }
-            .padding(8)
-        }
     }
 }
 

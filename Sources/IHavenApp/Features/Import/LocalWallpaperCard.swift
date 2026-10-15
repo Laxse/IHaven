@@ -22,7 +22,7 @@ struct LocalWallpaperCard: View {
                     .frame(width: geo.size.width, height: geo.size.height)
                     .clipped()
                     .onTapGesture(perform: onPrimary)
-                if hovered { overlay }
+                if hovered { hoverDecoration }
                 // 常驻信息条：分辨率（视频再加时长）。本地文件没有网络壁纸那套上传者 / 收藏数。
                 infoBar
             }
@@ -31,16 +31,25 @@ struct LocalWallpaperCard: View {
         .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.lg.rawValue, style: .continuous)
             .stroke(IHaven.Color.borderSoft, lineWidth: 1))
         .overlay(alignment: .topLeading) { localBadge }
+        // ⚠️ 交互按钮必须是**挂在最外层的独立 overlay**，不能放进 `hoverDecoration` 里：
+        // 装饰层整体 `.allowsHitTesting(false)`，而该修饰会连带禁用它的**整个子树** ——
+        // 挂在它身上的 overlay 同样算子树，按钮会变成点不到的死按钮。
+        .overlay(alignment: .topTrailing) {
+            if hovered {
+                HStack(spacing: 6) {
+                    BrowseIconButton(systemName: primarySystemName, help: primaryHelp, action: onPrimary)
+                    BrowseIconButton(systemName: "trash", help: "删除", action: onDelete)
+                }
+                .padding(IHaven.Space.s3.rawValue)
+            }
+        }
         .contentShape(Rectangle())
         .onHover { hovered = $0 }
         .animation(IHaven.Motion.fast, value: hovered)
     }
 
-    // MARK: - 浮层
-
-    /// 装饰层整体 `.allowsHitTesting(false)`：命中区域 = View 边框，铺满的渐变会吃掉点击
-    /// （BrowseGrid 的 hoverOverlay 犯过同一个错，见 2026-10-15 记录）。
-    private var overlay: some View {
+    /// 纯装饰层：渐变 + 文件名。**整体不吃命中**，让点击穿透到下面的缩略图。
+    private var hoverDecoration: some View {
         ZStack(alignment: .bottomLeading) {
             LinearGradient(colors: [.clear, .black.opacity(0.55)],
                            startPoint: .top, endPoint: .bottom)
@@ -56,13 +65,6 @@ struct LocalWallpaperCard: View {
             .padding(IHaven.Space.s4.rawValue)
         }
         .allowsHitTesting(false)
-        .overlay(alignment: .topTrailing) {
-            HStack(spacing: 6) {
-                BrowseIconButton(systemName: primarySystemName, help: primaryHelp, action: onPrimary)
-                BrowseIconButton(systemName: "trash", help: "删除", action: onDelete)
-            }
-            .padding(IHaven.Space.s3.rawValue)
-        }
         .transition(.opacity)
     }
 
