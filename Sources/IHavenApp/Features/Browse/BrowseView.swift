@@ -6,6 +6,8 @@ struct BrowseView: View {
     let keyStore: KeyStore
     /// 设置面板（关于页复制微信号）用；实现由 `IHavenApp.bootstrap()` 装配注入（ARCH §4）。
     let clipboard: ClipboardWriting
+    /// 存储页签的数据源（设置面板）。与 `clipboard` 同理，实现由装配点注入（ADR-017）。
+    let storage: StorageUsage
     /// 本地库（导入图片 / 本地视频）。F8 与 F9 共用同一个实例：导入管线只有一份
     /// （PRD 附录 A-6b），两个页签只是按 `kind` 过滤出不同子集。
     @Bindable var library: LocalLibraryViewModel
@@ -33,6 +35,8 @@ struct BrowseView: View {
                     // onContentPolicyChanged：关掉开关时收回已勾选的 NSFW 档并重查（ADR-012）。
                     SettingsView(store: keyStore,
                                  clipboard: clipboard,
+                                 storage: storage,
+                                 animationIDs: animationIDs,
                                  initialTab: settingsTab,
                                  onSaved: { Task { await reloadForNav() } },
                                  onContentPolicyChanged: { viewModel.disableNSFWIfNeeded() },
@@ -99,10 +103,9 @@ struct BrowseView: View {
     // MARK: - 主内容区
 
     /// ⚠️ **详情页是 overlay 盖在主区上，不是 `if/else` 二选一** —— 这是「详情页返回后滚动条
-    /// 跑到顶上」的根因。`if/else` 会在进入详情那一刻把 `searchContent` 的 `ScrollView`
-    /// **整个从视图树上摘掉**，`detail = nil` 返回时只能新建一棵，而新建的 ScrollView 偏移恒为 0，
-    /// 于是无论之前滚到哪里都回到顶部。改成 overlay 后底层 ScrollView 自始至终没离开过视图树，
-    /// 偏移原样保留；详情页自己是不透明整块，视觉上与「换了页」完全一致。
+    /// 跑到顶上」的根因：`if/else` 会在进入详情那一刻把 `searchContent` 的 `ScrollView`
+    /// **整个从视图树上摘掉**，返回时只能新建一棵、偏移恒为 0。overlay 下底层 ScrollView 始终
+    /// 在视图树上，偏移原样保留；详情页是不透明整块，视觉上与「换了页」一致。
     private var mainArea: some View {
         VStack(spacing: 0) {
             switch nav {
@@ -127,9 +130,8 @@ struct BrowseView: View {
         }
     }
 
-    /// 瀑布流统一网格项：网络项 + 本地导入项（PRD:697 要求两者在同一瀑布流展示，
-    /// 本地项有可区分标识）。本地项**不参与筛选与翻页** —— 筛选参数是 wallhaven 搜索参数，
-    /// 对本地文件无意义；翻页由 `nextPage()` 只推网络项。
+    /// 瀑布流统一网格项：网络项 + 本地导入项（PRD:697 要求两者同瀑布流展示，本地项有可区分标识）。
+    /// 本地项**不参与筛选与翻页** —— 筛选参数是 wallhaven 搜索参数，对本地文件无意义。
     private var gridItems: [WallpaperGridItem] {
         viewModel.wallpapers.map(WallpaperGridItem.network)
             + library.images.map(WallpaperGridItem.local)
@@ -234,11 +236,17 @@ struct BrowseView: View {
     }
 
     // MARK: - 行为
+
+    /// 仍在库中的动态壁纸 id（= 帧序列目录名）：存储页签据此判定哪些帧目录是孤儿。
+    private var animationIDs: Set<String> {
+        Set(library.imported.filter(\.isAnimation).map(\.id))
+    }
+
     private func select(_ item: NavItem) {
         switch item {
         case .settings: openSettings(.apiKey); return
-        case .favorites: nav = .favorites; viewModel.loadFavorites(); return
         // 「已设置」读本地记录，不发网络请求；落入 default 会走 reload 白打一次搜索。
+        case .favorites: nav = .favorites; viewModel.loadFavorites(); return
         case .wallpaperSet: nav = item; viewModel.loadApplied(); return
         case .live, .import: nav = item; return
         default: break
@@ -277,13 +285,7 @@ struct BrowseView: View {
 
     private func setWallpaper(_ wp: Wallpaper) { Task { showToast((await viewModel.setAsWallpaper(wp)) ?? String(localized: "已设为壁纸")) } }
     private func setLocalWallpaper(_ item: ImportedWallpaper) {
-        Task {
-            if let message = await library.setAsWallpaper(item) {
-                showToast(message)
-            } else {
-                showToast(String(localized: "已设为壁纸"))
-            }
-        }
+        Task { showToast((await library.setAsWallpaper(item)) ?? String(localized: "已设为壁纸")) }
     }
     private func setWallpaperFromFavorite(_ fav: Favorite) { Task { showToast((await viewModel.setWallpaperFromFavorite(fav)) ?? String(localized: "已设为壁纸")) } }
 

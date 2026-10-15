@@ -7,6 +7,8 @@ struct IHavenApp: App {
     /// 剪贴板（关于页复制微信号用）。与 `savePanel` 同为 Platform 实现：**只在装配点创建一次**
     /// 再往下传，因为 Feature 层不允许出现 `SystemClipboard` 这个具体类型名（ARCH §4）。
     private let clipboard: ClipboardWriting = SystemClipboard()
+    /// 设置 · 存储页签的数据源（图片缓存 / 帧序列占用与清理，ADR-017）。
+    private let storage: StorageUsage = DiskStorageUsage()
     @AppStorage(UserPreferenceKey.appearance) private var appearance: String = "system"
     /// 动态壁纸播放引擎（F9，ADR-015 §五）。与 `clipboard` 同理：Platform 实现只在装配点创建一次。
     private let dynamicEngine = DynamicWallpaperEngine()
@@ -25,7 +27,8 @@ struct IHavenApp: App {
         WindowGroup("IHaven") {
             Group {
                 if let vm = browseViewModel, let library {
-                    BrowseView(viewModel: vm, keyStore: keyStore, clipboard: clipboard, library: library)
+                    BrowseView(viewModel: vm, keyStore: keyStore, clipboard: clipboard,
+                               storage: storage, library: library)
                 } else {
                     ProgressView("初始化…").task { await bootstrap() }
                 }

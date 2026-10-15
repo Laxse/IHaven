@@ -2,11 +2,12 @@ import SwiftUI
 
 /// 设置面板页签（原独立「密钥」侧栏项的归宿）。
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case apiKey, appearance, content, about
+    case apiKey, appearance, content, storage, about
     var id: String { rawValue }
     var label: LocalizedStringKey {
         switch self {
-        case .apiKey: "密钥"; case .appearance: "外观"; case .content: "内容"; case .about: "关于"
+        case .apiKey: "密钥"; case .appearance: "外观"; case .content: "内容"
+        case .storage: "存储"; case .about: "关于"
         }
     }
 }
@@ -18,6 +19,10 @@ struct SettingsView: View {
     let store: KeyStore
     /// 关于页复制微信号用。只声明协议，实现由 `IHavenApp.bootstrap()` 装配注入（ARCH §4）。
     let clipboard: ClipboardWriting
+    /// 存储页签的数据源（图片缓存 / 帧序列占用与清理）。实现由装配点注入（ADR-017）。
+    let storage: StorageUsage
+    /// 仍在库中的动态壁纸 id：存储页签用它判断哪些帧序列目录是「未使用」的孤儿。
+    let animationIDs: Set<String>
     /// 打开时落在哪个页签（筛选面板里点灰置的 NSFW 档会直接跳到「内容」页签）。
     var initialTab: SettingsTab = .apiKey
     var onSaved: () -> Void
@@ -34,12 +39,16 @@ struct SettingsView: View {
 
     init(store: KeyStore,
          clipboard: ClipboardWriting,
+         storage: StorageUsage,
+         animationIDs: Set<String>,
          initialTab: SettingsTab = .apiKey,
          onSaved: @escaping () -> Void,
          onContentPolicyChanged: @escaping () -> Void = {},
          onClose: @escaping () -> Void) {
         self.store = store
         self.clipboard = clipboard
+        self.storage = storage
+        self.animationIDs = animationIDs
         self.initialTab = initialTab
         self.onSaved = onSaved
         self.onContentPolicyChanged = onContentPolicyChanged
@@ -80,6 +89,7 @@ struct SettingsView: View {
             case .apiKey: apiKeyTab
             case .appearance: appearanceTab
             case .content: contentTab
+            case .storage: SettingsStorageTab(storage: storage, animationIDs: animationIDs)
             case .about: SettingsAboutTab(clipboard: clipboard)
             }
         }

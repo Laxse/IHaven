@@ -197,3 +197,15 @@
 "确定删除这个动态壁纸？" = "Delete this dynamic wallpaper?";
 "已删除" = "Deleted";
 "正在加载高清图" = "Loading full resolution";
+"存储" = "Storage";
+"图片缓存" = "Image Cache";
+"已下载的缩略图与高清图副本，用于避免重复下载。清除后再次浏览会重新下载。" = "Local copies of thumbnails and full-resolution images, kept so they aren't downloaded twice. Clearing it means the next browse re-downloads them.";
+"占用" = "Used";
+"动态壁纸帧序列" = "Dynamic Wallpaper Frames";
+"由静态图本地生成的 JPEG 帧。清理只删除已不在库中的序列，现有动态壁纸不受影响。" = "JPEG frames generated locally from static images. Cleanup only removes sequences that are no longer in your library — existing dynamic wallpapers are untouched.";
+"共占用" = "Total";
+"未使用" = "Unused";
+"%lld 项 · %@" = "%lld items · %@";
+"没有未使用的帧序列" = "No unused frame sequences";
+"清理未使用的" = "Clean Up Unused";
+"已清理" = "Cleaned";
