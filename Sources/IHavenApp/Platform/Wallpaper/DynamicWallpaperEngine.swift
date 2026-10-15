@@ -133,6 +133,12 @@ final class DynamicWallpaperEngine: DynamicWallpaperPlaying {
             window.backgroundColor = .clear
             window.ignoresMouseEvents = true
             window.hasShadow = false
+            // ⚠️ ARC 下必须关掉这个（缺了它「停止 / 暂停切换」会闪退）：
+            // `NSWindow` 的 `isReleasedWhenClosed` 默认为 `true`，`close()` 会**再 release 一次**，
+            // 与 ARC 既有的强引用叠加 → 过度释放。实测停止动态壁纸时窗口在 autorelease pool
+            // drain 阶段收到 release 崩溃（Zombie 报 `-[NSWindow release]: message sent to
+            // deallocated instance`；崩溃栈落在 objc_autoreleasePoolPop → objc_release）。
+            window.isReleasedWhenClosed = false
 
             let view = NSImageView(frame: NSRect(origin: .zero, size: screen.frame.size))
             // 帧是按屏幕比例裁的（生成时取了主屏比例），等比拉伸铺满屏幕、不变形——
