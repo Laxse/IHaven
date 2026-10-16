@@ -233,3 +233,23 @@
 "填充（铺满屏幕，可能裁边）" = "Fill (covers the screen, may crop)";
 "未开启「显示器具有单独 Spaces」，多屏壁纸可能只在一块屏生效。请在系统设置 ▸ 桌面与程序坞中开启（修改后需注销重新登录）。" = "\"Displays have separate Spaces\" is off, so multi-display wallpapers may only apply to one screen. Turn it on in System Settings ▸ Desktop & Dock (requires logging out and back in).";
 "只能设置本地图片作为壁纸" = "Only local images can be set as wallpaper";
+
+// MARK: - Performance Guard (PRD F10)
+
+"性能" = "Performance";
+"自动暂停" = "Auto-Pause";
+"动态壁纸播放时命中下列条件会自动暂停；条件解除后约 3 秒恢复。暂停只停帧计时，桌面层窗口保留。" = "While a dynamic wallpaper plays, hitting any of these pauses it; it resumes about 3 seconds after the condition clears. Pausing only stops the frame timer — the desktop windows stay up.";
+"前台应用全屏" = "Frontmost app is full screen";
+"看视频、打游戏、演示时桌面没人看" = "Nobody is looking at the desktop during video, games or a presentation";
+"电量低于阈值" = "Battery below threshold";
+"系统低电量模式" = "System Low Power Mode";
+"系统过热" = "System overheating";
+"热状态偏离正常时" = "When the thermal state leaves nominal";
+"实时占用" = "Live Usage";
+"CPU" = "CPU";
+"进程内存" = "Process Memory";
+"内存压力" = "Memory Pressure";
+"已在设置中关闭" = "Turned off in Settings";
+"本机没有电池" = "This Mac has no battery";
+"已由护栏自动暂停" = "Auto-paused by the guard";
+"采样只在设置面板打开时进行（1 秒一次，getrusage 实测 0.0004ms/次，可忽略）。" = "Sampling only runs while this panel is open (once per second; getrusage measured at 0.0004 ms per call — negligible).";

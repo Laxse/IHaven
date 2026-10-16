@@ -21,6 +21,8 @@ struct IHavenApp: App {
         // 必须早于任何视图构建：`LazyImage` 在初始化那一刻就把 `.shared` 抄进自己的实例里，
         // 晚一步装，瀑布流和详情页就都用不上 `DataCache`，高清图仍是每次重新下载。
         NukeImagePipeline.install()
+        // 性能护栏：只持有引擎引用，真正 start() 由设置 · 性能页签触发（用户没打开就不采样）。
+        PerformanceGuard.shared.attach(dynamicEngine)
     }
 
     var body: some Scene {

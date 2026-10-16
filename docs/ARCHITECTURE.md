@@ -1486,3 +1486,32 @@ bash scripts/convention-gate.sh       # ADR-004/009 规范
 | `scripts/security-gate.sh` | 安全门禁（明文 Key / query 传参 / 私有 API） |
 | `scripts/convention-gate.sh` | 规范门禁（行数 / 状态管理 / 分层依赖） |
 | `.github/workflows/gates.yml` | CI：三个门禁 + 构建 |
+
+## 附：macOS 系统能力实测边界（2026-10-17，F10 性能护栏）
+
+下列结论全部来自本机实测（Xcode 27 SDK / macOS 27.0.1 / Apple M4 台式机），写进实现前先读：
+
+1. **`proc_pid_rusage` 的 CPU 时间不是纳秒，是 mach tick。** `sys/resource.h:423` 注释写的是纳秒，
+   实测 timebase 125/3（1 tick = 41.67ns）：单线程烧满 1.5s，按 tick 换算得 100.0%，按纳秒只得 2.4%。
+   **CPU 采样一律用 `getrusage(RUSAGE_SELF)`**（`ru_utime`/`ru_stime` 是 `timeval`，单位正确）。
+2. **Apple Silicon 没有可测量的独立显存。** `IOServiceGetMatchingServices("IOAccelerator")` 只有一条
+   `Apple M4`，属性里无任何 VRAM 字段（统一内存架构）。PRD 的「CPU/显存实测可见」做不到 ——
+   占用面板第三项改为「系统内存压力 + 帧序列磁盘占用」。
+3. **`IOPSGetProvisioningPowerSourceType` 在 macOS 26 SDK 不存在**（对 `IOKit.framework/Headers`
+   全量 grep 零匹配）。判电源只能读 `Power Source State` 字典键；`IOPSCopyPowerSourcesInfo()` 的
+   Swift 返回是 `Unmanaged<CFTypeRef>?`，必须先 `takeUnretainedValue()` 再传给
+   `IOPSCopyPowerSourcesList`。
+4. **台式机 / Mac mini / Mac Studio 上 `IOPSCopyPowerSourcesList` 返回 0 条**（实测本机就是），
+   `IOPSGetTimeRemainingEstimate()` 返回 −2。这不是故障，是「本机无电池」—— 电量档必须永久关闭
+   并在 UI 上写明原因。
+5. **全屏检测用 `CGWindowListCopyWindowInfo` 的几何判定，不要辅助功能权限。** 窗口元数据不受 TCC
+   限制（实测 17/17 个 on-screen 窗口都有 owner 与 bounds，而 `AXIsProcessTrusted() == false`）；
+   受限制的是 `CGWindowListCreateImage` 取图。判据：普通窗口被 AppKit 夹在 `visibleFrame` 内
+   （本机 frame 高 1080 / visibleFrame 高 1050，实测 8 个窗口无一能等于 frame），
+   所以「layer==0 且 bounds 覆盖整屏」只在原生全屏时成立。
+6. **`setDesktopImageURL` 有两条 SIGABRT 路径，协议的 `throws` 给的是虚假安全感**：
+   远程 URL 触发 `NSInternalInconsistencyException`（exit 134）；不可转换到 Generic RGB 的颜色
+   （如 `NSColor(patternImage:)`）同样 SIGABRT。引擎层必须加 `isFileURL` 断言与
+   `usingColorSpace` 转换后再入字典。
+7. **省略 `NSWorkspace.DesktopImageOptionKey.fillColor` 不会回到系统默认色**，而是保留上一次写入的值
+   （实测回读）。所以「没有主色可用」时必须显式给一个中性回退色。

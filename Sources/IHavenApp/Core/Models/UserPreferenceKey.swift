@@ -17,4 +17,13 @@ enum UserPreferenceKey {
     static let wallpaperTargetDisplay = "ihaven.wallpaperTargetDisplay"
     /// 目标显示器的展示名（仅用于「上次选的屏已不在」时的回退提示，不参与匹配）。
     static let wallpaperTargetName = "ihaven.wallpaperTargetName"
+
+    // MARK: - 性能护栏（PRD F10）
+
+    static let perfPauseOnFullscreen = "ihaven.perfPauseOnFullscreen"
+    static let perfPauseOnLowBattery = "ihaven.perfPauseOnLowBattery"
+    static let perfPauseOnLowPower = "ihaven.perfPauseOnLowPower"
+    static let perfPauseOnThermal = "ihaven.perfPauseOnThermal"
+    /// 电量阈值百分比；`0` = 未设置，读时按默认 20 处理。
+    static let perfBatteryThreshold = "ihaven.perfBatteryThreshold"
 }

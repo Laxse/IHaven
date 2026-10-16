@@ -2,12 +2,12 @@ import SwiftUI
 
 /// 设置面板页签（原独立「密钥」侧栏项的归宿）。
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case apiKey, appearance, content, storage, about
+    case apiKey, appearance, content, storage, performance, about
     var id: String { rawValue }
     var label: LocalizedStringKey {
         switch self {
         case .apiKey: "密钥"; case .appearance: "外观"; case .content: "内容"
-        case .storage: "存储"; case .about: "关于"
+        case .storage: "存储"; case .performance: "性能"; case .about: "关于"
         }
     }
 }
@@ -23,6 +23,9 @@ struct SettingsView: View {
     let storage: StorageUsage
     /// 仍在库中的动态壁纸 id：存储页签用它判断哪些帧序列目录是「未使用」的孤儿。
     let animationIDs: Set<String>
+    /// 性能护栏（PRD F10）。App 级单例，默认参数取 `shared` —— 这样 `BrowseView`（已顶到
+    /// 300 行上限）一行都不用改；与 `ImagePipeline.shared` / `NukeImagePipeline.pipeline` 同性质。
+    var performance: PerformanceGuard = .shared
     /// 打开时落在哪个页签（筛选面板里点灰置的 NSFW 档会直接跳到「内容」页签）。
     var initialTab: SettingsTab = .apiKey
     var onSaved: () -> Void
@@ -93,6 +96,7 @@ struct SettingsView: View {
             case .appearance: appearanceTab
             case .content: contentTab
             case .storage: SettingsStorageTab(storage: storage, animationIDs: animationIDs)
+            case .performance: SettingsPerformanceTab(guardProvider: performance)
             case .about: SettingsAboutTab(clipboard: clipboard)
             }
         }
