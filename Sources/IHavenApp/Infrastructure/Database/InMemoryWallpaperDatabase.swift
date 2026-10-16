@@ -29,4 +29,15 @@ final class InMemoryWallpaperDatabase: WallpaperDatabase, @unchecked Sendable {
     func imported() throws -> [ImportedWallpaper] {
         lock.withLock { Array(importedStore.values).sorted { $0.addedAt > $1.addedAt } }
     }
+
+    // MARK: - 轮换日程（F13）
+
+    private var scheduleStore: [String: WallpaperSchedule] = [:]
+
+    func addSchedule(_ schedule: WallpaperSchedule) throws { lock.withLock { scheduleStore[schedule.id] = schedule } }
+    func removeSchedule(id: String) throws { lock.withLock { _ = scheduleStore.removeValue(forKey: id) } }
+    func schedules() throws -> [WallpaperSchedule] {
+        lock.withLock { Array(scheduleStore.values).sorted { $0.createdAt < $1.createdAt } }
+    }
+    func updateSchedule(_ schedule: WallpaperSchedule) throws { lock.withLock { scheduleStore[schedule.id] = schedule } }
 }

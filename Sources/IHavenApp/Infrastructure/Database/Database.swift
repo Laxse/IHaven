@@ -7,7 +7,9 @@ import GRDB
 /// 存储归属（ARCH §3.2）：收藏集存 `favorite` 表；图片二进制不入 SQLite，
 /// 仅存路径，二进制落 `Application Support/Wallpapers/`。
 final class GRDBWallpaperDatabase: WallpaperDatabase {
-    private let db: DatabasePool
+    /// 跨文件可见（`ScheduleDatabase.swift` 的 extension 要用），但仍是实现细节：
+    /// 同模块外不该直接碰它，一律走 `WallpaperDatabase` 协议。
+    let db: DatabasePool
 
     init() throws {
         // 路径统一走 `AppPaths.root`（ADR-015 §二）：在出现第三处硬编码之前先收敛。
@@ -70,6 +72,28 @@ final class GRDBWallpaperDatabase: WallpaperDatabase {
                         try? FileManager.default.removeItem(atPath: path)
                     }
                 }
+            }
+        }
+        // v5：轮换日程（PRD F13）。一张表 + `mode` 字段，不拆「间隔表 / 时段表」——
+        // 两类规则 90% 字段重合，拆表等于把同一套 CRUD 写两遍（PRD 附录 A-6b 同款先例）。
+        // `startMinute` / `endMinute` 存自零点起的分钟数而不是 Date：时段是每日重复的壁钟语义，
+        // 存 Date 会引入时区与夏时制歧义。`weekdays` 存 CSV 而不是位掩码。
+        migrator.registerMigration("v5") { db in
+            try db.create(table: "schedule") { t in
+                t.column("id", .text).primaryKey()
+                t.column("name", .text).notNull()
+                t.column("isEnabled", .boolean).notNull()
+                t.column("mode", .text).notNull()
+                t.column("intervalMinutes", .integer).notNull()
+                t.column("startMinute", .integer).notNull()
+                t.column("endMinute", .integer).notNull()
+                t.column("weekdays", .text)
+                t.column("sourceKind", .text).notNull()
+                t.column("orderMode", .text).notNull()
+                t.column("cursor", .integer).notNull()
+                t.column("lastRunAt", .double)
+                t.column("lastWallpaperID", .text)
+                t.column("createdAt", .double).notNull()
             }
         }
         try migrator.migrate(pool)

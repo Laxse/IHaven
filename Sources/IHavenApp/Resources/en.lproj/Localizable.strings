@@ -253,3 +253,28 @@
 "本机没有电池" = "This Mac has no battery";
 "已由护栏自动暂停" = "Auto-paused by the guard";
 "采样只在设置面板打开时进行（1 秒一次，getrusage 实测 0.0004ms/次，可忽略）。" = "Sampling only runs while this panel is open (once per second; getrusage measured at 0.0004 ms per call — negligible).";
+
+// MARK: - Rotation Schedule (PRD F13)
+
+"轮换" = "Rotation";
+"还没有轮换规则。新建后，壁纸会按时间或间隔自动更换。" = "No rotation rules yet. Create one and your wallpaper will change on a schedule.";
+"App 退出期间不会轮换；来源不含网络搜索（避免消耗 wallhaven 的每分钟 45 次调用上限）。" = "Rotation stops when the app quits. Sources never include web search, so the wallhaven 45-calls-per-minute budget is untouched.";
+"新建轮换规则" = "New Rotation Rule";
+"删除这条规则" = "Delete this rule";
+"每 %lld 分钟" = "Every %lld min";
+"%02lld:%02lld – %02lld:%02lld" = "%02lld:%02lld – %02lld:%02lld";
+"本地导入" = "Imported";
+"轮换规则 %lld" = "Rotation rule %lld";
+"规则名称" = "Rule name";
+"触发方式" = "Trigger";
+"按间隔" = "Interval";
+"按时段" = "Time window";
+"每 %lld 分钟换一张" = "Change every %lld minutes";
+"开始" = "Start";
+"结束" = "End";
+"不选 = 每天" = "None selected = every day";
+"来源" = "Source";
+"已设置（含已下载的）" = "Applied (already downloaded)";
+"收藏（仅已下载的）" = "Favorites (downloaded ones only)";
+"顺序" = "Order";
+"按顺序" = "Sequential";

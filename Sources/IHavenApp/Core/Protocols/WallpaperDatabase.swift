@@ -25,4 +25,12 @@ public protocol WallpaperDatabase: Sendable {
     func removeImported(id: String) throws
     /// 按导入时间倒序返回（最近导入的在最前）。
     func imported() throws -> [ImportedWallpaper]
+
+    // MARK: - 轮换日程（F13）
+
+    func addSchedule(_ schedule: WallpaperSchedule) throws
+    func removeSchedule(id: String) throws
+    func schedules() throws -> [WallpaperSchedule]
+    /// 只更新可变字段（开关 / 游标 / 上次执行时间），不重建整条记录。
+    func updateSchedule(_ schedule: WallpaperSchedule) throws
 }

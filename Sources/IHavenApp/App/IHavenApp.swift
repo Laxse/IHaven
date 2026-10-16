@@ -88,6 +88,10 @@ struct IHavenApp: App {
         let database: WallpaperDatabase = (try? GRDBWallpaperDatabase()) ?? InMemoryWallpaperDatabase()
         let engine = SystemWallpaperEngine()
         let downloader = ImageFileDownloader()
+        // 轮换日程（PRD F13）：规则存 database，铺壁纸走 engine。关窗后进程仍活着，
+        // 所以启动即开；没有启用规则时 reschedule() 会直接返回，不占资源。
+        WallpaperScheduler.shared.configure(database: database, engine: engine)
+        WallpaperScheduler.shared.start()
         let savePanel = SystemSavePanel()
         // F8：导入管线。`AVMediaProbe` 一个类型同时实现探测与缩略图产出 —— 两者都只是
         ///「读媒体元信息 / 产小图」，拆成两个类型只会多一层无意义转发。
