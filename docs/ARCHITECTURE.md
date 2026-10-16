@@ -1121,19 +1121,31 @@ actor RateLimiter {
 要点：
 - 用 `actor` 隔离，手动改`DispatchQueue` 会引入 Swift 6 并发违规。
 - **突发容量设45**：允许短时间突发 45 次，然后按`45/60≈0.75 次/秒` 匀速释放。这符合用户快速滚动翻页的真实行为。
-- **每个请求类型都要过桶**，包括图片请求（若走自建 URLSession）与元数据请求。豁免任何一类都会击穿限额。
+- **只有 `/api/v1/*` 过桶，图片 CDN 不过桶**（2026-10-17 订正，原写「每个请求类型都要过桶，包括图片请求」）。
+  依据：`docs/VERIFIED-WALLHAVEN-DETAIL.md` §6 的压测全部针对 API 端点（55 个并发 `/w/jel1jq`
+  → 恰好 45 × 200 + 10 × 429），官方原文也是 "API calls are currently limited to 45 per minute"。
+  缩略图与原图走 `th.wallhaven.cc` / `w.wallhaven.cc`，是独立的图片域名，**不进这个桶**。
+  把它们算进来等于「加载一张 12MB 原图 = 1 次配额」，一页 24 张就吃掉半个桶 —— 照旧版实现
+  会让瀑布流直接不可用。
 - 空闲时不需精确计时，`ContinuousClock` 单调，免疫系统时间跳变。
 
 **429 退避重试**：
 
 ```
 第 n 次重试延迟 = min(baseDelay × 2^(n-1) + jitter, maxDelay)
-baseDelay = 1s, maxDelay = 60s, maxRetries = 4
+baseDelay = 1s, maxDelay = 60s, maxRetries = 3（PRD §6 F7「最多 3 次」，原写 4，2026-10-17 对齐 PRD）
 ```
 
 - 必须加 jitter，否则多个并发请求会在同一时刻重试，形成同步重试风暴。
 - 尊重 `Retry-After` 头（若服务端提供），优先于本地计算。
-- 重试耗尽后向上抛`APIError.rateLimited(retryAfter:)`，UI 显示明确的下次可用时间，**不要静默失败**。
+- **只对 429 / 5xx 重试**：`401` / `404` / `400` / 解码失败 / 参数非法都是确定性失败，
+  而实测「404 与 401 同样扣配额」（VERIFIED-WALLHAVEN-DETAIL.md §6）—— 对它们重试是纯烧额度。
+- **端点上限不同**：`/search` 3 次，`/w/<id>` 1 次。详情请求与翻页同价，多给一次重试
+  就多扣一次配额；返回列表再进来就是最自然的重试路径。
+- **全局重试预算**：60 秒窗口内全 app 重试总数 ≤ 3，防止「列表页 + 详情页 + 用户点重试」同时烧配额。
+- 重试耗尽后向上抛`APIError.rateLimited`，UI 显示明确的下次可用时间，**不要静默失败**。
+- 退避等待期间 UI 显示「正在等待 API 限流恢复（约 N 秒）」，**不弹错误弹窗**
+  （PRD §6 F7；实现见 `Features/Browse/BrowseViewModel.presentedLoadState`）。
 
 **空 Key 会被当作匿名请求（critical 静默错误）**
 
@@ -1234,7 +1246,7 @@ baseDelay = 1s, maxDelay = 60s, maxRetries = 4
 | `.invalidParameter` | 本地校验未通过，**请求未发出** | 「你的筛选条件有问题」 |
 | `.serverError(status)` | 5xx 且本地参数合法 | 「wallhaven 服务异常」 |
 | `.networkUnavailable` | `URLError` 族 | 「网络不可用」 |
-| `.rateLimited(retryAfter)` | 429 | 「请求过于频繁」 |
+| `.rateLimited` | 429 | 「请求过于频繁」 |
 | `.decodingFailed` | 2xx 但解码失败 | 「服务返回了无法解析的数据」 |
 
 **`.decodingFailed` 与 `.serverError` 不可合并**，否则又回到了「一律显示加载失败」这个静默错误。

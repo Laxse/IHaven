@@ -24,7 +24,9 @@ struct IHavenApp: App {
     }
 
     var body: some Scene {
-        WindowGroup("IHaven") {
+        // id 与 `MenuBarPanelView.mainWindowID` 同源：面板的「打开主窗口」靠它定位，两处字符串
+        // 一旦漂移，`openWindow` 会静默什么都不做（不报错，最难查的那类失效）。
+        WindowGroup("IHaven", id: MenuBarPanelView.mainWindowID) {
             Group {
                 if let vm = browseViewModel, let library {
                     BrowseView(viewModel: vm, keyStore: keyStore, clipboard: clipboard,
@@ -42,6 +44,14 @@ struct IHavenApp: App {
         // 把内容最小尺寸（根 .frame(minWidth:880,minHeight:600)）钉成窗口可拖拽最小值：
         // 否则用户可把窗口缩到下限以下，根布局超出窗口被裁、侧栏被挤出左缘（瀑布流宽度回归的诱因之一）。
         .windowResizability(.contentMinSize)
+
+        // F3 菜单栏面板（PRD）：与主窗口共用 browseViewModel / library 两个实例（ADR-004 关键约束
+        // —— 单一 @Observable，不用通知广播）。两者在 bootstrap() 前是 nil，nil 分支在面板内部。
+        // ⚠️ 必须 .window 样式：PRD F3 要搜索框，.menu 样式下 TextField 落不了焦。
+        MenuBarExtra("IHaven", systemImage: "photo") {
+            MenuBarPanelView(viewModel: browseViewModel, library: library)
+        }
+        .menuBarExtraStyle(.window)
 
         // ⌘⇧K 一键全停（DESIGN §6.3 可访问性硬要求）：动态壁纸的桌面层窗口是 ignoresMouseEvents 的，
         // 点不到它，必须有一条不看鼠标的停止路径。
@@ -69,7 +79,10 @@ struct IHavenApp: App {
     /// Core 反向依赖与 F9，查不到这种破例 —— 它会静默腐烂。装配点唯一是硬要求。
     private func bootstrap() async {
         MockWallhaven.configureIfNeeded()   // 开发期 IHAVEN_MOCK=1 时接管请求，无需 VPN
-        let client = WallhavenClient(keyProvider: keyStore)
+        // 限流退避的广播点：客户端写、视图模型读。同一份实例注入两端，
+        // 视图才能显示「正在等待 API 限流恢复」（PRD §6 F7）。
+        let throttle = ThrottleSignal()
+        let client = WallhavenClient(keyProvider: keyStore, throttle: throttle)
         let database: WallpaperDatabase = (try? GRDBWallpaperDatabase()) ?? InMemoryWallpaperDatabase()
         let engine = SystemWallpaperEngine()
         let downloader = ImageFileDownloader()
@@ -92,7 +105,8 @@ struct IHavenApp: App {
             wallpaperEngine: engine,
             downloader: downloader,
             savePanel: savePanel,
-            clipboard: clipboard
+            clipboard: clipboard,
+            throttle: throttle
         )
         library = libraryViewModel
     }

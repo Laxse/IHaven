@@ -110,11 +110,18 @@ func browseSearchField(text: Binding<String>, onSubmit: @escaping () -> Void) ->
 }
 
 /// 状态栏（32px，chrome 底 + 顶部 1px hairline）。移出 BrowseView 只为守住 ADR-009 的 300 行上限。
+///
+/// `waitingSeconds > 0` 表示客户端正在退避等 API 配额（PRD §6 F7：不弹错误弹窗）。
+/// 走状态栏而不是弹窗 / toast：它是常驻的、非模态的，不会打断用户正在做的滚动。
 @MainActor
-func browseStatusBar(resultsIncomplete: Bool, count: Int) -> some View {
+func browseStatusBar(resultsIncomplete: Bool, waitingSeconds: Int = 0, count: Int) -> some View {
     HStack(spacing: 12) {
         if resultsIncomplete {
             Label("结果不完整（未配置 Key）", systemImage: "exclamationmark.triangle")
+                .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.warn)
+        }
+        if waitingSeconds > 0 {
+            Label("API 调用已达上限，约 \(waitingSeconds) 秒后恢复", systemImage: "timer")
                 .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.warn)
         }
         Spacer(minLength: 0)
@@ -138,6 +145,30 @@ func browseEmptyState(title: LocalizedStringKey, body: LocalizedStringKey, actio
         Button(action: onAction) { Text(action) }.buttonStyle(.borderedProminent)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
+}
+
+/// 列表区除「已加载」以外的四种态。**整块抽出来**是因为 `BrowseView.swift` 已经顶到
+/// 300 行上限（`scripts/convention-gate.sh`），新增的 `.waiting` 分支没有落脚之处。
+@MainActor
+@ViewBuilder
+func browseLoadStateView(_ state: BrowseViewModel.LoadState) -> some View {
+    switch state {
+    case .idle, .loading:
+        ProgressView("加载中…").frame(maxWidth: .infinity, maxHeight: .infinity)
+    case .waiting(let seconds):
+        // 中性色而非 `danger`：等待限流恢复是**正常节流**，不是故障 —— 用警示色会让
+        // 用户以为出问题了。这与「单图失败用中性色」是同一条原则（PRD §6 F1）。
+        VStack(spacing: 12) {
+            ProgressView().controlSize(.small)
+            Text("正在等待 API 限流恢复（约 \(seconds) 秒）")
+                .font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.meta)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    case .loaded:
+        EmptyView()
+    case .failed(let msg):
+        browseErrorState(msg)
+    }
 }
 
 @MainActor

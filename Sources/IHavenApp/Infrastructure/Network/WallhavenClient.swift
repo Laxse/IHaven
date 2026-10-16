@@ -19,12 +19,27 @@ import Foundation
 /// 二者均为 Sendable（`URLSession` 本就 Sendable；`KeyProvider` 协议约束为 Sendable），
 /// 故跨隔离边界（如 @MainActor 视图模型调用 `await client.search`）发送 client 安全。
 final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
+    /// `/search` 的重试上限（PRD §6 F7：最多 3 次）。
+    private static let searchRetries = 3
+    /// 详情页只给 1 次：详情请求与翻页同价，且 `DetailViewState` 已固化
+    /// 「429 立刻重试必再撞限流、每次重试再扣 1 次配额」的判断 —— 返回列表再进来
+    /// 就是最自然的重试路径，不需要在这里多烧额度。
+    private static let detailRetries = 1
+
     private let session: URLSession
     private let keyProvider: KeyProvider
+    private let limiter: RateLimiter
+    /// 退避等待的广播点；`nil` 表示不广播（限流器为 `.unlimited` 时无意义）。
+    private let throttle: ThrottleSignal?
 
-    init(keyProvider: KeyProvider, session: URLSession = .shared) {
+    init(keyProvider: KeyProvider,
+         session: URLSession = .shared,
+         limiter: RateLimiter = .wallhaven,
+         throttle: ThrottleSignal? = nil) {
         self.keyProvider = keyProvider
         self.session = session
+        self.limiter = limiter
+        self.throttle = throttle
     }
 
     var keyStatus: KeyStatus {
@@ -34,7 +49,9 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
 
     func search(_ query: BrowseQuery) async throws -> WallhavenPage {
         let url = try Self.buildURL(query)
-        let (data, response) = try await session.data(for: Self.makeRequest(url: url, key: keyProvider.currentKey))
+        let (data, response) = try await perform(maxRetries: Self.searchRetries) {
+            try await session.data(for: Self.makeRequest(url: url, key: keyProvider.currentKey))
+        }
         try Self.assertSuccess(response)
         do {
             let page = try JSONDecoder().decode(WallhavenPage.self, from: data)
@@ -49,9 +66,12 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
     }
 
     func detail(id: String) async throws -> WallpaperDetail {
-        // 每次调用消耗 1 次配额（与翻页同价），故本方法不做任何重试 —— 见协议注释。
+        // 每次调用消耗 1 次配额（与翻页同价），故只给 1 次重试额度 —— 重试策略统一在
+        // `perform` 内按端点上限处理，本方法不再自称「不做任何重试」。
         let url = WallhavenEndpoint.wallpaper(id: id)
-        let (data, response) = try await session.data(for: Self.makeRequest(url: url, key: keyProvider.currentKey))
+        let (data, response) = try await perform(maxRetries: Self.detailRetries) {
+            try await session.data(for: Self.makeRequest(url: url, key: keyProvider.currentKey))
+        }
         try Self.assertDetailSuccess(response, keyStatus: keyStatus)
         do {
             // 顶层是 `{"data":{…}}`（无 `meta`）：必须经 envelope 取里层对象，
@@ -66,6 +86,48 @@ final class WallhavenClient: WallhavenAPIProtocol, @unchecked Sendable {
     }
 
     // MARK: - 内部
+
+    /// 发一次请求 + 退避重试。**只在 429 / 5xx 上重试** —— `401` / `404` / `400` /
+    /// 解码失败 / 参数非法都是确定性失败，而实测「404 与 401 同样扣配额」
+    /// （`docs/VERIFIED-WALLHAVEN-DETAIL.md` §6），对它们重试是纯烧额度。
+    ///
+    /// 状态码的**端点语义**分流仍留在调用方（`assertSuccess` / `assertDetailSuccess`）：
+    /// 这里只回答「这个状态码值不值得再发一次」—— 那是状态码自身的属性，不是端点的属性。
+    private func perform(maxRetries: Int,
+                         _ send: () async throws -> (Data, URLResponse)) async throws -> (Data, URLResponse) {
+        var attempt = 0
+        while true {
+            try await limiter.acquire()
+            let pair = try await send()
+            guard let http = pair.1 as? HTTPURLResponse else { return pair }
+            await limiter.sync(remaining: Self.headerInt(http, "x-ratelimit-remaining"),
+                               resetEpoch: Self.headerInt(http, "x-ratelimit-reset"))
+            let code = http.statusCode
+            guard code == 429 || code >= 500, attempt < maxRetries else { return pair }
+            guard await limiter.consumeRetryBudget() else { return pair }
+            attempt += 1
+            let delay = Self.backoff(attempt: attempt, response: http)
+            await MainActor.run { throttle?.waitingSeconds = Int(delay.rounded(.up)) }
+            try await Task.sleep(for: .seconds(delay))
+            await MainActor.run { throttle?.waitingSeconds = 0 }
+        }
+    }
+
+    /// 退避时长：`min(1s × 2^(n-1) + jitter, 60s)`（ARCH §6.4.1）。
+    /// jitter 是必需的：多个并发请求若在同一刻重试会形成同步重试风暴（ARCH 已记录）。
+    /// 响应带 `retry-after` 时优先用它 —— 实测该头只在 429 出现（VERIFIED §6）。
+    private static func backoff(attempt: Int, response: HTTPURLResponse) -> Double {
+        let cap = 60.0
+        if let raw = response.value(forHTTPHeaderField: "retry-after"), let after = Double(raw) {
+            return min(max(after, 0), cap)
+        }
+        let base = min(pow(2.0, Double(attempt - 1)), cap)
+        return min(base + Double.random(in: 0...base * 0.5), cap)
+    }
+
+    private static func headerInt(_ http: HTTPURLResponse, _ name: String) -> Int? {
+        http.value(forHTTPHeaderField: name).flatMap(Int.init)
+    }
 
     private static func makeRequest(url: URL, key: String) -> URLRequest {
         var req = URLRequest(url: url)

@@ -8,6 +8,9 @@ import SwiftUI
 final class BrowseViewModel {
     enum LoadState: Sendable {
         case idle, loading, loaded, failed(String)
+        /// 客户端正在等 API 配额恢复（退避重试中）。**不是错误态** —— PRD §6 F7 要求
+        /// 「期间在界面显示『正在等待 API 限流恢复』，不弹出错误弹窗打断操作」。
+        case waiting(seconds: Int)
     }
 
     var loadState: LoadState = .idle
@@ -29,6 +32,8 @@ final class BrowseViewModel {
     private let downloader: ImageDownloading
     private let savePanel: FileSavePresenting
     private let clipboard: ClipboardWriting
+    /// 限流退避广播点（由 `WallhavenClient` 写入，ViewModel 只读）。
+    private let throttle: ThrottleSignal
 
     init(client: WallhavenAPIProtocol,
          keyProvider: KeyProvider,
@@ -36,7 +41,8 @@ final class BrowseViewModel {
          wallpaperEngine: WallpaperEngine,
          downloader: ImageDownloading,
          savePanel: FileSavePresenting,
-         clipboard: ClipboardWriting) {
+         clipboard: ClipboardWriting,
+         throttle: ThrottleSignal) {
         self.client = client
         self.keyProvider = keyProvider
         self.database = database
@@ -44,9 +50,26 @@ final class BrowseViewModel {
         self.downloader = downloader
         self.savePanel = savePanel
         self.clipboard = clipboard
+        self.throttle = throttle
         // 以当前（默认）筛选键打底：启动时若 page/seed 之类的字段被改一次，onChange 也会触发
         // scheduleFilterReload，此时 filterKey 并未变化，靠这个初值直接拦掉，避免多打一次搜索请求。
         lastFilterKey = query.filterKey
+    }
+
+    /// 距配额恢复还剩多少秒（`0` = 未在等待）。供状态栏常驻提示用。
+    var throttleSeconds: Int { throttle.waitingSeconds }
+
+    /// 视图实际应渲染的加载态：退避等待期间把 `.loading` 覆盖为 `.waiting`。
+    ///
+    /// 写成计算属性而不是在 `reload()` 里赋值，是因为等待发生在 `client.search` **内部**
+    /// （`WallhavenClient.perform` 的退避 sleep），`reload()` 此刻正挂在 `await` 上，
+    /// 没有第二个执行点可以回头改 `loadState`。读 `throttle.waitingSeconds` 会被
+    /// SwiftUI 的 `@Observable` 追踪，等待开始 / 结束时界面自动重绘。
+    var presentedLoadState: LoadState {
+        if case .loading = loadState, throttle.waitingSeconds > 0 {
+            return .waiting(seconds: throttle.waitingSeconds)
+        }
+        return loadState
     }
 
     func reload() async {

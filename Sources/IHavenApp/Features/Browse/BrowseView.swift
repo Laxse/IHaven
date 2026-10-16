@@ -54,6 +54,7 @@ struct BrowseView: View {
             // HStack 占满宽度并左对齐，避免主区内容超出窗口宽时整体居中溢出把 sidebar 挤到左缘外被裁剪。
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             browseStatusBar(resultsIncomplete: viewModel.resultsIncomplete,
+                            waitingSeconds: viewModel.throttleSeconds,
                             count: nav == .favorites ? viewModel.favorites.count : viewModel.wallpapers.count)
         }
         .frame(minWidth: 880, minHeight: 600)
@@ -172,9 +173,7 @@ struct BrowseView: View {
 
     @ViewBuilder
     private var searchContent: some View {
-        switch viewModel.loadState {
-        case .idle, .loading:
-            ProgressView("加载中…").frame(maxWidth: .infinity, maxHeight: .infinity)
+        switch viewModel.presentedLoadState {
         case .loaded:
             if viewModel.wallpapers.isEmpty {
                 browseEmptyState(title: "没有匹配的壁纸",
@@ -209,8 +208,8 @@ struct BrowseView: View {
                     if distance < 240 { Task { await viewModel.nextPage() } }
                 }
             }
-        case .failed(let msg):
-            browseErrorState(msg)
+        default:
+            browseLoadStateView(viewModel.presentedLoadState)
         }
     }
 

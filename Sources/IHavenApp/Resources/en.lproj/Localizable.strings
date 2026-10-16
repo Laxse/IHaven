@@ -23,6 +23,8 @@
 "加载更多…" = "Loading more…";
 "已加载 %lld 张" = "Loaded %lld";
 "结果不完整（未配置 Key）" = "Incomplete results (no API key)";
+"API 调用已达上限，约 %lld 秒后恢复" = "API call limit reached — resuming in about %llds";
+"正在等待 API 限流恢复（约 %lld 秒）" = "Waiting for the API rate limit to reset (about %llds)";
 
 // MARK: - 筛选面板
 
@@ -209,3 +211,14 @@
 "没有未使用的帧序列" = "No unused frame sequences";
 "清理未使用的" = "Clean Up Unused";
 "已清理" = "Cleaned";
+
+// MARK: - Menu Bar Panel (F3)
+
+"打开主窗口" = "Open Main Window";
+"退出 IHaven" = "Quit IHaven";
+"上一张" = "Previous";
+"下一张" = "Next";
+"换一张" = "Shuffle";
+"当前壁纸" = "Current Wallpaper";
+"还没有搜索结果，先在主窗口浏览或搜索。" = "No results yet. Browse or search in the main window first.";
+"没有可换的壁纸，先在主窗口浏览或搜索。" = "Nothing to shuffle. Browse or search in the main window first.";
