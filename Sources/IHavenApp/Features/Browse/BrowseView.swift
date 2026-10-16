@@ -54,6 +54,7 @@ struct BrowseView: View {
             // HStack 占满宽度并左对齐，避免主区内容超出窗口宽时整体居中溢出把 sidebar 挤到左缘外被裁剪。
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             browseStatusBar(resultsIncomplete: viewModel.resultsIncomplete,
+                            isOffline: viewModel.isOffline,
                             waitingSeconds: viewModel.throttleSeconds,
                             count: nav == .favorites ? viewModel.favorites.count : viewModel.wallpapers.count)
         }

@@ -34,3 +34,20 @@ public enum APIError: LocalizedError {
         }
     }
 }
+
+extension APIError {
+    /// 这次失败是否「网络不可达」而不是「服务端有问题」（PRD F7 离线兜底）。
+    ///
+    /// **用错误驱动而不是 `NWPathMonitor`**：`NWPath` 的 `.satisfied` 只表示「有一条可用路径」，
+    /// 不代表 wallhaven 可达（VPN 半开、captive portal、Cloudflare 拦 IP 全部判不出来）——
+    /// 用它点亮「离线」横幅会造出「明明有网却说离线」的假故障。错误驱动晚一次请求，但零误报。
+    var isOffline: Bool {
+        guard case .transport(let error) = self, let urlError = error as? URLError else { return false }
+        switch urlError.code {
+        case .notConnectedToInternet, .timedOut, .cannotFindHost, .networkConnectionLost, .dnsLookupFailed:
+            return true
+        default:
+            return false
+        }
+    }
+}

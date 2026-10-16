@@ -100,7 +100,14 @@ final class DetailViewState {
         defer { inFlight = nil }
         actionError = nil
         do {
-            let file = try await downloader.download(wallpaper.path)
+            // 本地优先（详见 OfflineImageStore）：不能并进 `??`，因为 `??` 右侧的 autoclosure
+            // 不支持 async/throws。
+            let file: URL
+            if let cached = OfflineImageStore.localFile(for: wallpaper.path) {
+                file = cached
+            } else {
+                file = try await downloader.download(wallpaper.path)
+            }
             try engine.setWallpaper(fileURL: file, for: WallpaperTarget.resolveScreen(),
                                     mode: WallpaperTarget.fillMode(),
                                     fillColor: WallpaperTarget.fillColor(for: wallpaper.colors))

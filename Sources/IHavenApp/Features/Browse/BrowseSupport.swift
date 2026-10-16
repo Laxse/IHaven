@@ -114,7 +114,7 @@ func browseSearchField(text: Binding<String>, onSubmit: @escaping () -> Void) ->
 /// `waitingSeconds > 0` 表示客户端正在退避等 API 配额（PRD §6 F7：不弹错误弹窗）。
 /// 走状态栏而不是弹窗 / toast：它是常驻的、非模态的，不会打断用户正在做的滚动。
 @MainActor
-func browseStatusBar(resultsIncomplete: Bool, waitingSeconds: Int = 0, count: Int) -> some View {
+func browseStatusBar(resultsIncomplete: Bool, isOffline: Bool = false, waitingSeconds: Int = 0, count: Int) -> some View {
     HStack(spacing: 12) {
         if resultsIncomplete {
             Label("结果不完整（未配置 Key）", systemImage: "exclamationmark.triangle")
@@ -122,6 +122,12 @@ func browseStatusBar(resultsIncomplete: Bool, waitingSeconds: Int = 0, count: In
         }
         if waitingSeconds > 0 {
             Label("API 调用已达上限，约 \(waitingSeconds) 秒后恢复", systemImage: "timer")
+                .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.warn)
+        }
+        // 离线常驻提示：**不弹窗、不用 toast** —— 两者都会打断用户，而离线时用户仍可正常
+        // 用收藏 / 已设置 / 本地导入三页，并继续把已缓存的图设为壁纸。常驻一行就够了。
+        if isOffline {
+            Label("离线模式 · 已浏览的壁纸仍可设为壁纸", systemImage: "wifi.slash")
                 .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.warn)
         }
         Spacer(minLength: 0)

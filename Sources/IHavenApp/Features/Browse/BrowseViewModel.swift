@@ -28,8 +28,10 @@ final class BrowseViewModel {
     private let client: WallhavenAPIProtocol
     private let keyProvider: KeyProvider
     private let database: WallpaperDatabase
-    private let wallpaperEngine: WallpaperEngine
-    private let downloader: ImageDownloading
+    /// `internal` 而非 `private`：`BrowseViewModel+Favorites.swift` 的 extension 要用
+    /// （该文件的存在本身就是为绕过 ADR-009 的 300 行上限）。
+    let wallpaperEngine: WallpaperEngine
+    let downloader: ImageDownloading
     private let savePanel: FileSavePresenting
     private let clipboard: ClipboardWriting
     /// 限流退避广播点（由 `WallhavenClient` 写入，ViewModel 只读）。
@@ -56,6 +58,9 @@ final class BrowseViewModel {
         lastFilterKey = query.filterKey
     }
 
+    /// 最近一次加载失败是否为网络不可达。供状态栏常驻提示用（离线时不打断操作）。
+    private(set) var isOffline = false
+
     /// 距配额恢复还剩多少秒（`0` = 未在等待）。供状态栏常驻提示用。
     var throttleSeconds: Int { throttle.waitingSeconds }
 
@@ -79,8 +84,10 @@ final class BrowseViewModel {
             let page = try await client.search(query)
             wallpapers = page.data
             refreshFavorites()
+            isOffline = false
             loadState = .loaded
         } catch {
+            isOffline = (error as? APIError)?.isOffline ?? false
             loadState = .failed(error.localizedDescription)
         }
     }
@@ -244,7 +251,7 @@ final class BrowseViewModel {
     /// 下载原图到本地后调用 WallpaperEngine 设置静态壁纸。返回 nil 表示成功，否则为错误描述。
     func setAsWallpaper(_ wp: Wallpaper) async -> String? {
         do {
-            let file = try await downloader.download(wp.path)
+            let file = try await localOrDownload(wp.path)
             try wallpaperEngine.setWallpaper(fileURL: file, for: WallpaperTarget.resolveScreen(),
                                              mode: WallpaperTarget.fillMode(),
                                              fillColor: WallpaperTarget.fillColor(for: wp.colors))
@@ -257,7 +264,8 @@ final class BrowseViewModel {
     }
 
     /// 设壁纸成功后才落记录：没真的设上就不该出现在「已设置」里。
-    private func recordApplied(id: String, thumbnailURL: URL?, originalURL: URL,
+    /// `internal`：`BrowseViewModel+Favorites.swift` 的 extension 要用。
+    func recordApplied(id: String, thumbnailURL: URL?, originalURL: URL,
                                localPath: String, width: Int, height: Int) {
         try? database.addApplied(AppliedWallpaper(id: id,
                                                   thumbnailURL: thumbnailURL,
@@ -268,20 +276,15 @@ final class BrowseViewModel {
                                                   appliedAt: Date()))
     }
 
-    /// 从收藏项直接设置壁纸（收藏视图用；下载 originalURL 后调用引擎）。
-    func setWallpaperFromFavorite(_ fav: Favorite) async -> String? {
-        do {
-            let file = try await downloader.download(fav.originalURL)
-            try wallpaperEngine.setWallpaper(fileURL: file, for: WallpaperTarget.resolveScreen(),
-                                             mode: WallpaperTarget.fillMode(),
-                                             // Favorite 不存主色（见 FavoriteCard 注释），用中性回退。
-                                             fillColor: WallpaperTarget.neutralFillColor())
-            // Favorite 不持有尺寸（见 FavoriteCard 注释），尺寸记 0 → 卡片不显示分辨率。
-            recordApplied(id: fav.id, thumbnailURL: fav.thumbnailURL, originalURL: fav.originalURL,
-                          localPath: file.path, width: 0, height: 0)
-            return nil
-        } catch {
-            return error.localizedDescription
-        }
+
+    /// 本地优先取原图。原来三条链路都是**无条件先下载再设置**，同一张图每设一次就重下一次，
+    /// 断网时直接失败 —— 而它很可能已经在本地（以前下载过，或详情页打开过、进了 Nuke
+    /// `DataCache`）。见 `OfflineImageStore`。
+    ///
+    /// 抽成函数而不是在调用点写 `?? try await`：`??` 右侧是 autoclosure，不支持 async/throws。
+    /// `internal` 而非 `private`：`BrowseViewModel+Favorites.swift` 的 extension 要用。
+    func localOrDownload(_ remote: URL) async throws -> URL {
+        if let cached = OfflineImageStore.localFile(for: remote) { return cached }
+        return try await downloader.download(remote)
     }
 }
