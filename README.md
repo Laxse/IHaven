@@ -41,12 +41,16 @@
 
 实现说明：拦截逻辑在 `Sources/IHavenApp/Infrastructure/Network/MockWallhaven.swift`，由 `IHavenApp.bootstrap()` 在启动最开头调用 `MockWallhaven.configureIfNeeded()` 注册 `URLProtocol`，拦截对 `mock.wallhaven.local` 的请求——`/api/v1/search` 返回合成 `WallhavenPage` JSON，`/thumb` 与 `/wallpaper` 路径返回进程内（CoreGraphics + ImageIO）生成的渐变 JPEG。整条链路（请求 → JSON 解码 → Nuke 预取 → 缩略图渲染 → 设为壁纸原图下载）零网络。
 
-# Features  
-* Api from wallhacen.cc
-* Customized query conditions
-* Popover-style And Infinite-scroll
-* Quick / Free Download
-* More features comming soon ...
+# Features
+* Browse wallhaven.cc as a native macOS waterfall grid — infinite scroll, mixed aspect ratios, instant low-res preview that swaps to the full-resolution original (with a visible download progress bar)
+* Rich filters — resolution, aspect ratio, dominant color, category, purity, sorting and time range
+* Detail page — the whole image, never cropped, plus a metadata sidebar, download original and set-as-wallpaper
+* Favorites library and "already applied" history, both stored locally in SQLite
+* Import your own images; turn any static wallpaper into a locally generated dynamic wallpaper (breathe / pan / push-in, seamless loop, no video involved)
+* Image cache on disk (Nuke `DataCache`, 512 MB) so a wallpaper you have seen is never downloaded twice — Settings ▸ Storage shows the usage and lets you clear it
+* API key stays on your machine (a local file, never in logs or crash reports) and is sent as an `X-API-Key` header
+* Chinese and English UI
+* Built-in in-process mock so you can develop and debug with no network and no VPN — see below
 # Screenshots
  - v1
 <p align="center">
@@ -58,20 +62,22 @@
 <img src="screenshots/v2.png" alt="IHaven" width="600">
 </p>
 
-# Future
-* Image Description View
-* Window Style Application
-* Localization
-* Dynastic Wallpaper Designer
-* Image Toolkit
+# Roadmap
+* Menu bar panel — search, random, previous / next, one-click change, favorites, without opening the main window
+* Per-screen wallpaper assignment and a fill color derived from the wallpaper's own palette
+* Performance guard for dynamic wallpapers — auto-pause when the frontmost app is full screen, on low battery, or in Low Power Mode, plus a visible CPU / memory readout
+* Wallpaper rotation schedule — switch by time of day or weekday
+* Client-side rate limiting (45 req/min token bucket) with backoff, and an offline fallback backed by the local image cache
 
 
 # Localization
-Ihaven will auto detect your system language and use the localization.
+IHaven follows your system language and also lets you pick one manually in Settings ▸ Appearance.
 
-You can set language manually in the Settings window.
-
-Now the app support $\color{red}{nothing}$ 😰
+Currently shipped: **Chinese (Simplified)** and **English**. Translations live in
+`Sources/IHavenApp/Resources/{zh-Hans,en}.lproj/Localizable.strings`; Chinese is the development
+language, so the Chinese string in the source is itself the localization key. Adding a language means
+adding one `.lproj` with the same keys — `scripts/build-and-package.sh` fails the build if the two
+sides ever drift apart in key count.
 
 # License
 IHaven itself is licensed under the  MIT License  license.
