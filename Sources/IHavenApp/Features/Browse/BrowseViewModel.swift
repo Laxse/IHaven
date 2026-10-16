@@ -173,7 +173,10 @@ final class BrowseViewModel {
             catch { return error.localizedDescription }
         }
         do {
-            try wallpaperEngine.setWallpaper(fileURL: file, for: nil, mode: .fill, fillColor: nil)
+            try wallpaperEngine.setWallpaper(fileURL: file, for: WallpaperTarget.resolveScreen(),
+                                             mode: WallpaperTarget.fillMode(),
+                                             // AppliedWallpaper 不存主色，用中性回退。
+                                             fillColor: WallpaperTarget.neutralFillColor())
             try? database.addApplied(AppliedWallpaper(id: item.id,
                                                        thumbnailURL: item.thumbnailURL,
                                                        originalURL: item.originalURL,
@@ -242,7 +245,9 @@ final class BrowseViewModel {
     func setAsWallpaper(_ wp: Wallpaper) async -> String? {
         do {
             let file = try await downloader.download(wp.path)
-            try wallpaperEngine.setWallpaper(fileURL: file, for: nil, mode: .fill, fillColor: nil)
+            try wallpaperEngine.setWallpaper(fileURL: file, for: WallpaperTarget.resolveScreen(),
+                                             mode: WallpaperTarget.fillMode(),
+                                             fillColor: WallpaperTarget.fillColor(for: wp.colors))
             recordApplied(id: wp.id, thumbnailURL: wp.aspectThumb, originalURL: wp.path,
                           localPath: file.path, width: wp.width, height: wp.height)
             return nil
@@ -267,7 +272,10 @@ final class BrowseViewModel {
     func setWallpaperFromFavorite(_ fav: Favorite) async -> String? {
         do {
             let file = try await downloader.download(fav.originalURL)
-            try wallpaperEngine.setWallpaper(fileURL: file, for: nil, mode: .fill, fillColor: nil)
+            try wallpaperEngine.setWallpaper(fileURL: file, for: WallpaperTarget.resolveScreen(),
+                                             mode: WallpaperTarget.fillMode(),
+                                             // Favorite 不存主色（见 FavoriteCard 注释），用中性回退。
+                                             fillColor: WallpaperTarget.neutralFillColor())
             // Favorite 不持有尺寸（见 FavoriteCard 注释），尺寸记 0 → 卡片不显示分辨率。
             recordApplied(id: fav.id, thumbnailURL: fav.thumbnailURL, originalURL: fav.originalURL,
                           localPath: file.path, width: 0, height: 0)

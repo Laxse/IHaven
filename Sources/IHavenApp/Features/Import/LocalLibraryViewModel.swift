@@ -138,7 +138,10 @@ final class LocalLibraryViewModel {
     func setAsWallpaper(_ item: ImportedWallpaper) async -> String? {
         let fileURL = URL(fileURLWithPath: item.filePath)
         do {
-            try engine.setWallpaper(fileURL: fileURL, for: nil, mode: .fill, fillColor: nil)
+            try engine.setWallpaper(fileURL: fileURL, for: WallpaperTarget.resolveScreen(),
+                                    mode: WallpaperTarget.fillMode(),
+                                    // ImportedWallpaper 不存主色，用中性回退。
+                                    fillColor: WallpaperTarget.neutralFillColor())
             // 与网络壁纸同路落「已设置」，让侧栏「已设置」页能一起回溯本地项。
             try? database.addApplied(AppliedWallpaper(
                 id: item.id,

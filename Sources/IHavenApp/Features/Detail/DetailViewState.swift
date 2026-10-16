@@ -101,7 +101,9 @@ final class DetailViewState {
         actionError = nil
         do {
             let file = try await downloader.download(wallpaper.path)
-            try engine.setWallpaper(fileURL: file, for: nil, mode: .fill, fillColor: nil)
+            try engine.setWallpaper(fileURL: file, for: WallpaperTarget.resolveScreen(),
+                                    mode: WallpaperTarget.fillMode(),
+                                    fillColor: WallpaperTarget.fillColor(for: wallpaper.colors))
             onApplied(wallpaper, file)
             return nil
         } catch {

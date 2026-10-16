@@ -36,6 +36,9 @@ struct SettingsView: View {
     @AppStorage(UserPreferenceKey.appearance) private var appearance: String = "system"
     @AppStorage(UserPreferenceKey.language) private var language: String = AppLanguage.default.rawValue
     @AppStorage(UserPreferenceKey.nsfwAllowed) private var nsfwAllowed = false
+    /// 壁纸铺放：目标显示器（0 = 主屏）与填充模式。与 `WallpaperTarget` 读写同一批 key。
+    @AppStorage(UserPreferenceKey.wallpaperTargetDisplay) private var wallpaperTargetDisplay = 0
+    @AppStorage(UserPreferenceKey.wallpaperFillMode) private var wallpaperFillMode = WallpaperFillMode.fill.rawValue
 
     init(store: KeyStore,
          clipboard: ClipboardWriting,
@@ -142,6 +145,34 @@ struct SettingsView: View {
                 swatch(IHaven.Color.accent, "强调色")
                 swatch(IHaven.Color.fg, "文字")
             }
+            sectionTitle("壁纸")
+            Text("所有「设为壁纸」按钮共用这两项；填充色优先取壁纸自身的主色。")
+                .font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.muted)
+            Picker("", selection: $wallpaperTargetDisplay) {
+                ForEach(WallpaperTarget.screenOptions()) { option in
+                    // 主屏项 detail 为空串，只显示标题；有分辨率的带上「@2x」便于区分同型号屏。
+                    if option.detail.isEmpty {
+                        Text(option.title).tag(option.id)
+                    } else {
+                        Text("\(option.title) · \(option.detail)").tag(option.id)
+                    }
+                }
+            }
+            .pickerStyle(.menu).labelsHidden()
+            // macOS 壁纸按 Space 而非按显示器设置：未开「显示器具有单独 Spaces」时多屏写入
+            // 会被系统合并成一张，且该开关修改后要注销重登才生效。不给这句提示，用户只会
+            // 看到「只生效一块屏」而无从判断原因（PRD F2 验收门禁）。
+            if WallpaperTarget.needsSeparateSpacesWarning() {
+                Label("未开启「显示器具有单独 Spaces」，多屏壁纸可能只在一块屏生效。请在系统设置 ▸ 桌面与程序坞中开启（修改后需注销重新登录）。",
+                      systemImage: "exclamationmark.triangle")
+                    .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.warn)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Picker("", selection: $wallpaperFillMode) {
+                Text("适应（完整可见，四周留白）").tag(WallpaperFillMode.fit.rawValue)
+                Text("填充（铺满屏幕，可能裁边）").tag(WallpaperFillMode.fill.rawValue)
+            }
+            .pickerStyle(.segmented).labelsHidden()
             sectionTitle("语言")
             Text("切换后立即生效，无需重启。").font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.muted)
             Picker("", selection: $language) {

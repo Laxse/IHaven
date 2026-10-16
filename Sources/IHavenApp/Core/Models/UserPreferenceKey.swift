@@ -8,4 +8,13 @@ enum UserPreferenceKey {
     static let language = "ihaven.language"
     /// 是否允许成人内容（NSFW）。默认关闭（false）—— 见 ADR-012。
     static let nsfwAllowed = "ihaven.nsfwAllowed"
+
+    // MARK: - 壁纸铺法（PRD F2 剩余部分）
+
+    /// 填充模式：`WallpaperFillMode.rawValue`（0 适应 / 1 填充）。
+    static let wallpaperFillMode = "ihaven.wallpaperFillMode"
+    /// 目标显示器：`CGDirectDisplayID`，`0` = 主屏。
+    static let wallpaperTargetDisplay = "ihaven.wallpaperTargetDisplay"
+    /// 目标显示器的展示名（仅用于「上次选的屏已不在」时的回退提示，不参与匹配）。
+    static let wallpaperTargetName = "ihaven.wallpaperTargetName"
 }
