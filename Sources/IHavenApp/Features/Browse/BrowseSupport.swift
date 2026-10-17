@@ -1,5 +1,18 @@
 import SwiftUI
 
+/// 瀑布流导航项之外的补充：裁剪 sheet 的请求（`.sheet(item:)` 需要 `Identifiable`）。
+///
+/// ⚠️ **只带 sourceURL，不带 aspect / screenLabel**：两者都从 `WallpaperTarget` 现读
+/// （`cropAspect()` / `cropScreenLabel()`）。存进请求里的话，用户在别的屏上改过目标屏、
+/// 或 sheet 呈现期间插拔了显示器，选框锁的就是过期比例。
+struct CropRequest: Identifiable {
+    /// 裁剪完成后要设壁纸的源：网络壁纸走数据库记录，本地导入项走库里的那一条。
+    enum Kind { case wallpaper(Wallpaper), imported(ImportedWallpaper) }
+    let id: String
+    let sourceURL: URL
+    let kind: Kind
+}
+
 /// 侧栏导航项（对齐线稿 SF Symbols 对照）。密钥不再是独立项，已并入设置面板页签。
 enum NavItem: Hashable {
     case discover, landscape, anime, people, favorites, wallpaperSet, live, `import`, settings
@@ -195,4 +208,61 @@ func browseToastView(_ msg: String) -> some View {
         .background(IHaven.Color.hudBg, in: RoundedRectangle(cornerRadius: IHaven.Radius.md.rawValue))
         .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.md.rawValue).stroke(IHaven.Color.border))
         .padding(.bottom, 16)
+}
+
+// MARK: - 瀑布流主区（从 BrowseView 整块搬来腾行数）
+
+/// 「发现 / 风景 / 动漫 / 人物」页签的瀑布流主区。
+///
+/// ⚠️ **为什么整块搬出 `BrowseView`**：裁剪接线要在那里加 1 个 `@State` + 1 个 `.sheet(item:)`
+/// + 3 个私有方法（约 40 行），而它已经 299/300（`scripts/convention-gate.sh`）。搬出这一块
+/// 是唯一不破 ADR-009 的落点 —— 本文件里 `browseEmptyState` / `browseLoadStateView` /
+/// `browseStatusBar` 都是同一套「顶层函数」先例。
+///
+/// `Card` 走泛型而不是 `AnyView`：`MasonryView` 本身是 `MasonryView<Item, Content: View>`，
+/// 用 `some View` 包一层 `AnyView` 会让每个单元格多一次类型擦除，瀑布流是滚动热路径。
+@MainActor
+@ViewBuilder
+func browseSearchContent<Card: View>(viewModel: BrowseViewModel,
+                                     gridItems: [WallpaperGridItem],
+                                     onClearFilters: @escaping () -> Void,
+                                     @ViewBuilder card: @escaping (WallpaperGridItem) -> Card) -> some View {
+    switch viewModel.presentedLoadState {
+    case .loaded:
+        if viewModel.wallpapers.isEmpty {
+            browseEmptyState(title: "没有匹配的壁纸",
+                             body: "当前筛选组合下没有结果。放宽分辨率或比例通常能找到更多。",
+                             action: "清除全部筛选", onAction: onClearFilters)
+        } else {
+            ScrollView {
+                VStack(spacing: 0) {
+                    MasonryView(items: gridItems,
+                                spacing: IHaven.Layout.masonryGap,
+                                minColumnWidth: IHaven.Layout.masonryColMin,
+                                aspectRatio: { $0.aspectRatio }) { item in
+                        card(item)
+                    }
+                    .padding(IHaven.Space.s6.rawValue)
+
+                    // 底部加载指示（纯展示）；真正的触底加载由 ScrollView 的 onScrollGeometryChange 负责。
+                    HStack(spacing: 6) {
+                        Spacer(minLength: 0)
+                        if viewModel.query.page > 1 {
+                            ProgressView().controlSize(.small)
+                            Text("加载更多…").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .frame(height: 40)
+                }
+            }
+            // 触底加载：< 240pt 预取下一页。[!] 内容未超出视口时不算触底：首屏未布局时 contentSize=视口高，
+            // distance≈0 会被误判成已触底而多拉一页（实测启动连发 page=1+page=2，即「初始加载 48 张」的根因）。
+            .onScrollGeometryChange(for: CGFloat.self) { $0.contentSize.height > $0.containerSize.height ? $0.contentSize.height - ($0.contentOffset.y + $0.containerSize.height) : .infinity } action: { _, distance in
+                if distance < 240 { Task { await viewModel.nextPage() } }
+            }
+        }
+    default:
+        browseLoadStateView(viewModel.presentedLoadState)
+    }
 }

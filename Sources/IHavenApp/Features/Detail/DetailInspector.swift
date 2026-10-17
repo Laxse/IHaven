@@ -10,6 +10,8 @@ struct DetailInspector: View {
     @Bindable var state: DetailViewState
     var onSearch: (String) -> Void
     var onMessage: (String) -> Void
+    /// 裁剪入口，一路透传给 `DetailActions`（sheet 本身挂在 `BrowseView` 上）。
+    var onCrop: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -20,7 +22,7 @@ struct DetailInspector: View {
                     detailColorStrip(colors: wallpaper.colors)
                     // 404（壁纸已下架）才隐藏操作区：其余失败都是瞬时的，两个动作走的是列表项
                     // `wallpaper.path`、不依赖详情请求，禁掉它们是纯自伤。
-                    if !isGone { DetailActions(state: state, onMessage: onMessage) }
+                    if !isGone { DetailActions(state: state, onMessage: onMessage, onCrop: onCrop) }
                     propertiesSection
                     tagsSection
                 }

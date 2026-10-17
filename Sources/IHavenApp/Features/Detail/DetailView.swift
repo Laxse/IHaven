@@ -13,6 +13,9 @@ struct DetailView: View {
     var onSearch: (String) -> Void
     var onToggleFavorite: () -> Void
     var onMessage: (String) -> Void
+    /// 裁剪入口：只**上抛**给 `BrowseView`（那里挂 `.sheet(item:)`）。本视图自己挂模态会被
+    /// 父级 `.sheet` 抑制，表现为点了没反应（见 `BrowseView.swift` L24-27）。
+    var onCrop: () -> Void
 
     @State private var state: DetailViewState
     @State private var inspectorVisible = true
@@ -26,7 +29,8 @@ struct DetailView: View {
          onNavigate: @escaping (Wallpaper) -> Void,
          onSearch: @escaping (String) -> Void,
          onToggleFavorite: @escaping () -> Void,
-         onMessage: @escaping (String) -> Void) {
+         onMessage: @escaping (String) -> Void,
+         onCrop: @escaping () -> Void) {
         self.wallpaper = wallpaper
         self.context = context
         self.onClose = onClose
@@ -34,6 +38,7 @@ struct DetailView: View {
         self.onSearch = onSearch
         self.onToggleFavorite = onToggleFavorite
         self.onMessage = onMessage
+        self.onCrop = onCrop
         _state = State(initialValue: viewModel.makeDetailState(wallpaper: wallpaper))
     }
 
@@ -53,7 +58,8 @@ struct DetailView: View {
                                     detail: state.detail,
                                     state: state,
                                     onSearch: onSearch,
-                                    onMessage: onMessage)
+                                    onMessage: onMessage,
+                                    onCrop: onCrop)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

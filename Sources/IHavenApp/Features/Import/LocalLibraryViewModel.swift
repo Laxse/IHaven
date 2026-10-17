@@ -157,6 +157,34 @@ final class LocalLibraryViewModel {
         }
     }
 
+    /// 用**裁剪产物**设为桌面壁纸（竖图黑边的根治入口，与 `setAsWallpaper` 同形状）。
+    /// 返回 nil 表示成功，否则为错误文案（调用方弹 toast）。
+    ///
+    /// ⚠️ **模式写死 `.fill`**：产物宽高比已等于目标屏，取整的 ±1px 误差在 `.fit` 下会变成
+    /// 一条极细留白，`.fill` 只会裁掉 1px 边缘 —— 这里有意覆盖用户的填充模式设置。
+    ///
+    /// ⚠️ `localPath` 写**裁剪产物**路径（下一次「重新设置」要用的就是它），`originalURL`
+    /// 仍写 `item.filePath`（原始来源不能因为裁过就丢失）。
+    func applyCropped(_ file: URL, pixelSize: CGSize, item: ImportedWallpaper) async -> String? {
+        do {
+            try engine.setWallpaper(fileURL: file, for: WallpaperTarget.resolveScreen(),
+                                    mode: .fill,
+                                    // ImportedWallpaper 不存主色，用中性回退。
+                                    fillColor: WallpaperTarget.neutralFillColor())
+            try? database.addApplied(AppliedWallpaper(
+                id: item.id,
+                thumbnailURL: URL(fileURLWithPath: item.thumbnailPath),
+                originalURL: URL(fileURLWithPath: item.filePath),
+                localPath: file.path,
+                width: Int(pixelSize.width),
+                height: Int(pixelSize.height),
+                appliedAt: Date()))
+            return nil
+        } catch {
+            return error.localizedDescription
+        }
+    }
+
     // MARK: 动态壁纸
 
     func playDynamic(_ item: ImportedWallpaper) -> String? {

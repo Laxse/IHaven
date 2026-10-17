@@ -13,6 +13,8 @@ struct ImportView: View {
     /// 子视图再挂一个会被父级模态抑制 —— 表现就是「点了删除按钮什么都没发生」。
     /// 全窗口只保留一个删除确认，既消除竞争，也让三处删除的确认语义天然一致。
     var onDeleteRequest: (ImportedWallpaper) -> Void
+    /// 裁剪请求，同样上交给主窗口挂 sheet（理由同 `onDeleteRequest`：子视图挂模态会被抑制）。
+    var onCropRequest: (ImportedWallpaper) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -50,7 +52,8 @@ struct ImportView: View {
                                 primarySystemName: "display",
                                 primaryHelp: "设为壁纸",
                                 onPrimary: { setWallpaper(item) },
-                                onDelete: { onDeleteRequest(item) })
+                                onDelete: { onDeleteRequest(item) },
+                                onCrop: { onCropRequest(item) })
                         }
                     }
                 }

@@ -12,6 +12,9 @@ struct LocalWallpaperCard: View {
     var primaryHelp: LocalizedStringKey
     var onPrimary: () -> Void
     var onDelete: () -> Void
+    /// 裁剪入口。**可选 + 默认 nil**：`DynamicWallpaperView` 复用这张卡片，而动态壁纸是帧序列
+    /// 目录、没有「裁某一块」的语义 —— nil 时卡片完全不出现裁剪按钮，那边零改动。
+    var onCrop: (() -> Void)? = nil
 
     @State private var hovered = false
 
@@ -37,6 +40,9 @@ struct LocalWallpaperCard: View {
         .overlay(alignment: .topTrailing) {
             if hovered {
                 HStack(spacing: 6) {
+                    if let onCrop {
+                        BrowseIconButton(systemName: "crop", help: "裁剪并设置", action: onCrop)
+                    }
                     BrowseIconButton(systemName: primarySystemName, help: primaryHelp, action: onPrimary)
                     BrowseIconButton(systemName: "trash", help: "删除", action: onDelete)
                 }

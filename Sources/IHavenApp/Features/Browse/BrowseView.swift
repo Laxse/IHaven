@@ -25,6 +25,7 @@ struct BrowseView: View {
     /// 三处各自挂 `.alert` 会彼此竞争并被父级 `.sheet` 抑制（子视图模态被抢占），
     /// 表现就是「点了删除按钮什么都没发生」；收敛到一处后确认语义也天然一致。
     @State private var pendingDelete: ImportedWallpaper?
+    @State private var crop: CropRequest?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -73,6 +74,17 @@ struct BrowseView: View {
                 },
                 secondaryButton: .cancel(Text("取消")))
         }
+        // 裁剪 sheet 与 `.alert` 同级挂最外层（子视图挂模态会被父级抑制，见本文件 L24-27）；
+        // aspect / screenLabel 现读现算，不存进 CropRequest —— 用户可能在呈现期间换目标屏。
+        .sheet(item: $crop) { req in
+            WallpaperCropSheet(sourceURL: req.sourceURL,
+                               aspect: WallpaperTarget.cropAspect(),
+                               screenLabel: WallpaperTarget.cropScreenLabel(),
+                               onCancel: { crop = nil },
+                               onApply: { url, size in crop = nil; applyCrop(req, url: url, size: size) })
+                // 被呈现的 sheet 不跟根视图环境更新，须自己挂一次（View+Locale.swift:15-21）。
+                .appLocale()
+        }
     }
 
     // MARK: - 工具栏（52px，chrome 底 + 1px hairline）
@@ -117,8 +129,11 @@ struct BrowseView: View {
             case .live:
                 DynamicWallpaperView(library: library, onMessage: { showToast($0) }, onDeleteRequest: { pendingDelete = $0 })
             case .import:
-                ImportView(library: library, onMessage: { showToast($0) }, onDeleteRequest: { pendingDelete = $0 })
-            default: searchContent
+                ImportView(library: library, onMessage: { showToast($0) },
+                           onDeleteRequest: { pendingDelete = $0 },
+                           onCropRequest: { cropImported($0) })
+            default: browseSearchContent(viewModel: viewModel, gridItems: gridItems,
+                                         onClearFilters: { clearFilters() }) { gridCard($0) }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -155,7 +170,8 @@ struct BrowseView: View {
                                primarySystemName: "display",
                                primaryHelp: "设为壁纸",
                                onPrimary: { setLocalWallpaper(local) },
-                               onDelete: { pendingDelete = local })
+                               onDelete: { pendingDelete = local },
+                               onCrop: { cropImported(local) })
         }
     }
 
@@ -168,50 +184,9 @@ struct BrowseView: View {
                    onNavigate: { detail = $0 },
                    onSearch: { query in detail = nil; viewModel.search(query) },
                    onToggleFavorite: { viewModel.toggleFavorite(wallpaper) },
-                   onMessage: { showToast($0) })
+                   onMessage: { showToast($0) },
+                   onCrop: { cropWallpaper(wallpaper) })
             .id(wallpaper.id)
-    }
-
-    @ViewBuilder
-    private var searchContent: some View {
-        switch viewModel.presentedLoadState {
-        case .loaded:
-            if viewModel.wallpapers.isEmpty {
-                browseEmptyState(title: "没有匹配的壁纸",
-                           body: "当前筛选组合下没有结果。放宽分辨率或比例通常能找到更多。",
-                           action: "清除全部筛选") { clearFilters() }
-            } else {
-                ScrollView {
-                    VStack(spacing: 0) {
-                        MasonryView(items: gridItems,
-                                    spacing: IHaven.Layout.masonryGap,
-                                    minColumnWidth: IHaven.Layout.masonryColMin,
-                                    aspectRatio: { $0.aspectRatio }) { item in
-                            gridCard(item)
-                        }
-                        .padding(IHaven.Space.s6.rawValue)
-
-                        // 底部加载指示（纯展示）；真正的触底加载由 ScrollView 的 onScrollGeometryChange 负责。
-                        HStack(spacing: 6) {
-                            Spacer(minLength: 0)
-                            if viewModel.query.page > 1 {
-                                ProgressView().controlSize(.small)
-                                Text("加载更多…").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
-                            }
-                            Spacer(minLength: 0)
-                        }
-                        .frame(height: 40)
-                    }
-                }
-                // 触底加载：< 240pt 预取下一页。[!] 内容未超出视口时不算触底：首屏未布局时 contentSize=视口高，
-                // distance≈0 会被误判成已触底而多拉一页（实测启动连发 page=1+page=2，即「初始加载 48 张」的根因）。
-                .onScrollGeometryChange(for: CGFloat.self) { $0.contentSize.height > $0.containerSize.height ? $0.contentSize.height - ($0.contentOffset.y + $0.containerSize.height) : .infinity } action: { _, distance in
-                    if distance < 240 { Task { await viewModel.nextPage() } }
-                }
-            }
-        default:
-            browseLoadStateView(viewModel.presentedLoadState)
-        }
     }
 
     @ViewBuilder
@@ -288,6 +263,32 @@ struct BrowseView: View {
         Task { showToast((await library.setAsWallpaper(item)) ?? String(localized: "已设为壁纸")) }
     }
     private func setWallpaperFromFavorite(_ fav: Favorite) { Task { showToast((await viewModel.setWallpaperFromFavorite(fav)) ?? String(localized: "已设为壁纸")) } }
+
+    // MARK: - 裁剪（竖图黑边，ADR-018）
+
+    /// 网络壁纸：先取本地原图（失败提示重试）再弹 sheet。闭包里用参数 `wp`，不捕获 `@State detail`。
+    private func cropWallpaper(_ wp: Wallpaper) {
+        Task {
+            guard let file = await viewModel.cropSource(for: wp) else {
+                showToast(String(localized: "原图下载失败，请重试")); return
+            }
+            crop = CropRequest(id: wp.id, sourceURL: file, kind: .wallpaper(wp))
+        }
+    }
+
+    private func cropImported(_ item: ImportedWallpaper) {
+        crop = CropRequest(id: item.id, sourceURL: URL(fileURLWithPath: item.filePath), kind: .imported(item))
+    }
+
+    private func applyCrop(_ req: CropRequest, url: URL, size: CGSize) {
+        Task {
+            let error: String? = switch req.kind {
+            case .wallpaper(let wp): await viewModel.applyCropped(url, pixelSize: size, wallpaper: wp)
+            case .imported(let item): await library.applyCropped(url, pixelSize: size, item: item)
+            }
+            showToast(error ?? String(localized: "已设为壁纸"))
+        }
+    }
 
     private func showToast(_ msg: String) {
         toast = msg

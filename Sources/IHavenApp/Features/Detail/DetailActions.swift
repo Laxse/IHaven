@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 信息栏操作区：主「设为壁纸」+ 次「下载原图」。
+/// 信息栏操作区：主「设为壁纸」+ 次「下载原图」+ 次「裁剪…」。
 ///
 /// 位置固定在色板条之后、PROPERTIES 之前：与 macOS 检视器顶部放动作组一致，
 /// 且不会随属性行数（上传者有无 → 6/7 行）变化而上下跳动。
@@ -10,8 +10,12 @@ import SwiftUI
 struct DetailActions: View {
     @Bindable var state: DetailViewState
     var onMessage: (String) -> Void
+    /// 裁剪入口。⚠️ **sheet 由 `BrowseView` 那一层挂**（子视图挂模态会被父级 `.sheet` 抑制），
+    /// 这里只往上抛一个「用户想裁这张」的信号。
+    var onCrop: () -> Void
     @State private var hoverPrimary = false
     @State private var hoverSecondary = false
+    @State private var hoverTertiary = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: IHaven.Space.s4.rawValue) {
@@ -56,6 +60,28 @@ struct DetailActions: View {
             .buttonStyle(.plain)
             .disabled(state.isBusy)
             .onHover { hoverSecondary = $0 }
+
+            // 「裁剪…」：竖图设壁纸会左右黑边时，先框出与屏幕同比例的一块再设（ADR-018）。
+            // 样式照「下载原图」（surface 底 + border 描边 + 高 28），主按钮仍保持第一位。
+            Button(action: onCrop) {
+                HStack(spacing: IHaven.Space.s3.rawValue) {
+                    Image(systemName: "crop").font(.system(size: IHaven.Icon.sm))
+                    // 非三元，字面量直接被推断成 LocalizedStringKey（本文件 L22-24 的注释）。
+                    Text("裁剪…")
+                }
+                .font(IHaven.Font.system(.md))
+                .foregroundStyle(IHaven.Color.fg)
+                .frame(maxWidth: .infinity)
+                .frame(height: 28)
+                .background(hoverTertiary && !state.isBusy ? IHaven.Color.void : IHaven.Color.surface,
+                            in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue, style: .continuous)
+                    .stroke(IHaven.Color.border, lineWidth: 1))
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(state.isBusy)
+            .onHover { hoverTertiary = $0 }
 
             if let error = state.actionError { inlineError(error) }
         }
