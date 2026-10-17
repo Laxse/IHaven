@@ -22,9 +22,40 @@ enum WallpaperTarget {
         return NSScreen.screens.first { ($0.cgDirectDisplayID ?? kCGNullDirectDisplay) == wanted }
     }
 
+    /// ⚠️ **必须判「有没有写过」，不能只看 `integer(forKey:)`**：未设置时它返回 0，
+    /// 而 `rawValue == 0` 恰好是 `.fit`（完整可见、四周留白）—— 竖图铺到横屏上必然左右
+    /// 黑边，且那句 `?? .fill` 永远轮不到（0 是合法 rawValue，不会走到 nil 分支）。
+    /// 这是用户反馈「图片是纵向的时候设置壁纸会出现两边儿有黑边儿」的根因。
     static func fillMode() -> WallpaperFillMode {
-        WallpaperFillMode(rawValue: UserDefaults.standard
-            .integer(forKey: UserPreferenceKey.wallpaperFillMode)) ?? .fill
+        guard let raw = UserDefaults.standard.object(forKey: UserPreferenceKey.wallpaperFillMode) as? Int
+        else { return .fill }
+        return WallpaperFillMode(rawValue: raw) ?? .fill
+    }
+
+    /// 目标屏的宽高比（`frame.width / frame.height`），裁剪选框锁的就是它。
+    ///
+    /// 用点坐标而不是像素坐标：两者比值一致，不受 `backingScaleFactor` 影响，
+    /// 而 `frame` 在屏不存在时不会给出可用值 —— 那种情况回退 16/10（常见笔记本比例）。
+    static func cropAspect() -> CGFloat {
+        guard let screen = resolveScreen() ?? NSScreen.main, screen.frame.height > 0 else { return 16.0 / 10.0 }
+        return screen.frame.width / screen.frame.height
+    }
+
+    /// 目标屏描述，形如 `显示器 1 · 3024 × 1964`，显示在裁剪 sheet 标题下方 ——
+    /// 用户需要知道「我在为哪块屏裁」，否则多屏时会裁错比例还以为是 bug。
+    ///
+    /// 带参数的本地化走「先取格式串再 `String(format:)`」，不把值插值进 `String(localized:)`
+    /// （本文件 L46-50 有说明：后者生成的是占位键，和 lproj 里手写的 key 对不上）。
+    static func cropScreenLabel() -> String {
+        guard let screen = resolveScreen() ?? NSScreen.main else {
+            return String(localized: "未检测到显示器，已按 16:10 锁定裁剪比例")
+        }
+        let name = screen.localizedName.trimmingCharacters(in: .whitespaces)
+        // `localizedName` 是 EDID 名，无 EDID 的显示器 / 虚拟屏会返回空串 —— 空标题会让
+        // 用户看到一条无法区分的空白描述，按 screenOptions() 的约定回退到「主屏」。
+        let title = name.isEmpty ? String(localized: "主屏") : name
+        let format = String(localized: "%@ · %lld × %lld")
+        return String(format: format, title, Int(screen.frame.width), Int(screen.frame.height))
     }
 
     /// 留白处填充色：优先用壁纸自己的主色（wallhaven 恒给 5 个），没有则给中性黑。

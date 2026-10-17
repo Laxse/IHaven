@@ -4,6 +4,7 @@ import CoreGraphics
 import CoreMedia
 import Foundation
 import ImageIO
+import SwiftUI
 import UniformTypeIdentifiers
 
 // ===== 1. Per-screen wallpaper, 5 fill modes =====
@@ -276,4 +277,76 @@ func averageColor(of image: CGImage) -> [CGFloat]? {
     else { return nil }
     ctx.draw(image, in: CGRect(x: 0, y: 0, width: 1, height: 1))
     return bytes.map { CGFloat($0) / 255 }
+}
+
+// ===== 11. Wallpaper crop: full-resolution ImageIO crop + crop-box drag gestures =====
+// 用途：设置壁纸前让用户框出「与屏幕同宽高比」的一块（竖图设壁纸会左右黑边的根治办法）。
+// 两点与帧序列渲染（第 10 节）刻意不同：
+//  1. MaxPixelSize 用 16384 只缩不放 —— 壁纸必须全分辨率；
+//  2. 必须带 kCGImageSourceCreateThumbnailWithTransform，否则带 EXIF orientation 的图会裁错区域。
+
+@available(macOS 26.0, *)
+func loadFullResolutionOriented(_ url: URL) throws -> CGImage {
+    guard let src = CGImageSourceCreateWithURL(url as CFURL, nil),
+          CGImageSourceGetCount(src) > 0 else { throw CocoaError(.fileReadNoSuchFile) }
+    let options: [CFString: Any] = [
+        kCGImageSourceCreateThumbnailFromImageAlways: true,
+        kCGImageSourceCreateThumbnailWithTransform: true,
+        kCGImageSourceThumbnailMaxPixelSize: 16384,
+    ]
+    guard let full = CGImageSourceCreateThumbnailAtIndex(src, 0, options as CFDictionary) else {
+        throw CocoaError(.fileReadCorruptFile)
+    }
+    return full
+}
+
+@available(macOS 26.0, *)
+func cropAndWriteJPEG(_ image: CGImage, rect: CGRect, to url: URL) throws {
+    guard let cropped = image.cropping(to: rect) else { throw CocoaError(.fileReadCorruptFile) }
+    let data = NSMutableData()
+    guard let dest = CGImageDestinationCreateWithData(
+        data, UTType.jpeg.identifier as CFString, 1, nil) else { throw CocoaError(.fileWriteNoPermission) }
+    CGImageDestinationAddImage(dest, cropped,
+                               [kCGImageDestinationLossyCompressionQuality: 0.92] as CFDictionary)
+    guard CGImageDestinationFinalize(dest) else { throw CocoaError(.fileWriteNoPermission) }
+    try data.write(to: url, options: .atomic)
+}
+
+/// Crop box gestures: GeometryReader gives the container size, DragGesture gives the translation;
+/// the crop rect itself is normalised (0...1), so display delta / display size is the conversion.
+///
+/// ⚠️ 本样本刻意**不带 `@State`**：`swiftc -typecheck` 在本门禁的 sandbox 下起不来
+/// `SwiftUIMacros.StateMacro` 插件（`sandbox_apply: Operation not permitted`），
+/// 带 `@State` 会误报「macro implementation type could not be found」。
+/// 需要核验的只是 `GeometryReader` / `DragGesture` 与坐标换算的**类型签名**，
+/// 状态读写本身由 `swift build` 在真实工程里覆盖。
+@available(macOS 26.0, *)
+struct CropBoxGestureSample: View {
+    let box = CGRect(x: 0.25, y: 0.25, width: 0.5, height: 0.5)
+
+    var body: some View {
+        GeometryReader { geo in
+            Rectangle()
+                .stroke(.white, lineWidth: 1)
+                .frame(width: box.width * geo.size.width, height: box.height * geo.size.height)
+                .position(x: box.midX * geo.size.width, y: box.midY * geo.size.height)
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            _ = value.translation.width / max(geo.size.width, 1)
+                            _ = value.translation.height / max(geo.size.height, 1)
+                        }
+                        .onEnded { value in
+                            _ = value.predictedEndTranslation
+                        }
+                )
+        }
+    }
+}
+
+/// Screen aspect used to lock the crop box (points, not pixels: the ratio is backing-scale invariant).
+@available(macOS 26.0, *)
+func screenCropAspect() -> CGFloat {
+    let frame = NSScreen.screens.first?.frame ?? CGRect(x: 0, y: 0, width: 16, height: 10)
+    return frame.width / frame.height
 }
