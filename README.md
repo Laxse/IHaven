@@ -49,6 +49,7 @@
 * Import your own images; turn any static wallpaper into a locally generated dynamic wallpaper (breathe / pan / push-in, seamless loop, no video involved)
 * Image cache on disk (Nuke `DataCache`, 512 MB) so a wallpaper you have seen is never downloaded twice — Settings ▸ Storage shows the usage and lets you clear it
 * API key stays on your machine (a local file, never in logs or crash reports) and is sent as an `X-API-Key` header
+* Crop before you set — pick the part of a portrait image you actually want, locked to your screen's aspect ratio, so vertical wallpapers never end up with black bars on the sides
 * Chinese and English UI
 * Built-in in-process mock so you can develop and debug with no network and no VPN — see below
 # Screenshots
@@ -67,6 +68,7 @@
 * Per-screen wallpaper assignment and a fill color derived from the wallpaper's own palette
 * Performance guard for dynamic wallpapers — auto-pause when the frontmost app is full screen, on low battery, or in Low Power Mode, plus a visible CPU / memory readout
 * Wallpaper rotation schedule — switch by time of day or weekday
+* Free-form crop aspect ratios and a cleanup policy for the derived crop files (`Application Support/IHaven/Crops/`)
 * Client-side rate limiting (45 req/min token bucket) with backoff, and an offline fallback backed by the local image cache
 
 

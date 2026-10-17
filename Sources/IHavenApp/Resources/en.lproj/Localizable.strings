@@ -234,6 +234,23 @@
 "未开启「显示器具有单独 Spaces」，多屏壁纸可能只在一块屏生效。请在系统设置 ▸ 桌面与程序坞中开启（修改后需注销重新登录）。" = "\"Displays have separate Spaces\" is off, so multi-display wallpapers may only apply to one screen. Turn it on in System Settings ▸ Desktop & Dock (requires logging out and back in).";
 "只能设置本地图片作为壁纸" = "Only local images can be set as wallpaper";
 
+// MARK: - 裁剪选框（竖图黑边）
+
+"裁剪选框" = "Crop Selection";
+"%@ · 已锁定屏幕比例" = "%@ · Locked to Screen Aspect";
+"裁剪后 · %lld × %lld" = "Cropped · %lld × %lld";
+"无法加载该图片" = "Couldn't load this image";
+"正在裁剪…" = "Cropping…";
+"重置" = "Reset";
+"未检测到显示器，已按 16:10 锁定裁剪比例" = "No display detected; crop ratio locked to 16:10";
+"%@ · %lld × %lld" = "%@ · %lld × %lld";
+"无法读取该文件，可能已损坏或没有读取权限" = "Couldn't read this file — it may be damaged, or you may not have permission to read it";
+"裁剪区域无效，请调整选框后重试" = "The crop region is invalid. Adjust the selection and try again.";
+"裁剪结果写入失败，请检查磁盘空间或文件夹权限" = "Couldn't save the cropped image. Check your disk space or folder permissions.";
+"裁剪…" = "Crop…";
+"裁剪并设置" = "Crop and Set";
+"原图下载失败，请重试" = "Couldn't download the original image. Please try again.";
+
 // MARK: - Performance Guard (PRD F10)
 
 "性能" = "Performance";

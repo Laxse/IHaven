@@ -315,7 +315,7 @@ func cropAndWriteJPEG(_ image: CGImage, rect: CGRect, to url: URL) throws {
 /// Crop box gestures: GeometryReader gives the container size, DragGesture gives the translation;
 /// the crop rect itself is normalised (0...1), so display delta / display size is the conversion.
 ///
-/// ⚠️ 本样本刻意**不带 `@State`**：`swiftc -typecheck` 在本门禁的 sandbox 下起不来
+/// [!] 本样本刻意**不带 `@State`**：`swiftc -typecheck` 在本门禁的 sandbox 下起不来
 /// `SwiftUIMacros.StateMacro` 插件（`sandbox_apply: Operation not permitted`），
 /// 带 `@State` 会误报「macro implementation type could not be found」。
 /// 需要核验的只是 `GeometryReader` / `DragGesture` 与坐标换算的**类型签名**，

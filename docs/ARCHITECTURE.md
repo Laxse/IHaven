@@ -792,6 +792,21 @@ for screen in NSScreen.screens {
 
 若需避免重复计算，缓存键必须包含目标屏标识（`(wallpaperId, screenId)`），等价于裁切缓存的键规则。
 
+#### 6.2.2.1 已落地形态：设置壁纸前的裁剪选框（ADR-018）
+
+§6.2.2 的「客户端预裁切」结论已在 2026-10-18 落地，形态**收敛**为「显式二级入口 + 锁定屏幕比例」，不再是 PM 原验收标准里那个「可调裁切焦点」的自由形态。
+
+| 项 | 落地选择 | 与 §6.2.2 表格的差异 |
+| --- | --- | --- |
+| 入口 | 详情页「裁剪…」按钮 / 本地卡片裁剪图标，**显式二级** | 表格未涉及；不做「每次设壁纸都弹」是刻意的（横图无需裁剪，且后台轮换无 UI 可弹） |
+| 比例 | **锁定目标屏宽高比**（`WallpaperTarget.cropAspect()`） | 原方案是自由焦点；自由比例裁完仍可能有黑边，等于没解决用户报的问题 |
+| 分辨率 | **全分辨率**，不套 `AnimationRenderer.workMaxPixel = 1920` | 表格建议做 `MaxPixelSize` 降采样；那是给动态壁纸**帧序列**用的，静态壁纸只有一张，降采样是纯损失 |
+| 落盘 | `AppPaths.sub("Crops")`，与 `Originals` / `Wallpapers` / `Animations` 同级 | 表格写的是 `Caches/WallpaperCrop/`；不进 `Originals` 是为保住那里 URL 到文件名的一一映射（F7 离线兜底反查依赖它） |
+| 写入模式 | 恒 `.fill`，覆盖用户当前的填充模式偏好 | 表格未涉及；产物比例已等于屏幕，取整的 ±1px 在 `.fit` 下会变成一条极细留白 |
+| 预览与写入 | **消费同一个像素来源**：`WallpaperCropWriter.loadOriented` 出的 `CGImage` 既用于预览，也用于 `cropping(to:)` | 与 §6.2.2「预览与写入必须消费同一对象」一致，未放宽 |
+
+**实测边界（已验证，见 ADR-018）**：`NSWorkspace.setDesktopImageURL` 的 options 里只有 `imageScaling` / `allowClipping` / `fillColor`，**没有**指定源图矩形的位置。所以「让系统裁」这条路径不存在，裁剪只能在调用前完成。
+
 ### 6.2.3 atleast 参数是任意分辨率字符串（非枚举）
 
 **实测结论**（直接请求 wallhaven API，2026-10-08）：
@@ -1472,6 +1487,7 @@ bash scripts/convention-gate.sh       # ADR-004/009 规范
 | ADR-007 | macOS 26 弃用 API 的规避清单（编译核验产出） |
 | ADR-008 | 不集成 FFmpeg，不依赖私有 API |
 | ADR-009 | 代码组织与单文件 300 行约束 |
+| ADR-018 | 设置壁纸前的裁剪选框（竖图黑边）：产物先渲染成本地文件再调系统 API |
 
 ---
 
@@ -1515,3 +1531,7 @@ bash scripts/convention-gate.sh       # ADR-004/009 规范
    `usingColorSpace` 转换后再入字典。
 7. **省略 `NSWorkspace.DesktopImageOptionKey.fillColor` 不会回到系统默认色**，而是保留上一次写入的值
    （实测回读）。所以「没有主色可用」时必须显式给一个中性回退色。
+8. **`setDesktopImageURL` 的 options 里没有「从源图哪个矩形取像素」这一项**（实测：`DesktopImageOptionKey`
+   只有 `imageScaling` / `allowClipping` / `fillColor`）。系统永远按等比缩放后居中取，裁切焦点不可指定。
+   所以「设置壁纸前裁剪」只能由客户端在调用前把结果渲染成新文件（ADR-018），不存在「把 cropRect 传给系统」
+   的实现路径 —— 任何声称能做到这一点的方案都应先要求其给出该 option 的名字。
