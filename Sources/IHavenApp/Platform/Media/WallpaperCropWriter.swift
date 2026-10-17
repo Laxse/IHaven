@@ -36,8 +36,20 @@ enum WallpaperCropWriter {
 
     /// 按归一化 `rect` 裁 `source` 并写 JPEG（quality 0.92）到 `dir`，返回产物 fileURL。
     ///
-    /// 文件名 `<原文件名去扩展名>-crop-<宽>x<高>.jpg`，宽高是**裁剪后的像素值** —— 同名源图
-    /// 裁出不同尺寸不会互相覆盖，也便于事后核对「这张产物对应哪块屏」。
+    /// 文件名 `<原文件名去扩展名>-crop-<宽>x<高>@<x>-<y>.jpg`：宽高和原点都是
+    /// `rect.pixelRect(in:)` 得到的**裁剪后像素值** / **像素原点**（`Int`）。
+    ///
+    /// ## 为什么原点也要进文件名
+    /// 只写宽高是不够的：1000×2000 的竖图按 16:10 裁「上半部分」和「下半部分」，
+    /// 两块产物都是 1000×625 —— 文件名会完全相同，后一次**覆盖**前一次的文件，而数据库
+    /// 「已设置」记录的 `AppliedWallpaper.localPath` 正指向这个文件，于是前一次裁剪的
+    /// 结果凭空消失。加上像素原点后不同选框各占一个文件。
+    ///
+    /// ## 为什么保持确定性（不加时间戳 / UUID）
+    /// 同一张图 + 同一个选框 → 同一个文件。重复裁同一区域复用同一文件、只做覆写，
+    /// 不会在磁盘上无限堆积同内容的垃圾文件；也便于调用方按路径去重。
+    ///
+    /// 文件名不含 `/` 与 `:`（像素值都是整数，天然安全）。
     static func write(source: URL, rect: WallpaperCropRect, to dir: URL) throws -> URL {
         let image = try loadOriented(source)
         let pixel = rect.pixelRect(in: CGSize(width: image.width, height: image.height))
@@ -45,7 +57,9 @@ enum WallpaperCropWriter {
               let cropped = image.cropping(to: pixel) else { throw CropError.cropFailed }
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let base = source.deletingPathExtension().lastPathComponent
-        let name = String(format: "%@-crop-%dx%d.jpg", base, Int(pixel.width), Int(pixel.height))
+        let name = String(format: "%@-crop-%dx%d@%d-%d.jpg", base,
+                          Int(pixel.width), Int(pixel.height),
+                          Int(pixel.origin.x), Int(pixel.origin.y))
         let url = dir.appendingPathComponent(name)
         try writeJPEG(cropped, to: url)
         return url
