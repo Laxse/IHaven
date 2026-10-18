@@ -325,3 +325,7 @@
 "选择相册" = "Album";
 "目标屏" = "Target display";
 "还没有相册，先到侧栏「相册」创建。" = "No albums yet — create one in the Albums sidebar first.";
+
+// MARK: - Global hotkey (#68)
+
+"换一张（⌥⌘S）" = "Shuffle (⌥⌘S)";

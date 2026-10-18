@@ -115,5 +115,6 @@ struct IHavenApp: App {
             throttle: throttle
         )
         library = libraryViewModel
+        GlobalHotkeys.install(viewModel: browseViewModel, library: library)   // #68 全局热键 ⌥⌘S 换一张
     }
 }

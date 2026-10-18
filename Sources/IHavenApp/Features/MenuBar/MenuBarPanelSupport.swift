@@ -191,6 +191,9 @@ struct PanelShuffleButton: View {
         }
         .buttonStyle(.plain)
         .disabled(busy)
+        // 提示全局热键：App 不在前台也能 ⌥⌘S 换一张（#68，需辅助功能授权）。写在这里而不是
+        // 只写进文档，是因为这个按钮是用户唯一会主动寻找「换壁纸」入口的地方。
+        .help("换一张（⌥⌘S）")
         .onHover { hover = $0 }
         .animation(IHaven.Motion.fast, value: hover)
     }

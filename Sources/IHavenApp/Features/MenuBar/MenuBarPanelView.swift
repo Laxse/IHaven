@@ -239,13 +239,13 @@ struct MenuBarPanelView: View {
         applyWallpaper(vm.wallpapers[min(cursor, count - 1)], vm)
     }
 
-    /// 随机一张。源按「当前结果集 → 收藏 → 本地导入」降级，全空才给明确文案。
+    /// 随机一张。候选优先级与全局热键共用 `BrowseViewModel.randomShuffleCandidate`
+    /// （结果集 → 收藏），本地导入补第三级，全空才给明确文案。
     private func shuffle(_ vm: BrowseViewModel) {
-        if !vm.wallpapers.isEmpty {
-            cursor = Int.random(in: vm.wallpapers.indices)
-            applyWallpaper(vm.wallpapers[cursor], vm)
-        } else if let fav = vm.favorites.randomElement() {
-            applyFavorite(fav, vm)
+        if let wp = vm.randomShuffleCandidate() {
+            // 从结果集里抽到的要把游标同步过去，后续「上一张 / 下一张」才接着这张继续翻。
+            if let idx = vm.wallpapers.firstIndex(where: { $0.id == wp.id }) { cursor = idx }
+            applyWallpaper(wp, vm)
         } else if let item = library?.images.randomElement() {
             applyLocal(item)
         } else {
