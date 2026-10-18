@@ -398,3 +398,5 @@
 "带原生音频 · 质量标杆 · 约 $0.08/秒 起" = "Native audio · quality benchmark · from about $0.08/s";
 "Vidu Q3 Pro（生数）" = "Vidu Q3 Pro (ShengShu)";
 "最长 16 秒 · 1080p · 带音频" = "Up to 16s · 1080p · with audio";
+"默认模型" = "Default model";
+"生成面板里也能改，两处同步。" = "You can also change it in the generator panel — both stay in sync.";

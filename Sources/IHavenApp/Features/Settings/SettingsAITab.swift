@@ -10,6 +10,9 @@ struct SettingsAITab: View {
 
     @State private var draft = ""
     @State private var savedHint = false
+    /// 与生成面板共用同一个 `@AppStorage`：两处改任一处都同步。
+    /// **为什么设置里也要有一份**：配 AI 的第一反应是来设置找，只在生成面板里有会找不到。
+    @AppStorage(UserPreferenceKey.aiVideoModel) private var modelID = AIVideoModelCatalog.fallback.id
     private let tokenURL = URL(string: "https://replicate.com/account/api-tokens")!
 
     var body: some View {
@@ -58,6 +61,8 @@ struct SettingsAITab: View {
                 Button("清除") { save(clear: true) }.buttonStyle(.bordered)
             }
 
+            modelPicker
+
             // 成本与边界：每一次生成都计费，且要自备 Key、联网、自负内容合规。
             Label("API 调用需在 Replicate 绑卡计费；每一次生成都会扣你的额度。",
                   systemImage: "creditcard")
@@ -68,6 +73,24 @@ struct SettingsAITab: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .onAppear { draft = store.currentKey }
+    }
+
+    /// 默认模型。规格 / 单价写在下面那行 —— 计费功能要让用户选之前就知道花多少。
+    private var modelPicker: some View {
+        VStack(alignment: .leading, spacing: IHaven.Space.s3.rawValue) {
+            sectionTitle("默认模型")
+            Picker("", selection: $modelID) {
+                ForEach(AIVideoModelCatalog.all) { model in
+                    Text(LocalizedStringKey(model.nameKey)).tag(model.id)
+                }
+            }
+            .pickerStyle(.menu).labelsHidden()
+            Text(LocalizedStringKey(AIVideoModelCatalog.model(id: modelID).noteKey))
+                .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
+                .fixedSize(horizontal: false, vertical: true)
+            Text("生成面板里也能改，两处同步。")
+                .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
+        }
     }
 
     private var isConfigured: Bool {
