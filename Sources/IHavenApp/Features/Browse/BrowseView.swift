@@ -132,7 +132,7 @@ struct BrowseView: View {
                 ImportView(library: library, onMessage: { showToast($0) },
                            onDeleteRequest: { pendingDelete = $0 },
                            onCropRequest: { cropImported($0) })
-            default: browseSearchContent(viewModel: viewModel, gridItems: gridItems,
+            default: browseSearchContent(viewModel: viewModel, gridItems: viewModel.wallpapers,
                                          onClearFilters: { clearFilters() }) { gridCard($0) }
             }
         }
@@ -147,30 +147,19 @@ struct BrowseView: View {
         }
     }
 
-    /// 瀑布流网格项：本地导入项只在「发现」混入，且排在最前。理由见 `browseGridItems`。
-    private var gridItems: [WallpaperGridItem] {
-        browseGridItems(viewModel.wallpapers, local: library.images, mixLocal: nav == .discover)
-    }
-
+    /// 瀑布流只放搜索结果 —— 本地导入项**不混入**，它们只在「导入…」页签里管理。
+    ///
+    /// PRD:697 原本要求「导入的图片与网络壁纸在同一瀑布流展示」，该混排已于 2026-10-18
+    /// 由用户否决（见 `docs/decisions/OPEN-DECISIONS.md`）：本地文件与 wallhaven 的
+    /// 分类 / 关键词检索毫无关系，混进去只是把用户的图塞进一个它不属于的列表，
+    /// 还要额外挂「本地」标识去解释这个突兀的存在。
     @ViewBuilder
-    private func gridCard(_ item: WallpaperGridItem) -> some View {
-        switch item {
-        case .network(let wp):
-            WallpaperCard(wallpaper: wp,
-                          isFavorite: viewModel.favoriteIDs.contains(wp.id),
-                          onOpen: { detail = wp },
-                          onToggleFavorite: { viewModel.toggleFavorite(wp) },
-                          onSetWallpaper: { setWallpaper(wp) })
-        case .local(let local):
-            // 本地项没有网络详情页可开（详情页的字段全是 wallhaven 响应形状），
-            // 因此单击 = 直接设为壁纸，与导入页卡片的主操作一致。
-            LocalWallpaperCard(item: local,
-                               primarySystemName: "display",
-                               primaryHelp: "设为壁纸",
-                               onPrimary: { setLocalWallpaper(local) },
-                               onDelete: { pendingDelete = local },
-                               onCrop: { cropImported(local) })
-        }
+    private func gridCard(_ wp: Wallpaper) -> some View {
+        WallpaperCard(wallpaper: wp,
+                      isFavorite: viewModel.favoriteIDs.contains(wp.id),
+                      onOpen: { detail = wp },
+                      onToggleFavorite: { viewModel.toggleFavorite(wp) },
+                      onSetWallpaper: { setWallpaper(wp) })
     }
 
     /// 详情页（二级页面）。`.id` 让切换壁纸时整体重建：详情请求、大图都要跟着换。
@@ -257,9 +246,6 @@ struct BrowseView: View {
     }
 
     private func setWallpaper(_ wp: Wallpaper) { Task { showToast((await viewModel.setAsWallpaper(wp)) ?? String(localized: "已设为壁纸")) } }
-    private func setLocalWallpaper(_ item: ImportedWallpaper) {
-        Task { showToast((await library.setAsWallpaper(item)) ?? String(localized: "已设为壁纸")) }
-    }
     private func setWallpaperFromFavorite(_ fav: Favorite) { Task { showToast((await viewModel.setWallpaperFromFavorite(fav)) ?? String(localized: "已设为壁纸")) } }
 
     // MARK: - 裁剪（竖图黑边，ADR-018）

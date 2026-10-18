@@ -53,31 +53,10 @@ public enum ImportedKind: String, Codable, Sendable, Hashable {
     case animation
 }
 
-/// 瀑布流统一网格项（ADR-015 §四）：网络项与本地项在同一列表里混排，
-/// 本地项带「本地」标识（PRD:697 的可区分标识）。
-/// ⚠️ 不能叫 `GridItem`：SwiftUI 自带同名类型（`.gridItem` 布局用的那个），在同一个 module 里
-/// 引入 SwiftUI 的文件会撞名（`FilterView.swift` 已实测撞上）。
-public enum WallpaperGridItem: Identifiable, Sendable, Hashable {
-    case network(Wallpaper)
-    case local(ImportedWallpaper)
-
-    public var id: String {
-        switch self {
-        case .network(let wp): wp.id
-        case .local(let item): item.id
-        }
-    }
-
-    /// 瀑布流列高按真实宽高比算：两种来源都有可信的 width/height。
-    public var aspectRatio: CGFloat {
-        switch self {
-        case .network(let wp): CGFloat(wp.width) / CGFloat(wp.height)
-        case .local(let item): CGFloat(item.width) / CGFloat(item.height)
-        }
-    }
-
-    public var isLocal: Bool {
-        if case .local = self { return true }
-        return false
-    }
-}
+/// [!] `WallpaperGridItem`（网络项 / 本地项混排的枚举包装）已于 2026-10-18 移除。
+///
+/// 它存在的唯一理由是 ADR-015 §四 的「本地项并入瀑布流」（PRD:697）。该混排被用户否决 ——
+/// 本地文件与 wallhaven 的分类 / 关键词检索无关，混进去只是把用户的图塞进一个它不属于的
+/// 列表，还要额外挂「本地」标识去解释这个突兀的存在。瀑布流现在直接用 `[Wallpaper]`
+/// （`Wallpaper` 本身即 `Identifiable`），本地项只在「导入…」页签管理。
+/// 若要恢复混排，从 git 历史找回本文件这段即可。
