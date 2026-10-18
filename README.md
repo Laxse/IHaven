@@ -26,9 +26,16 @@ first-party system utility: a masonry browse grid, a full metadata detail page, 
 assignment, locally generated dynamic wallpapers, and a menu bar panel for the things you do ten
 times a day.
 
+<div align="center">
+  <img src="screenshots/browse.jpg" alt="IHaven main window: a masonry grid of wallpapers from wallhaven.cc" width="880">
+  <br>
+  <sub>The main window — masonry grid, mixed aspect ratios, infinite scroll</sub>
+</div>
+
 ## Contents
 
 - [Features](#features)
+- [Screenshots](#screenshots)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Getting started](#getting-started)
@@ -87,6 +94,22 @@ times a day.
 
 - Chinese (Simplified) and English, following your system language or a manual override in
   Settings ▸ Appearance
+
+## Screenshots
+
+<div align="center">
+  <img src="screenshots/detail.jpg" alt="IHaven detail page: full image on the left, metadata sidebar on the right, with Set as Wallpaper, Download Original and Crop actions" width="880">
+  <br>
+  <sub>Detail page — the complete image (never cropped), metadata sidebar, and the three actions</sub>
+</div>
+
+<div align="center">
+  <img src="screenshots/crop.jpg" alt="IHaven crop selection sheet with a draggable box locked to the screen aspect ratio" width="880">
+  <br>
+  <sub>Crop before setting — a draggable box locked to your screen's aspect ratio</sub>
+</div>
+
+*Screenshots show the Chinese interface. Switch to English in **Settings ▸ Appearance**.*
 
 ## Requirements
 
