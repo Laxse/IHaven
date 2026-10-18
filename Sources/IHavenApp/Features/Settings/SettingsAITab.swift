@@ -28,9 +28,12 @@ struct SettingsAITab: View {
 
             // 服务商 + 如何拿 Key：用户最容易卡在这一步，故放在输入框正上方。
             VStack(alignment: .leading, spacing: IHaven.Space.s2.rawValue) {
+                // 「接口方」而不是「服务商」：前者是真正调用并计费的一方（固定），
+                // 后者容易被读成「模型的出品方」（会随模型变）。两个概念必须分开写，
+                // 否则用户切了模型会以为要换 Key —— 模型出品方在下拉里跟着变即可。
                 HStack(spacing: 0) {
-                    Text("服务商：").foregroundStyle(IHaven.Color.fg2)
-                    Text("Replicate（replicate.com）· 一套 Key 跑多个模型")
+                    Text("接口方：").foregroundStyle(IHaven.Color.fg2)
+                    Text("Replicate（replicate.com）· 固定不变，Key 与计费都走它")
                         .foregroundStyle(IHaven.Color.fg)
                 }
                 HStack(spacing: 4) {
@@ -78,6 +81,8 @@ struct SettingsAITab: View {
     /// 默认模型。规格 / 单价写在下面那行 —— 计费功能要让用户选之前就知道花多少。
     private var modelPicker: some View {
         VStack(alignment: .leading, spacing: IHaven.Space.s3.rawValue) {
+            // 出品方写在选项名里（如「万相 2.7（阿里）」），故切模型时这一带的文字会跟着变；
+            // 上面那行「接口方」不变 —— 换模型不换 Key。
             sectionTitle("默认模型")
             Picker("", selection: $modelID) {
                 ForEach(AIVideoModelCatalog.all) { model in
