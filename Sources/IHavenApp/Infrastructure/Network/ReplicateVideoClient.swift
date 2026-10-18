@@ -9,11 +9,15 @@ import UniformTypeIdentifiers
 /// 与「gated behind an optional key」的定位吻合。协议留了替换余地：换提供商只需再写一个
 /// `AIVideoGenerating` 实现，装配点换一行。
 ///
-/// ## 端点 / 模型（已按官方文档核对，2026-10-18；未用真 Key 跑通）
-/// Replicate predictions API：`POST /v1/predictions`（`Prefer: wait` 同步等 ≤60s，超时转轮询
-/// `GET /v1/predictions/{id}`）。默认模型 `minimax/video-01`（Hailuo，图生视频，6s/720p，约 $0.5/次）：
-/// 入参 `first_frame_image`（底图，输出继承其宽高比）+ `prompt`；输出为**单个字符串 URI**（解析端
-/// 同时兼容字符串 / 数组）。端点形状以官方文档为准，但**尚未用真 Key 端到端跑通**——首次真跑需确认。
+/// ## 端点 / 模型（已按官方文档核对，2026-10-18；真机跑到 HTTP 422 后修正一次）
+/// 官方模型必须走 `POST /v1/models/{owner}/{name}/predictions`，body **只有 `input`**。
+/// ⚠️ **不能走通用 `/v1/predictions`**：那条路径必填 `version`（64 位版本哈希或
+/// `owner/name:hash`），body 里**根本没有 `model` 字段** —— 传 `{"model": …}` 会被判
+/// 422 Unprocessable Entity（用户真机实测，错误文案就是「HTTP 422」）。
+/// 仍是 `Prefer: wait` 同步等 ≤60s，超时转轮询 `GET /v1/predictions/{id}`。
+/// 默认模型 `minimax/video-01`（Hailuo，图生视频，6s/720p，约 $0.5/次）：
+/// 入参 `first_frame_image`（底图，输出继承其宽高比）+ `prompt`；输出为**单个字符串 URI**
+/// （解析端同时兼容字符串 / 数组）。
 struct ReplicateVideoClient: AIVideoGenerating {
     private let keyProvider: KeyProvider
     /// 默认模型：文本 + 图像条件化的图生视频。**可换** —— 换模型只改这一处 + 对应 input 键名。
@@ -29,20 +33,23 @@ struct ReplicateVideoClient: AIVideoGenerating {
     func generateVideo(sourceImage: URL, prompt: String) async throws -> URL {
         let key = keyProvider.currentKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !key.isEmpty else { throw AIVideoError.missingKey }
+        // 官方模型端点由模型名推出来（见文件头说明）：模型标识必须是 owner/name。
+        guard let endpoint = modelEndpoint() else {
+            throw AIVideoError.requestRejected("模型标识应为 owner/name：\(model)")
+        }
 
         // 底图转成 API 友好的 JPEG（≤1024 长边）：模型可靠吃 JPEG，且显著减小请求体
         // （原图可能是 4K / HEIC，直接 base64 会是数 MB，甚至被模型拒收）。
         let jpeg = try jpegForAPI(sourceImage)
         let dataURI = "data:image/jpeg;base64," + jpeg.base64EncodedString()
 
+        // 这条端点只认 input —— 模型已由 URL 决定，不能再塞 model / version（否则 422）。
         let body: [String: Any] = [
-            "model": model,
-            // minimax/video-01 图生视频入参（已按 Replicate 官方 API 文档核对，2026-10-18）：
-            // first_frame_image = 底图（输出视频继承其宽高比）；prompt = 运动描述。
-            // ⚠️ 此前凭印象写的 "image" 是错的——该模型只认 first_frame_image。
+            // minimax/video-01 图生视频入参：first_frame_image = 底图（输出继承其宽高比），
+            // prompt = 运动描述。此前凭印象写的 "image" 是错的——该模型只认 first_frame_image。
             "input": ["first_frame_image": dataURI, "prompt": prompt],
         ]
-        var request = URLRequest(url: baseURL.appendingPathComponent("predictions"))
+        var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -51,7 +58,7 @@ struct ReplicateVideoClient: AIVideoGenerating {
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         let (data, response) = try await URLSession.shared.data(for: request)
-        try classifyHTTP(response)
+        try classifyHTTP(response, body: data)
         var prediction = try parsePrediction(data)
 
         // 同步等待超时 → 进入轮询（每 2s 一次，总上限约 3 分钟；图生视频常 30s~2min）。
@@ -75,7 +82,7 @@ struct ReplicateVideoClient: AIVideoGenerating {
             var request = URLRequest(url: baseURL.appendingPathComponent("predictions/\(id)"))
             request.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
             let (data, response) = try await URLSession.shared.data(for: request)
-            try classifyHTTP(response)
+            try classifyHTTP(response, body: data)
             let p = try parsePrediction(data)
             if p.status != "starting" && p.status != "processing" { return p }
         }
@@ -99,15 +106,41 @@ struct ReplicateVideoClient: AIVideoGenerating {
 
     // MARK: - 辅助
 
-    /// HTTP 状态码 → 错误分类。
-    private func classifyHTTP(_ response: URLResponse) throws {
+    /// 官方模型的创建端点：`POST /v1/models/{owner}/{name}/predictions`（body 只需 `input`）。
+    ///
+    /// ⚠️ 不能走通用 `/v1/predictions`：那条路径必填 `version`（64 位版本哈希，或
+    /// `owner/name:hash`），body 里**没有 `model` 字段** —— 传 `{"model": …}` 会直接 422。
+    /// 用字符串拼接而不是 `appendingPathComponent`：后者对含 `/` 的整串行为不保证。
+    private func modelEndpoint() -> URL? {
+        let parts = model.split(separator: "/", maxSplits: 1)
+        guard parts.count == 2, !parts[0].isEmpty, !parts[1].isEmpty else { return nil }
+        return URL(string: "\(baseURL.absoluteString)/models/\(parts[0])/\(parts[1])/predictions")
+    }
+
+    /// HTTP 状态码 → 错误分类。`body` 是响应正文，只为把服务端的说明带进错误文案。
+    private func classifyHTTP(_ response: URLResponse, body data: Data) throws {
         guard let http = response as? HTTPURLResponse else { return }
         switch http.statusCode {
         case 401, 403: throw AIVideoError.invalidKey
         case 402, 429: throw AIVideoError.quotaOrRate
         case 200...299: return
-        default: throw AIVideoError.transport("HTTP \(http.statusCode)")
+        // 422 = 参数 / 模型 / 输入 schema 不被接受。必须把服务端 detail 带出来 —— 只剩一句
+        // 「HTTP 422」时连哪个字段错了都看不出来（本轮就是这么白跑一次的）。
+        case 422: throw AIVideoError.requestRejected(serverMessage(data))
+        default: throw AIVideoError.transport("HTTP \(http.statusCode) \(serverMessage(data))")
         }
+    }
+
+    /// 提取服务端错误说明。Replicate 用 `{"detail": "..."}`；FastAPI 的校验错误里 detail
+    /// 是数组，退化成原文片段。截断 300 字，避免把整个 schema 塞进 UI。
+    private func serverMessage(_ data: Data) -> String {
+        if let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let detail = root["detail"] as? String, !detail.isEmpty {
+            return detail
+        }
+        let text = (String(data: data.prefix(300), encoding: .utf8) ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return text.replacingOccurrences(of: "\n", with: " ")
     }
 
     /// 防御式解析 prediction。`output` 在不同模型下可能是字符串或字符串数组，都兼容。

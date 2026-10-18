@@ -27,18 +27,16 @@ struct AIVideoGeneratorView: View {
                        symbol: "photo.on.rectangle.angled", tint: IHaven.Color.meta)
             } else {
                 sourcePicker
-                preview
+                previewRow
                 promptField
-                if library.isGeneratingAI {
-                    progressRow
-                } else {
-                    generateButton
-                }
-                if let error = library.aiErrorMessage { errorLine(error) }
+                // 底部按钮钉在面板下沿：内容再长也不会把主操作顶到半空。
+                Spacer(minLength: 0)
+                footer
             }
         }
         .padding(IHaven.Space.s6.rawValue)
-        // 有源图预览 + 参数说明，内容约 560pt，面板贴合填充、不再大片空白。
+        // 内容实测约 540pt（标题 46 + 选图 108 + 预览 150 + 描述 92 + 底栏 32 + 间距 64 + 内边距 48）。
+        // 560 多出的 20pt 由 Spacer 吃掉：底栏被顶到下沿，错误文案折行也不会溢出。
         .frame(width: 540, height: 560)
         .onAppear { if selected == nil { selected = library.images.first } }
         .confirmationDialog("将消耗一次 AI 生成额度，确定生成？",
@@ -64,30 +62,6 @@ struct AIVideoGeneratorView: View {
         }
     }
 
-    /// 源图预览：把「要被动画化」的那张图按自身比例 fit 居中显示，确认选对了图，同时填满面板。
-    /// 固定 170pt 高档 + surfaceSunken 底（宽/高图各自留边）。**不 fill 裁切**——裁切会误导成
-    /// 「输出是这个比例」，而 AI 视频实际继承整图比例。
-    @ViewBuilder
-    private var preview: some View {
-        ZStack {
-            if let sel = selected, sel.width > 0, sel.height > 0 {
-                ThumbnailImage(url: URL(fileURLWithPath: sel.thumbnailPath))
-                    .aspectRatio(CGFloat(sel.width) / CGFloat(sel.height), contentMode: .fit)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                Text("选择上方一张图即可预览")
-                    .font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.meta)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 170)
-        .background(IHaven.Color.surfaceSunken,
-                    in: RoundedRectangle(cornerRadius: IHaven.Radius.md.rawValue, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: IHaven.Radius.md.rawValue, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.md.rawValue, style: .continuous)
-            .stroke(IHaven.Color.borderSoft, lineWidth: 1))
-    }
-
     private var sourcePicker: some View {
         VStack(alignment: .leading, spacing: IHaven.Space.s3.rawValue) {
             Text("选择一张静态图").font(IHaven.Font.system(.sm, IHaven.Font.weightEmphasize)).foregroundStyle(IHaven.Color.fg2)
@@ -102,6 +76,60 @@ struct AIVideoGeneratorView: View {
             }
             .frame(height: 88)
         }
+        .disabled(library.isGeneratingAI)
+    }
+
+    // MARK: - 预览
+
+    /// 源图预览（左）+ 关键信息（右）。
+    ///
+    /// **为什么不再用通栏大图**：500pt 宽 × 170pt 高的框里 fit 一张 4:3 图，左右各留 140pt 死黑边
+    /// —— 看着像加载失败（用户实测原话「布局不美观」）。改成「图片按自身比例定宽 + 右侧信息列」：
+    /// 既不裁切（不把预览误导成输出比例），也不留空洞，顺带把「这张图多大、会生成什么」写在旁边。
+    private var previewRow: some View {
+        HStack(alignment: .top, spacing: IHaven.Space.s5.rawValue) {
+            previewImage
+            previewMeta
+        }
+    }
+
+    @ViewBuilder
+    private var previewImage: some View {
+        if let sel = selected, sel.width > 0, sel.height > 0 {
+            let ratio = CGFloat(sel.width) / CGFloat(sel.height)
+            ThumbnailImage(url: URL(fileURLWithPath: sel.thumbnailPath))
+                // 宽按源图比例推、上限 300pt：竖图不会被压成细条，21:9 宽图也不会顶满整行。
+                .frame(width: min(150 * ratio, 300), height: 150)
+                .clipShape(RoundedRectangle(cornerRadius: IHaven.Radius.md.rawValue, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.md.rawValue, style: .continuous)
+                    .stroke(IHaven.Color.borderSoft, lineWidth: 1))
+        } else {
+            RoundedRectangle(cornerRadius: IHaven.Radius.md.rawValue, style: .continuous)
+                .fill(IHaven.Color.surfaceSunken)
+                .frame(width: 200, height: 150)
+                .overlay(Text("选择上方一张图即可预览")
+                    .font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.meta))
+        }
+    }
+
+    private var previewMeta: some View {
+        VStack(alignment: .leading, spacing: IHaven.Space.s2.rawValue) {
+            Text(selected?.fileName ?? "")
+                .font(IHaven.Font.system(.sm, IHaven.Font.weightEmphasize))
+                .foregroundStyle(IHaven.Color.fg)
+                .lineLimit(2)
+            if let sel = selected {
+                HStack(spacing: IHaven.Space.s2.rawValue) {
+                    Text("尺寸").foregroundStyle(IHaven.Color.meta)
+                    Text(verbatim: "\(sel.width) × \(sel.height)").foregroundStyle(IHaven.Color.fg2)
+                }
+            }
+            Text("输出 6 秒 · 继承源图比例").foregroundStyle(IHaven.Color.meta)
+            Text("每次约 $0.5").foregroundStyle(IHaven.Color.meta)
+            Spacer(minLength: 0)
+        }
+        .font(IHaven.Font.system(.xs))
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var promptField: some View {
@@ -114,30 +142,44 @@ struct AIVideoGeneratorView: View {
                 .background(IHaven.Color.surface, in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue))
                 .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue).stroke(IHaven.Color.border))
                 .lineLimit(2...4)
+                .disabled(library.isGeneratingAI)
         }
     }
 
-    private var progressRow: some View {
-        HStack(spacing: IHaven.Space.s4.rawValue) {
-            ProgressView().controlSize(.small)
-            Text("AI 生成中…可能需要数十秒").font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.fg2)
+    // MARK: - 底栏
+
+    /// 左边状态（生成中 / 失败原因），右边主操作。错误就近放在按钮旁，不再另起一行把面板撑高。
+    private var footer: some View {
+        HStack(alignment: .center, spacing: IHaven.Space.s4.rawValue) {
+            if library.isGeneratingAI {
+                HStack(spacing: IHaven.Space.s3.rawValue) {
+                    ProgressView().controlSize(.small)
+                    Text("AI 生成中…可能需要数十秒").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.fg2)
+                }
+            } else if let error = library.aiErrorMessage {
+                Text(error).font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.warn)
+                    .lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+            generateButton
         }
     }
 
     private var generateButton: some View {
         Button(action: { confirmGenerate = true }) {
             HStack(spacing: IHaven.Space.s3.rawValue) {
-                Image(systemName: "sparkles")
-                Text("生成动态壁纸")
+                if library.isGeneratingAI {
+                    Text("生成中…")
+                } else {
+                    Image(systemName: "sparkles")
+                    Text("生成动态壁纸")
+                }
             }
         }
         .buttonStyle(.borderedProminent)
-        .disabled(selected == nil || prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-    }
-
-    private func errorLine(_ msg: String) -> some View {
-        Text(msg).font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.warn)
-            .fixedSize(horizontal: false, vertical: true)
+        .disabled(library.isGeneratingAI || selected == nil
+                  || prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
 
     private func banner(_ text: String, symbol: String, tint: SwiftUI.Color) -> some View {
@@ -157,7 +199,7 @@ struct AIVideoGeneratorView: View {
             if let item = await library.generateAIVideo(source: src, prompt: prompt) {
                 onGenerated(item)
             }
-            // 失败原因已写进 library.aiErrorMessage，由上面的 errorLine 显示。
+            // 失败原因已写进 library.aiErrorMessage，由 footer 显示。
         }
     }
 }

@@ -375,3 +375,10 @@
 "App 未激活 · 按键会发给上一个 App" = "App not active · keystrokes go to the previous app";
 "App 已激活 · 但当前没有 key 窗口" = "App active · but no key window";
 "App 已激活 · 主窗口是 key 窗口" = "App active · main window is key";
+
+// MARK: - AI generator panel (layout rework + 422 message)
+
+"AI 服务拒绝了这次请求：%@" = "The AI service rejected this request: %@";
+"尺寸" = "Size";
+"输出 6 秒 · 继承源图比例" = "Output 6s · keeps source aspect ratio";
+"每次约 $0.5" = "About $0.5 per run";

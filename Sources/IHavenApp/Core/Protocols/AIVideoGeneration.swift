@@ -38,6 +38,8 @@ public enum AIVideoError: LocalizedError, Sendable, Equatable {
     case quotaOrRate
     /// 描述或底图被 AI 服务商的安全策略拦截。
     case contentFiltered
+    /// 服务端拒绝了请求本身（HTTP 422：参数 / 模型 / 输入 schema 不被接受）。
+    case requestRejected(String)
     /// 网络层错误。
     case transport(String)
     /// 响应解析失败。
@@ -55,6 +57,8 @@ public enum AIVideoError: LocalizedError, Sendable, Equatable {
             return String(localized: "AI 额度不足或请求过于频繁，请稍后再试或更换 Key。")
         case .contentFiltered:
             return String(localized: "该描述或图片被 AI 服务商的安全策略拦截，请调整后重试。")
+        case .requestRejected(let msg):
+            return String(format: String(localized: "AI 服务拒绝了这次请求：%@"), msg)
         case .transport(let msg):
             return String(format: String(localized: "网络错误：%@"), msg)
         case .decode(let msg):
