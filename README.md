@@ -70,6 +70,9 @@ times a day.
   screen's aspect ratio, so vertical wallpapers never end up with black bars down the sides
 - Per-screen assignment, plus a fill colour derived from the wallpaper's own palette
 - Favorites library and an "already applied" history, both stored locally in SQLite
+- Albums: group any wallpaper into themed local albums — a second organizing layer on top of
+  favorites, where one wallpaper can live in several albums at once
+- Timeline: your applied history regrouped by day, so you can see what you had when and re-apply it
 
 **Dynamic wallpapers**
 
@@ -82,13 +85,18 @@ times a day.
 
 - Menu bar panel: search, shuffle, previous / next, one-click change, favorites — without opening
   the main window
-- Rotation schedule: switch by time of day or weekday
+- Rotation schedule: switch by time of day or weekday, per display, drawing from imported files,
+  your applied history, favorites or an album
+- Global hotkey ⌥⌘S: shuffle to a new wallpaper from anywhere, even when IHaven is in the
+  background (grant it once under System Settings ▸ Privacy & Security ▸ Accessibility)
 - Client-side rate limiting (45 req/min token bucket) with exponential backoff, so the app never
   trips wallhaven's limits on your behalf
 
 **Your own images**
 
-- Import your own pictures; they appear alongside online results in the same grid, clearly marked
+- Import your own pictures and manage them in a dedicated **Import…** tab. They are deliberately
+  kept out of the wallhaven grid — local files carry no category, tag or search relevance there,
+  so mixing them in would only clutter the results (see `docs/decisions/OPEN-DECISIONS.md`)
 
 **Interface**
 
@@ -204,7 +212,7 @@ scripts/             quality gates and the packaging script
 Packaging/           Info.plist
 ```
 
-Roughly 10,000 lines of Swift across 99 files, with a hard rule that **no single file may exceed
+Roughly 11,300 lines of Swift across 113 files, with a hard rule that **no single file may exceed
 300 lines** (and the app entry point 120). `scripts/convention-gate.sh` enforces it.
 
 ## Development
@@ -258,8 +266,7 @@ cp docs/pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
 
 Planned, in rough priority order:
 
-- Free-form crop aspect ratios, and a cleanup policy for the derived crop files in
-  `~/Library/Application Support/IHaven/Crops/` (there is none today)
+- Free-form crop aspect ratios (the crop box is currently locked to your screen's ratio)
 - Reusing an existing crop result instead of re-rendering it
 - AI-assisted dynamic wallpaper generation, gated behind an optional key in Settings
 - Broader real-device verification on multi-screen setups
