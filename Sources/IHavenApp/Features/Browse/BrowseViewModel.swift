@@ -284,6 +284,8 @@ final class BrowseViewModel {
     /// 抽成函数而不是在调用点写 `?? try await`：`??` 右侧是 autoclosure，不支持 async/throws。
     /// `internal` 而非 `private`：`BrowseViewModel+Favorites.swift` 的 extension 要用。
     func localOrDownload(_ remote: URL) async throws -> URL {
+        // 本地文件（已设置里导入项落盘的 `file://`）直接复用，免一次下载也避免把 file URL 塞给下载器。
+        if remote.isFileURL { return remote }
         if let cached = OfflineImageStore.localFile(for: remote) { return cached }
         return try await downloader.download(remote)
     }

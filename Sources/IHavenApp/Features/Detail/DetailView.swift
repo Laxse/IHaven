@@ -85,8 +85,11 @@ struct DetailView: View {
         .overlay {
             HStack(spacing: IHaven.Space.s3.rawValue) {
                 Text(verbatim: wallpaper.id).foregroundStyle(IHaven.Color.muted)
-                Text("·").foregroundStyle(IHaven.Color.muted)
-                Text("\(wallpaper.width) × \(wallpaper.height)").foregroundStyle(IHaven.Color.fg2)
+                // 收藏来源不持有尺寸（0）：尺寸缺失时不显示「· 0 × 0」，只留 id。
+                if wallpaper.width > 0, wallpaper.height > 0 {
+                    Text("·").foregroundStyle(IHaven.Color.muted)
+                    Text("\(wallpaper.width) × \(wallpaper.height)").foregroundStyle(IHaven.Color.fg2)
+                }
             }
             .font(.system(size: IHaven.Font.Size.xs.rawValue, design: .monospaced))
         }

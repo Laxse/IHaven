@@ -101,9 +101,11 @@ final class DetailViewState {
         actionError = nil
         do {
             // 本地优先（详见 OfflineImageStore）：不能并进 `??`，因为 `??` 右侧的 autoclosure
-            // 不支持 async/throws。
+            // 不支持 async/throws。本地文件（`file://`，来自「已设置」里的导入项）直接复用。
             let file: URL
-            if let cached = OfflineImageStore.localFile(for: wallpaper.path) {
+            if wallpaper.path.isFileURL {
+                file = wallpaper.path
+            } else if let cached = OfflineImageStore.localFile(for: wallpaper.path) {
                 file = cached
             } else {
                 file = try await downloader.download(wallpaper.path)

@@ -83,3 +83,47 @@ public struct WallhavenPage: Codable, Sendable {
         }
     }
 }
+
+// MARK: - 预览构造（收藏 / 已设置 进入详情二级页面用）
+
+extension Wallpaper {
+    /// 从收藏记录构造「预览用」`Wallpaper`，供详情页二级页面复用 `DetailView`。
+    /// 收藏只持久化 id / 缩略图 / 原图 URL，没有尺寸与 wallhaven 元数据；详情页会按 id 重新拉取
+    /// 标签 / 上传者等信息（wallhaven 来源才有），本地来源则信息栏为空、仅大图与操作可用。
+    init(previewFrom favorite: Favorite) {
+        self.init(id: favorite.id,
+                  url: favorite.originalURL,
+                  shortURL: favorite.originalURL,
+                  createdAt: "",
+                  purity: "",
+                  category: "",
+                  width: 0, height: 0,
+                  resolution: "", ratio: "",
+                  fileSize: 0, fileType: "",
+                  views: 0, favorites: 0,
+                  source: nil, colors: [],
+                  path: favorite.originalURL,
+                  thumbs: Thumbs(original: favorite.thumbnailURL, large: nil, small: nil))
+    }
+
+    /// 从「已设置」记录构造「预览用」`Wallpaper`。本地原图还在就直接以 `file://` 作为 `path`
+    /// （详情页大图与「设为壁纸」免一次下载），否则回退原图 URL；尺寸取记录里的宽高。
+    init(previewFrom applied: AppliedWallpaper) {
+        let path: URL = FileManager.default.fileExists(atPath: applied.localPath)
+            ? URL(fileURLWithPath: applied.localPath)
+            : applied.originalURL
+        self.init(id: applied.id,
+                  url: applied.originalURL,
+                  shortURL: applied.originalURL,
+                  createdAt: "",
+                  purity: "",
+                  category: "",
+                  width: applied.width, height: applied.height,
+                  resolution: applied.resolutionText ?? "", ratio: "",
+                  fileSize: 0, fileType: "",
+                  views: 0, favorites: 0,
+                  source: nil, colors: [],
+                  path: path,
+                  thumbs: Thumbs(original: applied.thumbnailURL, large: nil, small: nil))
+    }
+}

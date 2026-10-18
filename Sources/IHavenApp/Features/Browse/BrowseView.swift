@@ -19,8 +19,11 @@ struct BrowseView: View {
     @State private var showSidebar = true
     @State private var nav: NavItem = .discover
     @State private var toast: String?
-    /// 详情页：非 nil 即进入二级页面（`←` / `→` 在 `viewModel.wallpapers` 结果集内切换）。
+    /// 详情页：非 nil 即进入二级页面（`←` / `→` 在结果集内切换）。
     @State private var detail: Wallpaper?
+    /// 详情页来源：决定 `←` / `→` 在哪一列里切换，以及「设为壁纸」的落库口径。
+    private enum DetailSource { case wallpapers, favorites, applied }
+    @State private var detailSource: DetailSource = .wallpapers
     /// 全窗口**唯一**的删除确认：瀑布流本地项 / 导入页 / 动态壁纸页三处共用。
     /// 三处各自挂 `.alert` 会彼此竞争并被父级 `.sheet` 抑制（子视图模态被抢占），
     /// 表现就是「点了删除按钮什么都没发生」；收敛到一处后确认语义也天然一致。
@@ -125,7 +128,10 @@ struct BrowseView: View {
             switch nav {
             case .favorites: favoritesContent
             case .wallpaperSet:
-                AppliedWallpapersView(viewModel: viewModel, onDiscover: { select(.discover) }, onMessage: { showToast($0) })
+                AppliedWallpapersView(viewModel: viewModel,
+                                      onDiscover: { select(.discover) },
+                                      onOpen: { detailSource = .applied; detail = Wallpaper(previewFrom: $0) },
+                                      onMessage: { showToast($0) })
             case .live:
                 DynamicWallpaperView(library: library, onMessage: { showToast($0) }, onDeleteRequest: { pendingDelete = $0 })
             case .import:
@@ -157,22 +163,29 @@ struct BrowseView: View {
     private func gridCard(_ wp: Wallpaper) -> some View {
         WallpaperCard(wallpaper: wp,
                       isFavorite: viewModel.favoriteIDs.contains(wp.id),
-                      onOpen: { detail = wp },
+                      onOpen: { detailSource = .wallpapers; detail = wp },
                       onToggleFavorite: { viewModel.toggleFavorite(wp) },
                       onSetWallpaper: { setWallpaper(wp) })
     }
 
     /// 详情页（二级页面）。`.id` 让切换壁纸时整体重建：详情请求、大图都要跟着换。
+    /// 导航上下文随来源切换：`favorites` / `applied` 下 `←` / `→` 在对应列表内翻，而非发现结果集。
     private func detailPage(_ wallpaper: Wallpaper) -> some View {
-        DetailView(wallpaper: wallpaper,
-                   context: viewModel.wallpapers,
-                   viewModel: viewModel,
-                   onClose: { detail = nil },
-                   onNavigate: { detail = $0 },
-                   onSearch: { query in detail = nil; viewModel.search(query) },
-                   onToggleFavorite: { viewModel.toggleFavorite(wallpaper) },
-                   onMessage: { showToast($0) },
-                   onCrop: { cropWallpaper(wallpaper) })
+        let context: [Wallpaper]
+        switch detailSource {
+        case .wallpapers: context = viewModel.wallpapers
+        case .favorites: context = viewModel.favorites.map { Wallpaper(previewFrom: $0) }
+        case .applied: context = viewModel.applied.map { Wallpaper(previewFrom: $0) }
+        }
+        return DetailView(wallpaper: wallpaper,
+                          context: context,
+                          viewModel: viewModel,
+                          onClose: { detail = nil; detailSource = .wallpapers },
+                          onNavigate: { detail = $0 },
+                          onSearch: { query in detail = nil; detailSource = .wallpapers; viewModel.search(query) },
+                          onToggleFavorite: { viewModel.toggleFavorite(wallpaper) },
+                          onMessage: { showToast($0) },
+                          onCrop: { cropWallpaper(wallpaper) })
             .id(wallpaper.id)
     }
 
@@ -189,6 +202,7 @@ struct BrowseView: View {
                             minColumnWidth: IHaven.Layout.masonryColMin,
                             aspectRatio: { _ in 1.6 }) { fav in
                     FavoriteCard(favorite: fav,
+                                 onOpen: { detailSource = .favorites; detail = Wallpaper(previewFrom: fav) },
                                  onToggleFavorite: { viewModel.removeFavorite(id: fav.id); viewModel.loadFavorites() },
                                  onSetWallpaper: { setWallpaperFromFavorite(fav) })
                 }
