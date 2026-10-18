@@ -207,7 +207,22 @@ struct MenuBarPanelView: View {
     }
 
     private func openMainWindow() {
-        openWindow(id: Self.mainWindowID)
+        // 单实例 `Window` 场景下，`openWindow(id:)` 只把 App 拉到前台，并不会把**已经开着、
+        // 却被其他窗口压在后面**的主窗口抬到最上方 —— 于是出现「点开主窗口，它却还躲在其他窗口
+        // 后面」。所以这里先按 scene id（`Window("IHaven", id:)` 会把 id 写入 NSWindow.identifier）
+        // 定位已存在的实例并显式提到最前；找不到（还没开过）才走 open。
+        // ⚠️ 不能只按标题 "IHaven" 匹配：菜单栏面板 `MenuBarExtra("IHaven", …)` 用的是同一个标题，
+        // 会误中面板自身，所以用 identifier 作主键，标题只作兜底且额外要求 `canBecomeMainWindow`
+        // 以排除菜单栏面板窗口。
+        if let win = NSApp.windows.first(where: {
+            $0.identifier?.rawValue == Self.mainWindowID
+                || ($0.title == "IHaven" && $0.canBecomeMain)
+        }) {
+            if win.isMiniaturized { win.deminiaturize(nil) }
+            win.makeKeyAndOrderFront(nil)
+        } else {
+            openWindow(id: Self.mainWindowID)
+        }
         NSApp.activate(ignoringOtherApps: true)
     }
 
