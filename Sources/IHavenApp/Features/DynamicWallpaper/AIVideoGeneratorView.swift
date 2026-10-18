@@ -37,7 +37,9 @@ struct AIVideoGeneratorView: View {
             }
         }
         .padding(IHaven.Space.s6.rawValue)
-        .frame(width: 540, height: 600)
+        // 贴合内容的高度：AI 面板没有本地生成器的实时预览 + 参数滑块，内容约 375pt。
+        // 曾照抄本地器的 600 高，结果底部一大片空白、头轻脚轻（用户实测）。
+        .frame(width: 540, height: 440)
         .onAppear { if selected == nil { selected = library.images.first } }
         .confirmationDialog("将消耗一次 AI 生成额度，确定生成？",
                             isPresented: $confirmGenerate,
