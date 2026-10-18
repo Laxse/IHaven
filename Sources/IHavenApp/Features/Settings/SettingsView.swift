@@ -74,27 +74,44 @@ struct SettingsView: View {
     }
 
     var body: some View {
+        HStack(spacing: 0) {
+            sidebar
+            Rectangle().fill(IHaven.Color.border).frame(width: 1)
+            detail
+        }
+        .frame(width: 640, height: 540)
+        .background(IHaven.Color.bg)
+    }
+
+    /// 侧栏分类（System Settings 同款 source list）。**为什么从横向 segmented 改成侧栏**：
+    /// 页签加到 9 个后，560px 宽的分段控件把标签横向挤爆、最后的「关于」被挤出边缘（用户实测）。
+    /// 竖向列表标签永不被挤，且能无限加分类，是 macOS 设置类面板在分类多时的标准形态。
+    private var sidebar: some View {
+        List(selection: $tab) {
+            ForEach(SettingsTab.allCases) { item in
+                Text(item.label).tag(item)
+            }
+        }
+        .listStyle(.sidebar)
+        .tint(IHaven.Color.accent)
+        .scrollContentBackground(.hidden)
+        .background(IHaven.Color.bgChrome)
+        .frame(width: 172)
+        .frame(maxHeight: .infinity)
+    }
+
+    /// 右侧详情：当前页签名作标题 + 可滚动内容 + 底部完成。
+    private var detail: some View {
         VStack(alignment: .leading, spacing: 0) {
-            header
-            Divider().overlay(IHaven.Color.border)
+            Text(tab.label)
+                .font(IHaven.Font.system(.lg, IHaven.Font.weightAnnounce))
+                .foregroundStyle(IHaven.Color.fg)
+                .padding(IHaven.Space.s6.rawValue)
             content
             Divider().overlay(IHaven.Color.border)
             footer
         }
-        .frame(width: 560, height: 560)
-        .background(IHaven.Color.bg)
-    }
-
-    // MARK: - 头部（标题 + 页签）
-    private var header: some View {
-        VStack(alignment: .leading, spacing: IHaven.Space.s5.rawValue) {
-            Text("设置").font(IHaven.Font.system(.xl, IHaven.Font.weightAnnounce)).foregroundStyle(IHaven.Color.fg)
-            Picker("", selection: $tab) {
-                ForEach(SettingsTab.allCases) { Text($0.label).tag($0) }
-            }
-            .pickerStyle(.segmented).labelsHidden()
-        }
-        .padding(IHaven.Space.s7.rawValue)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 
     // MARK: - 内容区
@@ -115,7 +132,7 @@ struct SettingsView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(IHaven.Space.s7.rawValue)
+        .padding(IHaven.Space.s6.rawValue)
     }
 
     // MARK: - 页签 · 密钥
