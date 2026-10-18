@@ -1,85 +1,289 @@
+<div align="center">
+  <img src="screenshots/logo.png" alt="IHaven" width="96">
 
+  <h1>IHaven</h1>
 
-<p align="center">
-<img src="screenshots/logo.png" alt="IHaven" width="100">
-</p>
-<h1 align="center" style="font-size:36px" >IHaven</h1>
-<h4 align="center" style="font-size:18px" >🍭Awesome Wallpaper App Based on SwiftUI Power By Wallhaven aimed to macOS</h4>
-<p align="center"> 
-<img class="for-the-badge"src="https://forthebadge.com/images/badges/made-with-swift.svg">
-        <img
-          class="for-the-badge"
-          src="https://forthebadge.com/images/badges/ages-18.svg"
-        >
-        <img
-          class="for-the-badge"
-          src="https://forthebadge.com/images/badges/built-with-love.svg"
-        >
-        <img
-          class="for-the-badge"
-          src="https://forthebadge.com/images/badges/uses-git.svg"
-        >
-        <img
-          class="for-the-badge"
-          src="https://forthebadge.com/images/badges/fuck-it-ship-it.svg"
-        >
-        <img
-          class="for-the-badge"
-          src="https://forthebadge.com/images/badges/makes-people-smile.svg"
-        ></p>
-<p style="font-size:14px" >Visit website <a href="http://ihaven.laxse.cn">IHaven</a> or （release to）download. f^_^;</p>
+  <p><strong>A native macOS wallpaper browser and manager, powered by wallhaven.cc.</strong></p>
 
-# 本地开发（免 VPN Mock）
-`wallhaven.cc` 在部分网络下需启用 VPN 才能访问，开发环境不便长期开 VPN。本项目内置了**进程内 Mock 服务**，开启后直接返回合成数据，无需任何网络即可开发调试。
+  <p>
+    <img src="https://img.shields.io/badge/macOS-26.0%2B-blue" alt="macOS 26.0+">
+    <img src="https://img.shields.io/badge/Swift-6.0-orange" alt="Swift 6">
+    <img src="https://img.shields.io/badge/arch-arm64%20%7C%20x86__64-lightgrey" alt="Architecture">
+    <img src="https://img.shields.io/badge/license-MIT-green" alt="License: MIT">
+    <img src="https://img.shields.io/badge/version-2.0-informational" alt="Version 2.0">
+    <a href="https://github.com/Laxse/IHaven/actions/workflows/gates.yml">
+      <img src="https://github.com/Laxse/IHaven/actions/workflows/gates.yml/badge.svg" alt="Gates">
+    </a>
+  </p>
+</div>
 
-启用方式（Xcode）：
-1. 打开项目，`Edit Scheme → Run → Arguments → Environment Variables`
-2. 添加 `IHAVEN_MOCK = 1`
-3. `⌘R` 运行。瀑布流会直接加载合成壁纸（竖图 / 方图 / 横图 / 宽屏 / 超宽 五种比例循环，渐变占位图），翻页、收藏、设为壁纸均可正常走通。
+---
 
-关闭：删除该环境变量即切回真实 `wallhaven.cc` 服务。**真实环境零影响**——仅当 `IHAVEN_MOCK=1` 时才接管请求。
+IHaven is a macOS app for finding, managing and applying wallpapers from
+[wallhaven.cc](https://wallhaven.cc). It is a native SwiftUI application — not an Electron shell and
+not a web wrapper — built for macOS 26 and later, with the kind of behaviour you would expect from a
+first-party system utility: a masonry browse grid, a full metadata detail page, per-screen
+assignment, locally generated dynamic wallpapers, and a menu bar panel for the things you do ten
+times a day.
 
-实现说明：拦截逻辑在 `Sources/IHavenApp/Infrastructure/Network/MockWallhaven.swift`，由 `IHavenApp.bootstrap()` 在启动最开头调用 `MockWallhaven.configureIfNeeded()` 注册 `URLProtocol`，拦截对 `mock.wallhaven.local` 的请求——`/api/v1/search` 返回合成 `WallhavenPage` JSON，`/thumb` 与 `/wallpaper` 路径返回进程内（CoreGraphics + ImageIO）生成的渐变 JPEG。整条链路（请求 → JSON 解码 → Nuke 预取 → 缩略图渲染 → 设为壁纸原图下载）零网络。
+## Contents
 
-# Features
-* Browse wallhaven.cc as a native macOS waterfall grid — infinite scroll, mixed aspect ratios, instant low-res preview that swaps to the full-resolution original (with a visible download progress bar)
-* Rich filters — resolution, aspect ratio, dominant color, category, purity, sorting and time range
-* Detail page — the whole image, never cropped, plus a metadata sidebar, download original and set-as-wallpaper
-* Favorites library and "already applied" history, both stored locally in SQLite
-* Import your own images; turn any static wallpaper into a locally generated dynamic wallpaper (breathe / pan / push-in, seamless loop, no video involved)
-* Image cache on disk (Nuke `DataCache`, 512 MB) so a wallpaper you have seen is never downloaded twice — Settings ▸ Storage shows the usage and lets you clear it
-* API key stays on your machine (a local file, never in logs or crash reports) and is sent as an `X-API-Key` header
-* Crop before you set — pick the part of a portrait image you actually want, locked to your screen's aspect ratio, so vertical wallpapers never end up with black bars on the sides
-* Chinese and English UI
-* Built-in in-process mock so you can develop and debug with no network and no VPN — see below
-# Screenshots
- - v1
-<p align="center">
-<img src="screenshots/v1.png" alt="IHaven" width="600">
-</p>
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Getting started](#getting-started)
+- [Architecture](#architecture)
+- [Project layout](#project-layout)
+- [Development](#development)
+- [Roadmap](#roadmap)
+- [Non-goals](#non-goals)
+- [Privacy](#privacy)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
 
- - v2
-<p align="center">
-<img src="screenshots/v2.png" alt="IHaven" width="600">
-</p>
+## Features
 
-# Roadmap
-* Menu bar panel — search, random, previous / next, one-click change, favorites, without opening the main window
-* Per-screen wallpaper assignment and a fill color derived from the wallpaper's own palette
-* Performance guard for dynamic wallpapers — auto-pause when the frontmost app is full screen, on low battery, or in Low Power Mode, plus a visible CPU / memory readout
-* Wallpaper rotation schedule — switch by time of day or weekday
-* Free-form crop aspect ratios and a cleanup policy for the derived crop files (`Application Support/IHaven/Crops/`)
-* Client-side rate limiting (45 req/min token bucket) with backoff, and an offline fallback backed by the local image cache
+**Browse**
 
+- Masonry waterfall grid with true infinite scroll and mixed aspect ratios
+- Rich filters: resolution, aspect ratio, dominant colour, category, purity, sorting and time range
+- Instant low-resolution preview that swaps to the full-resolution original, with a visible download
+  progress bar so you can tell "still loading" apart from "this image is soft"
+- Detail page: the complete image (never cropped), a metadata sidebar, download original, and
+  set-as-wallpaper
+- Disk-backed image cache (Nuke `DataCache`, 512 MB) — a wallpaper you have already seen is never
+  downloaded twice. Settings ▸ Storage shows the usage and lets you clear it
+- Offline fallback: if the network is unavailable, an already-cached original is reused instead of
+  failing
 
-# Localization
-IHaven follows your system language and also lets you pick one manually in Settings ▸ Appearance.
+**Set as wallpaper**
 
-Currently shipped: **Chinese (Simplified)** and **English**. Translations live in
-`Sources/IHavenApp/Resources/{zh-Hans,en}.lproj/Localizable.strings`; Chinese is the development
-language, so the Chinese string in the source is itself the localization key. Adding a language means
-adding one `.lproj` with the same keys — `scripts/build-and-package.sh` fails the build if the two
-sides ever drift apart in key count.
+- **Crop before you set** — pick the part of a portrait image you actually want, locked to your
+  screen's aspect ratio, so vertical wallpapers never end up with black bars down the sides
+- Per-screen assignment, plus a fill colour derived from the wallpaper's own palette
+- Favorites library and an "already applied" history, both stored locally in SQLite
 
-# License
-IHaven itself is licensed under the  MIT License  license.
+**Dynamic wallpapers**
+
+- Turn any static image into a locally rendered dynamic wallpaper (breathe / pan / push-in, seamless
+  loop). No video file is involved — frames are rendered on your Mac as a JPEG sequence
+- Performance guard: auto-pauses when the frontmost app is full screen, on low battery, or in Low
+  Power Mode, with a visible CPU / memory readout
+
+**Automation**
+
+- Menu bar panel: search, shuffle, previous / next, one-click change, favorites — without opening
+  the main window
+- Rotation schedule: switch by time of day or weekday
+- Client-side rate limiting (45 req/min token bucket) with exponential backoff, so the app never
+  trips wallhaven's limits on your behalf
+
+**Your own images**
+
+- Import your own pictures; they appear alongside online results in the same grid, clearly marked
+
+**Interface**
+
+- Chinese (Simplified) and English, following your system language or a manual override in
+  Settings ▸ Appearance
+
+## Requirements
+
+| | |
+|---|---|
+| macOS | 26.0 or later |
+| Architecture | Apple silicon or Intel |
+| To build | Xcode 26 or later (Swift 6 toolchain) |
+| Wallpaper source | A [wallhaven.cc](https://wallhaven.cc) account is optional, but an API key unlocks NSFW purity levels and your account's default filters |
+
+## Installation
+
+### Download
+
+Grab the latest build from [GitHub Releases](https://github.com/Laxse/IHaven/releases) or from
+[ihaven.laxse.cn](http://ihaven.laxse.cn), then drag `IHaven.app` into `/Applications`.
+
+Release builds are ad-hoc signed, not notarized. On first launch macOS will refuse to open it
+normally — **right-click the app and choose Open**, then confirm once. Subsequent launches are
+normal. This is expected for a self-built, unsigned app and has nothing to do with the app itself.
+
+### Build from source
+
+```bash
+git clone https://github.com/Laxse/IHaven.git
+cd IHaven
+
+# `--disable-sandbox` is required: SwiftPM's default sandbox aborts this build
+# (sandbox_apply: Operation not permitted) on the current toolchain.
+swift build --disable-sandbox
+
+# Produce a signed, bundled .app at dist/IHaven.app
+bash scripts/build-and-package.sh
+open dist/IHaven.app
+```
+
+`build-and-package.sh` does four things: builds in release configuration, assembles the bundle
+(including the SwiftPM resource bundle with both `.lproj` folders), builds `AppIcon.icns` from the
+master PNG, and applies an ad-hoc codesign. It also fails the build if the app version in
+`AppInfo.swift` and `Packaging/Info.plist` disagree, or if the two `Localizable.strings` files have
+different key counts — both are drift that used to ship silently.
+
+## Getting started
+
+1. Launch IHaven. Browse works immediately with no configuration.
+2. (Optional) Copy your API key from [wallhaven.cc/settings/account](https://wallhaven.cc/settings/account)
+   and paste it into **Settings ▸ API Key**. This unlocks NSFW purity levels and syncs the default
+   filters from your wallhaven account.
+3. Pick a wallpaper, open its detail page, and choose **Set as Wallpaper**. If the image is portrait
+   and your screen is landscape, use **Crop…** first to choose which part becomes the wallpaper.
+
+## Architecture
+
+IHaven is strictly layered. Dependencies only ever point downwards, and the Feature layer sees Core
+protocols — never a concrete network, database or AppKit type:
+
+```
+Core/            models + protocols          (no dependencies on any other layer)
+  ↓
+Infrastructure/  network, database, image    (implements Core protocols)
+  ↓
+Platform/        AppKit / system integration (implements Core protocols)
+  ↓
+Features/        SwiftUI views + view models (sees Core protocols only)
+  ↓
+App/             IHavenApp.swift — the single assembly point
+```
+
+`App/IHavenApp.swift` is the only place where concrete implementations are chosen and injected.
+Nothing else in the app constructs a `Platform` type, which is what keeps the layering from rotting.
+
+Notable decisions are recorded as Architecture Decision Records in
+[`docs/decisions/`](docs/decisions) — 18 of them so far, covering image loading (Nuke), storage
+(GRDB), state management (`@Observable` only, no `ObservableObject`), API key handling, dynamic
+wallpapers, caching and the crop pipeline. Start with
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md); [`OPEN-DECISIONS.md`](docs/decisions/OPEN-DECISIONS.md)
+lists what is still unresolved.
+
+## Project layout
+
+```
+Sources/IHavenApp/
+├── Core/            models, protocols, design tokens
+├── Infrastructure/  Wallhaven client, GRDB database, Nuke pipeline, image download
+├── Platform/        system wallpaper engine, desktop windows, power/thermal monitors
+├── Features/        Browse · Detail · Import · DynamicWallpaper · Settings · MenuBar · Shared
+├── Resources/       zh-Hans.lproj, en.lproj
+└── App/             IHavenApp.swift
+
+docs/                PRD, SPEC, DESIGN, ARCHITECTURE, verified-API notes, ADRs
+scripts/             quality gates and the packaging script
+Packaging/           Info.plist
+```
+
+Roughly 10,000 lines of Swift across 99 files, with a hard rule that **no single file may exceed
+300 lines** (and the app entry point 120). `scripts/convention-gate.sh` enforces it.
+
+## Development
+
+### Mock mode (no network, no VPN)
+
+`wallhaven.cc` is unreachable without a VPN on some networks, which makes day-to-day development
+painful. IHaven ships an in-process mock that returns synthetic data with zero network access:
+
+```bash
+IHAVEN_MOCK=1 .build/debug/IHavenApp
+```
+
+In Xcode: **Edit Scheme ▸ Run ▸ Arguments ▸ Environment Variables**, add `IHAVEN_MOCK` = `1`.
+
+You get synthetic wallpapers cycling through portrait / square / landscape / widescreen / ultrawide,
+with gradient placeholder images. Paging, favouriting and set-as-wallpaper all work end to end. The
+real service is untouched — the mock only takes over when the variable is set.
+
+The interception lives in `Sources/IHavenApp/Infrastructure/Network/MockWallhaven.swift`, which
+registers a `URLProtocol` at startup and answers `/api/v1/search`, `/thumb` and `/wallpaper` with
+CoreGraphics-generated JPEGs.
+
+### Quality gates
+
+Four automated gates run in CI on every push and pull request, and should be run locally before
+committing:
+
+| Gate | What it checks |
+|---|---|
+| `scripts/convention-gate.sh` | File length limits, no `ObservableObject` family, no reverse layer dependencies, whitelisted wallhaven query parameters |
+| `scripts/security-gate.sh` | No hardcoded or logged API keys, no private API loading |
+| `scripts/api-gate.sh` | Type-checks `docs/VERIFIED-API.swift` against the real macOS SDK — every Apple API we call is proven to exist with the signature we assume |
+| `scripts/verify-docs.py` | Doc hygiene, ADR cross-reference integrity, and section regression against `HEAD` |
+
+Run them all with:
+
+```bash
+bash scripts/convention-gate.sh && bash scripts/security-gate.sh \
+  && bash scripts/api-gate.sh && python3 scripts/verify-docs.py
+```
+
+There is also an optional pre-commit hook (`docs/pre-commit.sh`) that checks Chinese punctuation
+spacing. Install it with:
+
+```bash
+cp docs/pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+```
+
+## Roadmap
+
+Planned, in rough priority order:
+
+- Free-form crop aspect ratios, and a cleanup policy for the derived crop files in
+  `~/Library/Application Support/IHaven/Crops/` (there is none today)
+- Reusing an existing crop result instead of re-rendering it
+- AI-assisted dynamic wallpaper generation, gated behind an optional key in Settings
+- Broader real-device verification on multi-screen setups
+- More localizations beyond Chinese (Simplified) and English
+
+## Non-goals
+
+Some things are deliberately **not** planned, usually because the platform does not allow them or
+because a half-working version is worse than none:
+
+- **Screen saver support** — re-examined and rejected; macOS gives third-party apps no supported way
+  to install one
+- **Video wallpapers (MP4 / MOV / WEBM)** — dynamic wallpapers are generated locally from a static
+  image instead (see ADR-016)
+- **FFmpeg or any private Apple API** — no bundled binary blob, no `WallpaperExtensionKit` (ADR-008)
+
+## Privacy
+
+- Your API key is stored in a local dotfile in your home directory. It is never written to
+  `UserDefaults`, never logged, and never sent anywhere except to wallhaven.cc as an `X-API-Key`
+  request header (ADR-006, ADR-010).
+- Favorites, applied history, imported images and cached images all live under
+  `~/Library/Application Support/IHaven/`. Nothing is uploaded.
+- No analytics, no crash reporting, no telemetry.
+
+## Contributing
+
+Issues and pull requests are welcome. Before opening a PR:
+
+1. Run all four gates (see [Quality gates](#quality-gates)).
+2. Keep every file under 300 lines. Split into an extension file rather than exceeding it.
+3. Add both `zh-Hans` and `en` entries for any new user-facing string. Chinese is the development
+   language, so the Chinese string in the source *is* the localization key.
+4. If your change involves a non-obvious Apple API, add it to `docs/VERIFIED-API.swift` so
+   `api-gate.sh` proves the signature.
+5. For an architectural change, add an ADR under `docs/decisions/` following the existing template.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+IHaven is an unofficial client. It is not affiliated with or endorsed by wallhaven.cc; all wallpaper
+content belongs to its respective uploaders, and you are responsible for complying with wallhaven's
+terms and the licence of any image you download.
+
+## Acknowledgements
+
+- [wallhaven.cc](https://wallhaven.cc) for the wallpaper API
+- [Nuke](https://github.com/kean/Nuke) for image loading and caching
+- [GRDB.swift](https://github.com/groue/GRDB.swift) for SQLite
