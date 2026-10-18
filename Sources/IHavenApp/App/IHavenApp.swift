@@ -71,50 +71,14 @@ struct IHavenApp: App {
         switch appearance { case "light": .light; case "dark": .dark; default: nil }
     }
 
-    /// 装配依赖：文件 KeyStore（KeyProvider/KeyStore，ADR-010）+ GRDB（WallpaperDatabase，失败降级 InMemory）
-    /// + 静态壁纸引擎（WallpaperEngine）+ 下载器（ImageDownloading）+ WallhavenClient（Network）
-    /// + 存盘面板（FileSavePresenting）+ 剪贴板（ClipboardWriting）+ 本地导入（F8：探测 /
-    /// 缩略图 / 导入服务 / 文件面板）+ 动态壁纸播放（F9）。
-    /// 全部具体实现落在 Infrastructure / Platform / App，Feature 仅见 Core 协议（ARCH §4 单向依赖）。
-    /// ⚠️ 后两项必须在这里显式传入：若改由 `BrowseViewModel.init` 给默认值，Feature 层就会出现
-    /// `SystemSavePanel` / `SystemClipboard` 这两个 Platform 具体类型名，而 convention-gate 只查
-    /// Core 反向依赖与 F9，查不到这种破例 —— 它会静默腐烂。装配点唯一是硬要求。
+    /// 装配依赖：见 `AppAssembly.assemble`（从本文件迁出，为 AI 图生视频 #70 的接线腾出行数空间）。
+    /// 入口只做「调用装配 + 赋值 + 挂全局热键」，不再内联一堆具体实现的构造。
     private func bootstrap() async {
-        MockWallhaven.configureIfNeeded()   // 开发期 IHAVEN_MOCK=1 时接管请求，无需 VPN
-        // 限流退避的广播点：客户端写、视图模型读。同一份实例注入两端，
-        // 视图才能显示「正在等待 API 限流恢复」（PRD §6 F7）。
-        let throttle = ThrottleSignal()
-        let client = WallhavenClient(keyProvider: keyStore, throttle: throttle)
-        let database: WallpaperDatabase = (try? GRDBWallpaperDatabase()) ?? InMemoryWallpaperDatabase()
-        let engine = SystemWallpaperEngine()
-        let downloader = ImageFileDownloader()
-        // 轮换日程（PRD F13）：规则存 database，铺壁纸走 engine。关窗后进程仍活着，
-        // 所以启动即开；没有启用规则时 reschedule() 会直接返回，不占资源。
-        WallpaperScheduler.shared.configure(database: database, engine: engine)
-        WallpaperScheduler.shared.start()
-        let savePanel = SystemSavePanel()
-        // F8：导入管线。`AVMediaProbe` 一个类型同时实现探测与缩略图产出 —— 两者都只是
-        ///「读媒体元信息 / 产小图」，拆成两个类型只会多一层无意义转发。
-        let probe = AVMediaProbe()
-        let libraryViewModel = LocalLibraryViewModel(
-            importer: LocalImportService(probe: probe, thumbnails: probe, store: database),
-            panel: SystemFileImportPanel(),
-            database: database,
-            engine: engine,
-            dynamicEngine: dynamicEngine,
-            renderer: AnimationRenderer()
-        )
-        browseViewModel = BrowseViewModel(
-            client: client,
-            keyProvider: keyStore,
-            database: database,
-            wallpaperEngine: engine,
-            downloader: downloader,
-            savePanel: savePanel,
-            clipboard: clipboard,
-            throttle: throttle
-        )
-        library = libraryViewModel
+        let output = await AppAssembly.assemble(keyStore: keyStore,
+                                                dynamicEngine: dynamicEngine,
+                                                clipboard: clipboard)
+        browseViewModel = output.browseViewModel
+        library = output.library
         GlobalHotkeys.install(viewModel: browseViewModel, library: library)   // #68 全局热键 ⌥⌘S 换一张
     }
 }

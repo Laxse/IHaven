@@ -78,6 +78,9 @@ times a day.
 
 - Turn any static image into a locally rendered dynamic wallpaper (breathe / pan / push-in, seamless
   loop). No video file is involved — frames are rendered on your Mac as a JPEG sequence
+- **AI-generated motion (optional)** — give a local image plus a motion prompt to an AI image-to-video
+  service (your own API key in Settings ▸ AI) and IHaven turns the clip into a dynamic wallpaper.
+  Each generation is billed to your key; the local, offline generation above stays free (see ADR-019)
 - Performance guard: auto-pauses when the frontmost app is full screen, on low battery, or in Low
   Power Mode, with a visible CPU / memory readout
 
@@ -190,7 +193,7 @@ App/             IHavenApp.swift — the single assembly point
 Nothing else in the app constructs a `Platform` type, which is what keeps the layering from rotting.
 
 Notable decisions are recorded as Architecture Decision Records in
-[`docs/decisions/`](docs/decisions) — 18 of them so far, covering image loading (Nuke), storage
+[`docs/decisions/`](docs/decisions) — 19 of them so far, covering image loading (Nuke), storage
 (GRDB), state management (`@Observable` only, no `ObservableObject`), API key handling, dynamic
 wallpapers, caching and the crop pipeline. Start with
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md); [`OPEN-DECISIONS.md`](docs/decisions/OPEN-DECISIONS.md)
@@ -212,7 +215,7 @@ scripts/             quality gates and the packaging script
 Packaging/           Info.plist
 ```
 
-Roughly 11,300 lines of Swift across 113 files, with a hard rule that **no single file may exceed
+Roughly 12,000 lines of Swift across 121 files, with a hard rule that **no single file may exceed
 300 lines** (and the app entry point 120). `scripts/convention-gate.sh` enforces it.
 
 ## Development
@@ -266,7 +269,6 @@ cp docs/pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
 
 Planned, in rough priority order:
 
-- AI-assisted dynamic wallpaper generation, gated behind an optional key in Settings
 - Broader real-device verification on multi-screen setups
 - More localizations beyond Chinese (Simplified) and English
 

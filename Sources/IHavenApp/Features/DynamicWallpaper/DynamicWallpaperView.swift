@@ -13,6 +13,7 @@ struct DynamicWallpaperView: View {
     var onDeleteRequest: (ImportedWallpaper) -> Void
 
     @State private var showGenerator = false
+    @State private var showAIGenerator = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -67,6 +68,17 @@ struct DynamicWallpaperView: View {
                 }
             }
         }
+        // AI 图生视频（#70，Plan B）：计费、需自备 Key；产物与本地生成同库、同引擎。
+        .sheet(isPresented: $showAIGenerator) {
+            AIVideoGeneratorView(library: library, onGenerated: { item in
+                showAIGenerator = false
+                if let message = library.playDynamic(item) {
+                    onMessage(message)
+                } else {
+                    onMessage(String(localized: "已生成并开始播放"))
+                }
+            }, onClose: { showAIGenerator = false })
+        }
     }
 
     // MARK: - 播放状态条
@@ -115,6 +127,15 @@ struct DynamicWallpaperView: View {
                 Text("生成动态壁纸")
             }
             .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+            // AI 生成入口（#70）：次级样式，不抢本地生成的主按钮地位；计费，面板内再确认。
+            Button {
+                showAIGenerator = true
+            } label: {
+                Image(systemName: "sparkles")
+                Text("AI 生成")
+            }
+            .buttonStyle(.bordered)
             .controlSize(.small)
             Text("\(library.animations.count) 个")
                 .font(.system(size: IHaven.Font.Size.xs.rawValue, design: .monospaced))

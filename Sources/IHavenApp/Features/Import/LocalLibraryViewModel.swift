@@ -9,7 +9,8 @@ import SwiftUI
 @MainActor @Observable
 final class LocalLibraryViewModel {
     /// 全部导入项（按导入时间倒序）。静态图与动态壁纸都在这里，由视图层按 `kind` 过滤。
-    private(set) var imported: [ImportedWallpaper] = []
+    /// setter `internal`：AI 生成的落库在 `LocalLibraryViewModel+AIVideo` extension 里做，够不到 private。
+    var imported: [ImportedWallpaper] = []
     var images: [ImportedWallpaper] { imported.filter { !$0.isAnimation } }
     var animations: [ImportedWallpaper] { imported.filter { $0.isAnimation } }
 
@@ -31,10 +32,18 @@ final class LocalLibraryViewModel {
 
     private let importer: LocalImporting
     private let panel: FileImportPresenting
-    private let database: WallpaperDatabase
+    let database: WallpaperDatabase   // internal：AIVideo extension 要写库
     private let engine: WallpaperEngine
     private let dynamicEngine: DynamicWallpaperPlaying
     private let renderer: AnimationRendering
+    // MARK: - AI 图生视频（#70，Plan B）
+    /// 可选依赖，未装配（Preview / 降级）时 AI 不可用；实现在 AppAssembly 注入，Feature 只见协议。
+    let aiVideo: AIVideoGenerating?
+    let videoFrames: VideoFrameExtracting?
+    let aiKey: KeyProvider?
+    /// AI 生成中 / 上次失败文案；AIVideo extension 要写，故 internal。
+    var isGeneratingAI = false
+    var aiErrorMessage: String?
     private var importTask: Task<Void, Never>?
 
     init(importer: LocalImporting,
@@ -42,13 +51,19 @@ final class LocalLibraryViewModel {
          database: WallpaperDatabase,
          engine: WallpaperEngine,
          dynamicEngine: DynamicWallpaperPlaying,
-         renderer: AnimationRendering) {
+         renderer: AnimationRendering,
+         aiVideo: AIVideoGenerating? = nil,
+         videoFrames: VideoFrameExtracting? = nil,
+         aiKey: KeyProvider? = nil) {
         self.importer = importer
         self.panel = panel
         self.database = database
         self.engine = engine
         self.dynamicEngine = dynamicEngine
         self.renderer = renderer
+        self.aiVideo = aiVideo
+        self.videoFrames = videoFrames
+        self.aiKey = aiKey
         dynamicEngine.onStateChange = { [weak self] in
             Task { @MainActor in self?.syncDynamicState() }
         }

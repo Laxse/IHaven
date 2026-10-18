@@ -2,12 +2,13 @@ import SwiftUI
 
 /// 设置面板页签（原独立「密钥」侧栏项的归宿）。
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case apiKey, appearance, content, storage, performance, schedule, about
+    case apiKey, appearance, content, storage, performance, schedule, ai, about
     var id: String { rawValue }
     var label: LocalizedStringKey {
         switch self {
         case .apiKey: "密钥"; case .appearance: "外观"; case .content: "内容"
-        case .storage: "存储"; case .performance: "性能"; case .schedule: "轮换"; case .about: "关于"
+        case .storage: "存储"; case .performance: "性能"; case .schedule: "轮换"
+        case .ai: "AI"; case .about: "关于"
         }
     }
 }
@@ -30,6 +31,9 @@ struct SettingsView: View {
     var performance: PerformanceGuard = .shared
     /// 轮换日程执行器。同为 App 级单例（已由 `IHavenApp.bootstrap()` configure 过）。
     var schedule: WallpaperScheduler = .shared
+    /// AI 图生视频的 Key 存储（#70）。App 级单例默认值 —— 与 `schedule` / `performance` 同一套路：
+    /// 设置面板（写）与生成客户端（读）必须持有同一实例，故取 shared 而非各 new 一个。
+    var aiStore: KeyStore = AIKeyStore.shared
     /// 打开时落在哪个页签（筛选面板里点灰置的 NSFW 档会直接跳到「内容」页签）。
     var initialTab: SettingsTab = .apiKey
     var onSaved: () -> Void
@@ -105,6 +109,7 @@ struct SettingsView: View {
                                              cropReferencedPaths: cropReferencedPaths)
             case .performance: SettingsPerformanceTab(guardProvider: performance)
             case .schedule: SettingsScheduleTab(scheduler: schedule)
+            case .ai: SettingsAITab(store: aiStore)
             case .about: SettingsAboutTab(clipboard: clipboard)
             }
         }

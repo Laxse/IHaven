@@ -158,8 +158,8 @@ struct AnimationGeneratorView: View {
     }
 }
 
-/// 源图缩略图（生成面板用），带选中描边。
-private struct SourceThumb: View {
+/// 源图缩略图（生成面板用），带选中描边。`internal`：AI 生成面板（#70）复用同一零件。
+struct SourceThumb: View {
     let item: ImportedWallpaper
     let selected: Bool
 
