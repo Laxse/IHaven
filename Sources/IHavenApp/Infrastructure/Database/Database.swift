@@ -98,6 +98,17 @@ final class GRDBWallpaperDatabase: WallpaperDatabase {
         }
         try migrator.migrate(pool)
         self.db = pool
+        // 裁剪产物清理（ADR-018 清理策略）：删掉不被「已设置」记录引用的孤儿裁剪件，防止磁盘堆积。
+        // 以 applied.localPath 为白名单，绝不动用在用的裁剪件。放在 DB 层而非装配点——
+        // 这里已经拿到 pool 与 applied() 查询，且入口（IHavenApp）只做装配、不写业务。
+        pruneOrphanCrops()
+    }
+
+    /// 删除不被「已设置」记录引用的裁剪件（孤儿）。引用集 = 所有 applied.localPath；
+    /// 不在其中的 Crops/ 文件即不会再被「重新设置」用到，可安全删除。
+    private func pruneOrphanCrops() {
+        let referenced = Set((try? applied())?.map(\.localPath) ?? [])
+        CropCleaner.clearOrphans(referencedPaths: referenced)
     }
 
     func addFavorite(_ fav: Favorite) throws {

@@ -23,6 +23,8 @@ struct SettingsView: View {
     let storage: StorageUsage
     /// 仍在库中的动态壁纸 id：存储页签用它判断哪些帧序列目录是「未使用」的孤儿。
     let animationIDs: Set<String>
+    /// 仍被「已设置」记录引用的裁剪件路径：存储页签据此判断哪些裁剪文件是孤儿（ADR-018 清理策略）。
+    let cropReferencedPaths: Set<String>
     /// 性能护栏（PRD F10）。App 级单例，默认参数取 `shared` —— 这样 `BrowseView`（已顶到
     /// 300 行上限）一行都不用改；与 `ImagePipeline.shared` / `NukeImagePipeline.pipeline` 同性质。
     var performance: PerformanceGuard = .shared
@@ -49,6 +51,7 @@ struct SettingsView: View {
          clipboard: ClipboardWriting,
          storage: StorageUsage,
          animationIDs: Set<String>,
+         cropReferencedPaths: Set<String> = [],
          initialTab: SettingsTab = .apiKey,
          onSaved: @escaping () -> Void,
          onContentPolicyChanged: @escaping () -> Void = {},
@@ -57,6 +60,7 @@ struct SettingsView: View {
         self.clipboard = clipboard
         self.storage = storage
         self.animationIDs = animationIDs
+        self.cropReferencedPaths = cropReferencedPaths
         self.initialTab = initialTab
         self.onSaved = onSaved
         self.onContentPolicyChanged = onContentPolicyChanged
@@ -97,7 +101,8 @@ struct SettingsView: View {
             case .apiKey: apiKeyTab
             case .appearance: appearanceTab
             case .content: contentTab
-            case .storage: SettingsStorageTab(storage: storage, animationIDs: animationIDs)
+            case .storage: SettingsStorageTab(storage: storage, animationIDs: animationIDs,
+                                             cropReferencedPaths: cropReferencedPaths)
             case .performance: SettingsPerformanceTab(guardProvider: performance)
             case .schedule: SettingsScheduleTab(scheduler: schedule)
             case .about: SettingsAboutTab(clipboard: clipboard)

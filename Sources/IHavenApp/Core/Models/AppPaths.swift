@@ -25,6 +25,9 @@ enum AppPaths {
 
     static var importedImages: URL { sub("Wallpapers") }
     static var animations: URL { sub("Animations") }
+    /// 裁剪派生产物（ADR-018 §Decision 4）：由「裁剪后设为壁纸」生成、可重建的缓存，非资产。
+    /// 此前是四处散落的 `sub("Crops")` 动态传参，收敛到一处常量（见本文件头注释）。
+    static var crops: URL { sub("Crops") }
 
     /// 生成子目录（不存在则创建）并返回。
     static func sub(_ name: String) -> URL {

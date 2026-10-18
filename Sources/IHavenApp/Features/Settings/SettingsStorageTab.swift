@@ -12,9 +12,12 @@ struct SettingsStorageTab: View {
     let storage: StorageUsage
     /// 仍在库中的动态壁纸 id（= 帧序列目录名）。之外的目录即孤儿。
     let animationIDs: Set<String>
+    /// 仍被「已设置」记录引用的裁剪件路径（ADR-018 清理策略）。之外的裁剪文件即孤儿。
+    let cropReferencedPaths: Set<String>
 
     @State private var imageBytes = 0
     @State private var frames = FrameSequenceUsage()
+    @State private var crops = CropUsage(totalBytes: 0, orphanCount: 0, orphanedBytes: 0)
     @State private var isMeasuring = true
     @State private var hint: String?
 
@@ -23,6 +26,8 @@ struct SettingsStorageTab: View {
             imageCacheSection
             Divider().overlay(IHaven.Color.border)
             frameSection
+            Divider().overlay(IHaven.Color.border)
+            cropSection
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         // 遍历目录是磁盘活，放到后台：帧序列成千上万个文件时在主线程量会卡住设置面板。
@@ -81,15 +86,45 @@ struct SettingsStorageTab: View {
         }
     }
 
+    // MARK: - 裁剪件缓存（ADR-018 清理策略）
+
+    private var cropSection: some View {
+        VStack(alignment: .leading, spacing: IHaven.Space.s5.rawValue) {
+            sectionTitle("裁剪缓存")
+            Text("由「裁剪后设为壁纸」生成的图片。清理只删除不被「已设置」记录引用的裁剪件，当前使用的壁纸不受影响。")
+                .font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.muted)
+            HStack(spacing: IHaven.Space.s4.rawValue) {
+                Text("共占用").font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.fg2)
+                Text(Self.byteText(crops.totalBytes))
+                    .font(IHaven.Font.system(.sm, IHaven.Font.weightEmphasize))
+                    .foregroundStyle(IHaven.Color.fg).monospacedDigit()
+                Spacer(minLength: 0)
+                Button("清理未使用的") { clearOrphanedCrops() }
+                    .buttonStyle(.bordered)
+                    .disabled(crops.orphanCount == 0 || isMeasuring)
+            }
+            HStack(spacing: IHaven.Space.s4.rawValue) {
+                Text("未使用").font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.fg2)
+                Text(crops.orphanCount == 0
+                     ? String(localized: "没有未使用的裁剪件")
+                     : String(format: String(localized: "%lld 项 · %@"),
+                              crops.orphanCount, Self.byteText(crops.orphanedBytes)))
+                    .font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.meta)
+            }
+        }
+    }
+
     // MARK: - 行为
 
     private func measure() async {
         let ids = animationIDs
+        let paths = cropReferencedPaths
         let measured = await Task.detached(priority: .utility) {
-            (storage.imageCacheBytes(), storage.frameUsage(inUseIDs: ids))
+            (storage.imageCacheBytes(), storage.frameUsage(inUseIDs: ids), CropCleaner.usage(referencedPaths: paths))
         }.value
         imageBytes = measured.0
         frames = measured.1
+        crops = measured.2
         isMeasuring = false
     }
 
@@ -102,6 +137,12 @@ struct SettingsStorageTab: View {
     private func clearOrphanedFrames() {
         let freed = storage.clearOrphanedFrames(inUseIDs: animationIDs)
         frames = FrameSequenceUsage(totalBytes: frames.totalBytes - freed)
+        flashHint(String(localized: "已清理"))
+    }
+
+    private func clearOrphanedCrops() {
+        let freed = CropCleaner.clearOrphans(referencedPaths: cropReferencedPaths)
+        crops = CropUsage(totalBytes: crops.totalBytes - freed, orphanCount: 0, orphanedBytes: 0)
         flashHint(String(localized: "已清理"))
     }
 

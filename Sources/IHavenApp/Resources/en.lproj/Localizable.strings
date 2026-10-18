@@ -297,3 +297,8 @@
 "顺序" = "Order";
 "按顺序" = "Sequential";
 "离线模式 · 已浏览的壁纸仍可设为壁纸" = "Offline · wallpapers you've already viewed can still be set";
+
+// MARK: - Storage · crop cache (ADR-018 cleanup policy)
+"裁剪缓存" = "Crop cache";
+"由「裁剪后设为壁纸」生成的图片。清理只删除不被「已设置」记录引用的裁剪件，当前使用的壁纸不受影响。" = "Images produced by cropping before setting. Cleanup removes only crop files not referenced by any “Applied” record; the wallpaper currently in use is never touched.";
+"没有未使用的裁剪件" = "No unused crop files";

@@ -41,6 +41,7 @@ struct BrowseView: View {
                                  clipboard: clipboard,
                                  storage: storage,
                                  animationIDs: animationIDs,
+                                 cropReferencedPaths: cropReferencedPaths,
                                  initialTab: settingsTab,
                                  onSaved: { Task { await reloadForNav() } },
                                  onContentPolicyChanged: { viewModel.disableNSFWIfNeeded() },
@@ -212,11 +213,6 @@ struct BrowseView: View {
     }
 
     // MARK: - 行为
-
-    /// 仍在库中的动态壁纸 id（= 帧序列目录名）：存储页签据此判定哪些帧目录是孤儿。
-    private var animationIDs: Set<String> {
-        Set(library.imported.filter(\.isAnimation).map(\.id))
-    }
 
     private func select(_ item: NavItem) {
         switch item {
