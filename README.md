@@ -266,8 +266,6 @@ cp docs/pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
 
 Planned, in rough priority order:
 
-- Free-form crop aspect ratios (the crop box is currently locked to your screen's ratio)
-- Reusing an existing crop result instead of re-rendering it
 - AI-assisted dynamic wallpaper generation, gated behind an optional key in Settings
 - Broader real-device verification on multi-screen setups
 - More localizations beyond Chinese (Simplified) and English
@@ -282,6 +280,9 @@ because a half-working version is worse than none:
 - **Video wallpapers (MP4 / MOV / WEBM)** — dynamic wallpapers are generated locally from a static
   image instead (see ADR-016)
 - **FFmpeg or any private Apple API** — no bundled binary blob, no `WallpaperExtensionKit` (ADR-008)
+- **Free-form crop aspect ratios** — the crop box is deliberately locked to your screen's ratio, so a
+  cropped wallpaper never ends up with black bars. A free ratio cannot guarantee that (see ADR-018);
+  this is a designed limitation, not a missing feature
 
 ## Privacy
 

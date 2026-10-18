@@ -61,6 +61,14 @@ enum WallpaperCropWriter {
                           Int(pixel.width), Int(pixel.height),
                           Int(pixel.origin.x), Int(pixel.origin.y))
         let url = dir.appendingPathComponent(name)
+        // 复用：确定性文件名下「同一源图 + 同一选框 → 同一文件」。已存在即直接返回，
+        // 省掉一次 JPEG 重编码。**pixel 仍在 oriented 空间算**：EXIF 方向会交换宽高，
+        // 拿未转正的尺寸算文件名会与既有产物对不上（ADR-018 第 6 条的同款坑）。
+        // writeJPEG 走 .atomic 不留半成品，再叠一层「非空」校验兜住崩溃残留的 0 字节文件。
+        if let size = (try? FileManager.default.attributesOfItem(atPath: url.path))?[.size] as? NSNumber,
+           size.intValue > 0 {
+            return url
+        }
         try writeJPEG(cropped, to: url)
         return url
     }
