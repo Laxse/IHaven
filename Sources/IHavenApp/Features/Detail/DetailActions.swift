@@ -13,9 +13,12 @@ struct DetailActions: View {
     /// 裁剪入口。⚠️ **sheet 由 `BrowseView` 那一层挂**（子视图挂模态会被父级 `.sheet` 抑制），
     /// 这里只往上抛一个「用户想裁这张」的信号。
     var onCrop: () -> Void
+    /// 「加入相册」入口。同理，sheet 挂在 `BrowseView`，这里只抛信号。
+    var onAddToAlbum: () -> Void
     @State private var hoverPrimary = false
     @State private var hoverSecondary = false
     @State private var hoverTertiary = false
+    @State private var hoverAlbum = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: IHaven.Space.s4.rawValue) {
@@ -82,6 +85,26 @@ struct DetailActions: View {
             .buttonStyle(.plain)
             .disabled(state.isBusy)
             .onHover { hoverTertiary = $0 }
+
+            // 「加入相册」：把这张壁纸整理进本地主题相册（F-组织）。样式同「裁剪…」的次级按钮。
+            Button(action: onAddToAlbum) {
+                HStack(spacing: IHaven.Space.s3.rawValue) {
+                    Image(systemName: "photo.on.rectangle.angled").font(.system(size: IHaven.Icon.sm))
+                    Text("加入相册")
+                }
+                .font(IHaven.Font.system(.md))
+                .foregroundStyle(IHaven.Color.fg)
+                .frame(maxWidth: .infinity)
+                .frame(height: 28)
+                .background(hoverAlbum && !state.isBusy ? IHaven.Color.void : IHaven.Color.surface,
+                            in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue, style: .continuous)
+                    .stroke(IHaven.Color.border, lineWidth: 1))
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(state.isBusy)
+            .onHover { hoverAlbum = $0 }
 
             if let error = state.actionError { inlineError(error) }
         }

@@ -18,7 +18,7 @@ struct BrowseView: View {
     @State private var settingsTab: SettingsTab = .apiKey
     @State private var showSidebar = true
     @State private var nav: NavItem = .discover
-    @State private var toast: String?
+    @State var toast: String?
     /// 详情页：非 nil 即进入二级页面（`←` / `→` 在结果集内切换）。
     @State private var detail: Wallpaper?
     /// 详情页来源：决定 `←` / `→` 在哪一列里切换，以及「设为壁纸」的落库口径。
@@ -28,7 +28,9 @@ struct BrowseView: View {
     /// 三处各自挂 `.alert` 会彼此竞争并被父级 `.sheet` 抑制（子视图模态被抢占），
     /// 表现就是「点了删除按钮什么都没发生」；收敛到一处后确认语义也天然一致。
     @State private var pendingDelete: ImportedWallpaper?
-    @State private var crop: CropRequest?
+    @State var crop: CropRequest?
+    /// 详情页「加入相册」的落点：非 nil 即弹出相册选择器 sheet。
+    @State private var albumTarget: Wallpaper?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -61,7 +63,8 @@ struct BrowseView: View {
             browseStatusBar(resultsIncomplete: viewModel.resultsIncomplete,
                             isOffline: viewModel.isOffline,
                             waitingSeconds: viewModel.throttleSeconds,
-                            count: nav == .favorites ? viewModel.favorites.count : viewModel.wallpapers.count)
+                            count: nav == .favorites ? viewModel.favorites.count
+                                   : (nav == .albums ? viewModel.albums.count : viewModel.wallpapers.count))
         }
         .frame(minWidth: 880, minHeight: 600)
         .task { await reloadForNav() }
@@ -87,6 +90,11 @@ struct BrowseView: View {
                                onCancel: { crop = nil },
                                onApply: { url, size in crop = nil; applyCrop(req, url: url, size: size) })
                 // 被呈现的 sheet 不跟根视图环境更新，须自己挂一次（View+Locale.swift:15-21）。
+                .appLocale()
+        }
+        // 「加入相册」选择器：与裁剪 sheet 同层挂在最外层，避免被父级 `.alert` 抑制。
+        .sheet(item: $albumTarget) { wp in
+            AlbumPickerSheet(viewModel: viewModel, wallpaper: wp, onMessage: { showToast($0) })
                 .appLocale()
         }
     }
@@ -138,6 +146,11 @@ struct BrowseView: View {
                                    onDiscover: { select(.discover) },
                                    onOpen: { detailSource = .applied; detail = Wallpaper(previewFrom: $0) },
                                    onMessage: { showToast($0) })
+            case .albums:
+                AlbumsView(viewModel: viewModel,
+                           onDiscover: { select(.discover) },
+                           onOpen: { detailSource = .favorites; detail = Wallpaper(previewFrom: $0) },
+                           onMessage: { showToast($0) })
             case .live:
                 DynamicWallpaperView(library: library, onMessage: { showToast($0) }, onDeleteRequest: { pendingDelete = $0 })
             case .import:
@@ -191,7 +204,8 @@ struct BrowseView: View {
                           onSearch: { query in detail = nil; detailSource = .wallpapers; viewModel.search(query) },
                           onToggleFavorite: { viewModel.toggleFavorite(wallpaper) },
                           onMessage: { showToast($0) },
-                          onCrop: { cropWallpaper(wallpaper) })
+                          onCrop: { cropWallpaper(wallpaper) },
+                          onAddToAlbum: { albumTarget = wallpaper })
             .id(wallpaper.id)
     }
 
@@ -225,6 +239,7 @@ struct BrowseView: View {
         // 「已设置」读本地记录，不发网络请求；落入 default 会走 reload 白打一次搜索。
         case .favorites: nav = .favorites; viewModel.loadFavorites(); return
         case .wallpaperSet, .timeline: nav = item; viewModel.loadApplied(); return
+        case .albums: nav = item; viewModel.loadAlbums(); return
         case .live, .import: nav = item; return
         default: break
         }
@@ -256,6 +271,7 @@ struct BrowseView: View {
         switch nav {
         case .favorites: viewModel.loadFavorites()
         case .wallpaperSet, .timeline: viewModel.loadApplied()
+        case .albums: viewModel.loadAlbums()
         case .live, .import: break
         default: await viewModel.reload()
         }
@@ -263,38 +279,4 @@ struct BrowseView: View {
 
     private func setWallpaper(_ wp: Wallpaper) { Task { showToast((await viewModel.setAsWallpaper(wp)) ?? String(localized: "已设为壁纸")) } }
     private func setWallpaperFromFavorite(_ fav: Favorite) { Task { showToast((await viewModel.setWallpaperFromFavorite(fav)) ?? String(localized: "已设为壁纸")) } }
-
-    // MARK: - 裁剪（竖图黑边，ADR-018）
-
-    /// 网络壁纸：先取本地原图（失败提示重试）再弹 sheet。闭包里用参数 `wp`，不捕获 `@State detail`。
-    private func cropWallpaper(_ wp: Wallpaper) {
-        Task {
-            guard let file = await viewModel.cropSource(for: wp) else {
-                showToast(String(localized: "原图下载失败，请重试")); return
-            }
-            crop = CropRequest(id: wp.id, sourceURL: file, kind: .wallpaper(wp))
-        }
-    }
-
-    private func cropImported(_ item: ImportedWallpaper) {
-        crop = CropRequest(id: item.id, sourceURL: URL(fileURLWithPath: item.filePath), kind: .imported(item))
-    }
-
-    private func applyCrop(_ req: CropRequest, url: URL, size: CGSize) {
-        Task {
-            let error: String? = switch req.kind {
-            case .wallpaper(let wp): await viewModel.applyCropped(url, pixelSize: size, wallpaper: wp)
-            case .imported(let item): await library.applyCropped(url, pixelSize: size, item: item)
-            }
-            showToast(error ?? String(localized: "已设为壁纸"))
-        }
-    }
-
-    private func showToast(_ msg: String) {
-        toast = msg
-        Task {
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-            if toast == msg { toast = nil }
-        }
-    }
 }

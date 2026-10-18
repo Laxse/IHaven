@@ -96,6 +96,24 @@ final class GRDBWallpaperDatabase: WallpaperDatabase {
                 t.column("createdAt", .double).notNull()
             }
         }
+        // v6：本地相册（F-组织）。两张表——`album` 头上，`album_item` 关联系数（member 自带
+        // 缩略图 / 原图 URL，因此即便原壁纸取消收藏，相册条目仍能独立渲染）。
+        // 主键 (albumId, wallpaperId) 让重复加入同一张只覆写、不堆积。
+        migrator.registerMigration("v6") { db in
+            try db.create(table: "album") { t in
+                t.column("id", .text).primaryKey()
+                t.column("name", .text).notNull()
+                t.column("createdAt", .double).notNull()
+            }
+            try db.create(table: "album_item") { t in
+                t.column("albumId", .text).notNull().indexed()
+                t.column("wallpaperId", .text).notNull().indexed()
+                t.column("thumbnailURL", .text)
+                t.column("originalURL", .text).notNull()
+                t.column("addedAt", .double).notNull()
+                t.primaryKey(["albumId", "wallpaperId"])
+            }
+        }
         try migrator.migrate(pool)
         self.db = pool
         // 裁剪产物清理（ADR-018 清理策略）：删掉不被「已设置」记录引用的孤儿裁剪件，防止磁盘堆积。
@@ -249,4 +267,5 @@ final class GRDBWallpaperDatabase: WallpaperDatabase {
                 }
         }
     }
+
 }

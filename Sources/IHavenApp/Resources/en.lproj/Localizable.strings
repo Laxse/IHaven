@@ -303,3 +303,18 @@
 "时间线" = "Timeline";
 "由「裁剪后设为壁纸」生成的图片。清理只删除不被「已设置」记录引用的裁剪件，当前使用的壁纸不受影响。" = "Images produced by cropping before setting. Cleanup removes only crop files not referenced by any “Applied” record; the wallpaper currently in use is never touched.";
 "没有未使用的裁剪件" = "No unused crop files";
+
+// MARK: - Albums (F-组织)
+
+"加入相册" = "Add to Album";
+"新建相册" = "New Album";
+"新建相册…" = "New album…";
+"相册名称" = "Album name";
+"还没有相册" = "No albums yet";
+"把任意壁纸加入相册，按主题整理你的收藏。" = "Add any wallpaper to an album and organize your collection by theme.";
+"确定删除这个相册？" = "Delete this album?";
+"这个相册还是空的" = "This album is empty";
+"去发现壁纸或收藏里，点开任意壁纸选「加入相册」即可。" = "Open any wallpaper in Discover or Favorites and choose “Add to Album”.";
+"已从相册移除" = "Removed from album";
+"已加入相册" = "Added to album";
+"相册" = "Albums";

@@ -33,4 +33,18 @@ public protocol WallpaperDatabase: Sendable {
     func schedules() throws -> [WallpaperSchedule]
     /// 只更新可变字段（开关 / 游标 / 上次执行时间），不重建整条记录。
     func updateSchedule(_ schedule: WallpaperSchedule) throws
+
+    // MARK: - 相册（F-组织）
+
+    func addAlbum(_ album: Album) throws
+    func removeAlbum(id: String) throws
+    /// 按创建时间返回全部相册。
+    func albums() throws -> [Album]
+    /// 往相册里加一条成员（自带缩略图 / 原图 URL，便于独立渲染）。同 (albumId, wallpaperId) 覆盖。
+    func addAlbumItem(albumId: String, item: Favorite) throws
+    func removeAlbumItem(albumId: String, wallpaperId: String) throws
+    /// 相册内的成员，按加入时间倒序。
+    func albumItems(albumId: String) throws -> [Favorite]
+    /// 一张壁纸被哪些相册收录（用于详情页「加入相册」反查勾选态）。
+    func albumIDs(forWallpaper id: String) throws -> [String]
 }

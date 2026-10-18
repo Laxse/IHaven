@@ -30,6 +30,36 @@ final class InMemoryWallpaperDatabase: WallpaperDatabase, @unchecked Sendable {
         lock.withLock { Array(importedStore.values).sorted { $0.addedAt > $1.addedAt } }
     }
 
+    // MARK: - 相册（F-组织）
+
+    private var albumStore: [String: Album] = [:]
+    private var albumItemStore: [String: [String: Favorite]] = [:]   // albumId -> (wallpaperId -> Favorite)
+
+    func addAlbum(_ album: Album) throws { lock.withLock { albumStore[album.id] = album } }
+    func removeAlbum(id: String) throws {
+        lock.withLock { _ = albumStore.removeValue(forKey: id); _ = albumItemStore.removeValue(forKey: id) }
+    }
+    func albums() throws -> [Album] {
+        lock.withLock { Array(albumStore.values).sorted { $0.createdAt < $1.createdAt } }
+    }
+    func addAlbumItem(albumId: String, item: Favorite) throws {
+        lock.withLock { albumItemStore[albumId, default: [:]][item.id] = item }
+    }
+    func removeAlbumItem(albumId: String, wallpaperId: String) throws {
+        lock.withLock { _ = albumItemStore[albumId]?.removeValue(forKey: wallpaperId) }
+    }
+    func albumItems(albumId: String) throws -> [Favorite] {
+        lock.withLock {
+            let dict = albumItemStore[albumId] ?? [:]
+            return Array(dict.values).sorted { $0.addedAt > $1.addedAt }
+        }
+    }
+    func albumIDs(forWallpaper id: String) throws -> [String] {
+        lock.withLock {
+            albumItemStore.filter { $0.value[id] != nil }.map { $0.key }
+        }
+    }
+
     // MARK: - 轮换日程（F13）
 
     private var scheduleStore: [String: WallpaperSchedule] = [:]

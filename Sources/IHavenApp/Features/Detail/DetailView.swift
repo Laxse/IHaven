@@ -16,6 +16,8 @@ struct DetailView: View {
     /// 裁剪入口：只**上抛**给 `BrowseView`（那里挂 `.sheet(item:)`）。本视图自己挂模态会被
     /// 父级 `.sheet` 抑制，表现为点了没反应（见 `BrowseView.swift` L24-27）。
     var onCrop: () -> Void
+    /// 「加入相册」入口：上抛给 `BrowseView`，由它弹相册选择器 sheet（同裁剪的处理方式）。
+    var onAddToAlbum: () -> Void
 
     @State private var state: DetailViewState
     @State private var inspectorVisible = true
@@ -30,7 +32,8 @@ struct DetailView: View {
          onSearch: @escaping (String) -> Void,
          onToggleFavorite: @escaping () -> Void,
          onMessage: @escaping (String) -> Void,
-         onCrop: @escaping () -> Void) {
+         onCrop: @escaping () -> Void,
+         onAddToAlbum: @escaping () -> Void) {
         self.wallpaper = wallpaper
         self.context = context
         self.onClose = onClose
@@ -39,6 +42,7 @@ struct DetailView: View {
         self.onToggleFavorite = onToggleFavorite
         self.onMessage = onMessage
         self.onCrop = onCrop
+        self.onAddToAlbum = onAddToAlbum
         _state = State(initialValue: viewModel.makeDetailState(wallpaper: wallpaper))
     }
 
@@ -59,7 +63,8 @@ struct DetailView: View {
                                     state: state,
                                     onSearch: onSearch,
                                     onMessage: onMessage,
-                                    onCrop: onCrop)
+                                    onCrop: onCrop,
+                                    onAddToAlbum: onAddToAlbum)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

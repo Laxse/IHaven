@@ -12,6 +12,8 @@ struct DetailInspector: View {
     var onMessage: (String) -> Void
     /// 裁剪入口，一路透传给 `DetailActions`（sheet 本身挂在 `BrowseView` 上）。
     var onCrop: () -> Void
+    /// 「加入相册」入口，透传给 `DetailActions`（sheet 挂在 `BrowseView` 上）。
+    var onAddToAlbum: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -22,7 +24,7 @@ struct DetailInspector: View {
                     detailColorStrip(colors: source.colors)
                     // 404（壁纸已下架）才隐藏操作区：其余失败都是瞬时的，两个动作走的是列表项
                     // `wallpaper.path`、不依赖详情请求，禁掉它们是纯自伤。
-                    if !isGone { DetailActions(state: state, onMessage: onMessage, onCrop: onCrop) }
+                    if !isGone { DetailActions(state: state, onMessage: onMessage, onCrop: onCrop, onAddToAlbum: onAddToAlbum) }
                     propertiesSection
                     tagsSection
                 }

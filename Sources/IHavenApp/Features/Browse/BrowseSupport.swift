@@ -15,13 +15,13 @@ struct CropRequest: Identifiable {
 
 /// 侧栏导航项（对齐线稿 SF Symbols 对照）。密钥不再是独立项，已并入设置面板页签。
 enum NavItem: Hashable {
-    case discover, landscape, anime, people, favorites, wallpaperSet, timeline, live, `import`, settings
+    case discover, landscape, anime, people, favorites, wallpaperSet, timeline, albums, live, `import`, settings
     /// 用 `LocalizedStringKey` 而非 `String`：侧栏标签直接进 `Text(...)`，
     /// 落成 String 就固化成中文、永远查不到 Localizable.strings。
     var label: LocalizedStringKey {
         switch self {
         case .discover: "发现"; case .landscape: "风景"; case .anime: "动漫"; case .people: "人物"
-        case .favorites: "收藏"; case .wallpaperSet: "已设置"; case .timeline: "时间线"
+        case .favorites: "收藏"; case .wallpaperSet: "已设置"; case .timeline: "时间线"; case .albums: "相册"
         case .live: "动态壁纸"
         case .import: "导入…"; case .settings: "设置"
         }
@@ -30,7 +30,7 @@ enum NavItem: Hashable {
         switch self {
         case .discover: "square.grid.2x2"; case .landscape: "mountain.2.fill"; case .anime: "sparkles"
         case .people: "person.fill"; case .favorites: "star"; case .wallpaperSet: "display.2"
-        case .timeline: "calendar"
+        case .timeline: "calendar"; case .albums: "photo.on.rectangle"
         case .live: "play.circle"; case .import: "square.and.arrow.down"
         case .settings: "gearshape"
         }

@@ -24,10 +24,14 @@ final class BrowseViewModel {
     var favorites: [Favorite] = []
     /// 已设壁纸记录（侧栏「已设置」视图数据源，来自数据库，按设置时间倒序）。
     var applied: [AppliedWallpaper] = []
+    /// 相册列表（侧栏「相册」视图数据源，来自数据库）。
+    var albums: [Album] = []
 
     private let client: WallhavenAPIProtocol
     private let keyProvider: KeyProvider
-    private let database: WallpaperDatabase
+    /// `internal` 而非 `private`：`BrowseViewModel+Albums.swift` 的 extension 要用
+    /// （该文件的存在本身就是为绕过 ADR-009 的 300 行上限）。
+    let database: WallpaperDatabase
     /// `internal` 而非 `private`：`BrowseViewModel+Favorites.swift` 的 extension 要用
     /// （该文件的存在本身就是为绕过 ADR-009 的 300 行上限）。
     let wallpaperEngine: WallpaperEngine

@@ -13,7 +13,7 @@ struct BrowseSidebar: View {
                 sidebarDivider
                 sidebarRow(.landscape); sidebarRow(.anime); sidebarRow(.people)
                 sidebarDivider
-                sidebarRow(.favorites); sidebarRow(.wallpaperSet); sidebarRow(.timeline)
+                sidebarRow(.favorites); sidebarRow(.wallpaperSet); sidebarRow(.timeline); sidebarRow(.albums)
                 sidebarDivider
                 sidebarRow(.live); sidebarRow(.import)
                 sidebarDivider
