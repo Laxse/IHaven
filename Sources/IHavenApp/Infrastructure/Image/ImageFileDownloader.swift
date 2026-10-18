@@ -14,6 +14,12 @@ struct ImageFileDownloader: ImageDownloading {
     let session: URLSession = .shared
 
     func download(_ remote: URL) async throws -> URL {
+        // 本地优先（`OfflineImageStore` 三级查找：Originals 落盘 → applied 记录 → Nuke DataCache 物化）。
+        // 详情页已展示过的高清原图、或之前设壁纸落过的原图都已在本地，直接复用：省带宽、
+        // 也不白白消耗 wallhaven 45 次/分钟的共享配额。「下载原图」（`DetailViewState.downloadOriginal`）
+        // 走的就是这条——大图在详情页已由 Nuke 载入进 DataCache，命中后直接拿本地文件弹保存面板，不联网。
+        if remote.isFileURL { return remote }
+        if let cached = OfflineImageStore.localFile(for: remote) { return cached }
         let (data, _) = try await session.data(from: remote)
         let dir = AppPaths.sub("Originals")
         let fileName = remote.lastPathComponent.isEmpty ? UUID().uuidString : remote.lastPathComponent
