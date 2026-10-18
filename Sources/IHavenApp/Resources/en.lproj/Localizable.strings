@@ -368,3 +368,10 @@
 "⌥⌘S 一键「换一张」，App 不在前台也能用。默认关闭；开启需在「系统设置 ▸ 隐私与安全性 ▸ 辅助功能」中授权 IHaven。" = "⌥⌘S shuffles to a new wallpaper even when IHaven is in the background. Off by default; turning it on asks you to grant Accessibility in System Settings ▸ Privacy & Security.";
 "启用 ⌥⌘S 全局换一张" = "Enable ⌥⌘S global shuffle";
 "尚未获得辅助功能授权，全局热键暂不可用（App 前台时仍可用）。去系统设置授权后返回即生效。" = "Accessibility not granted yet — the global hotkey is unavailable (still works while IHaven is frontmost). Grant it in System Settings; it takes effect when you come back.";
+
+// MARK: - Keyboard focus self-check (can't-type triage)
+
+"键盘焦点自检" = "Keyboard focus self-check";
+"App 未激活 · 按键会发给上一个 App" = "App not active · keystrokes go to the previous app";
+"App 已激活 · 但当前没有 key 窗口" = "App active · but no key window";
+"App 已激活 · 主窗口是 key 窗口" = "App active · main window is key";

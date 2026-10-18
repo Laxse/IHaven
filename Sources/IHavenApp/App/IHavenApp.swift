@@ -1,7 +1,11 @@
+import AppKit
 import SwiftUI
 
 @main
 struct IHavenApp: App {
+    /// 键盘投递链的兜底（见 `AppLifecycle`）：显式激活 App + 保证有 key window。
+    /// 缺了它，从 Xcode 直跑可执行文件时会出现「全 App 输入框都打不了字」。
+    @NSApplicationDelegateAdaptor(AppLifecycle.self) private var lifecycle
     @State private var keyStore = FileKeyProvider()
     @State private var browseViewModel: BrowseViewModel?
     /// 剪贴板（关于页复制微信号用）。与 `savePanel` 同为 Platform 实现：**只在装配点创建一次**
