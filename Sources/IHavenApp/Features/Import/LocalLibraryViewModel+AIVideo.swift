@@ -40,9 +40,10 @@ extension LocalLibraryViewModel {
             let videoURL = try await aiVideo.generateVideo(sourceImage: sourceURL, prompt: prompt)
             // 临时 MP4 抽完即删，不在磁盘留垃圾。
             defer { try? FileManager.default.removeItem(at: videoURL) }
-            // 2) 抽成 12fps 帧序列（与本地生成同一帧率，引擎按 duration/count 推播放间隔）。
+            // 2) 抽成 12fps 帧序列（与本地生成同一帧率，引擎按 duration/count 推播放间隔）；
+            //    pingPong=true：AI 片段不为无缝设计，正放+倒放折返成无缝循环。
             let frames = try await videoFrames.extractFrames(from: videoURL, fps: 12,
-                                                            maxLongEdge: 1920, into: dir)
+                                                            maxLongEdge: 1920, pingPong: true, into: dir)
             guard let first = frames.first else {
                 aiErrorMessage = AIVideoError.noOutput.errorDescription
                 return nil

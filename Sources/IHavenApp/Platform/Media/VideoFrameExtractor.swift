@@ -19,7 +19,7 @@ import UniformTypeIdentifiers
 /// 3. `generateCGImagesAsynchronously` 回调**乱序**、且视频末尾那一帧常返回 nil。
 ///    故按「请求时刻反推 index」归位，缺失帧用「上一张有效帧」前向填充，保证 `frame-%04d.jpg` 连续。
 struct AVFoundationFrameExtractor: VideoFrameExtracting {
-    func extractFrames(from video: URL, fps: Double, maxLongEdge: Int, into outputDir: URL) async throws -> [URL] {
+    func extractFrames(from video: URL, fps: Double, maxLongEdge: Int, pingPong: Bool, into outputDir: URL) async throws -> [URL] {
         let asset = AVURLAsset(url: video)
         // `.load(.duration)`：直接读 `asset.duration` 在 macOS 13 起已废弃。
         let seconds = CMTimeGetSeconds(try await asset.load(.duration))
@@ -48,19 +48,32 @@ struct AVFoundationFrameExtractor: VideoFrameExtracting {
         }
 
         // 写盘是 CPU / IO 重活，放后台；这里只碰 Sendable 的 sink / count / outputDir。
-        return try await Task.detached(priority: .userInitiated) { [sink, count, outputDir] in
+        return try await Task.detached(priority: .userInitiated) { [sink, count, outputDir, pingPong] in
             try? FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
-            var written: [URL] = []
+            var forward: [URL] = []
             var lastGood: CGImage?
             for idx in 0..<count {
                 // 前向填充：某帧解码失败（末尾尤多）时沿用上一张有效帧，保证序号连续、播放不跳空。
                 if let img = sink.image(at: idx) { lastGood = img }
                 guard let img = lastGood else { continue }
                 let url = outputDir.appendingPathComponent(String(format: "frame-%04d.jpg", idx))
-                if writeJPEG(img, to: url) { written.append(url) }
+                if writeJPEG(img, to: url) { forward.append(url) }
             }
-            guard written.count >= 2 else { throw AIVideoError.noOutput }
-            return written
+            guard forward.count >= 2 else { throw AIVideoError.noOutput }
+
+            var all = forward
+            if pingPong {
+                // 正放 + 倒放无缝循环：把 forward[count-2]、forward[count-3]…forward[1] 依序复制到
+                // 末尾（frame 编号续下去），末帧平滑折返起点。复制既有 JPEG 比重新编码省 CPU。
+                // 不含首帧 forward[0]：避免折返点上同一帧连播两次造成的凝滞。
+                let base = forward.count
+                for offset in 0..<(base - 2) {
+                    let src = forward[base - 2 - offset]
+                    let dst = outputDir.appendingPathComponent(String(format: "frame-%04d.jpg", base + offset))
+                    do { try FileManager.default.copyItem(at: src, to: dst); all.append(dst) } catch {}
+                }
+            }
+            return all
         }.value
     }
 

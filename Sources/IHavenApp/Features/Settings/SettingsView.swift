@@ -2,13 +2,13 @@ import SwiftUI
 
 /// 设置面板页签（原独立「密钥」侧栏项的归宿）。
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case apiKey, appearance, content, storage, performance, schedule, ai, about
+    case apiKey, appearance, content, storage, performance, schedule, shortcut, ai, about
     var id: String { rawValue }
     var label: LocalizedStringKey {
         switch self {
         case .apiKey: "密钥"; case .appearance: "外观"; case .content: "内容"
         case .storage: "存储"; case .performance: "性能"; case .schedule: "轮换"
-        case .ai: "AI"; case .about: "关于"
+        case .shortcut: "快捷键"; case .ai: "AI"; case .about: "关于"
         }
     }
 }
@@ -109,6 +109,7 @@ struct SettingsView: View {
                                              cropReferencedPaths: cropReferencedPaths)
             case .performance: SettingsPerformanceTab(guardProvider: performance)
             case .schedule: SettingsScheduleTab(scheduler: schedule)
+            case .shortcut: SettingsShortcutTab()
             case .ai: SettingsAITab(store: aiStore)
             case .about: SettingsAboutTab(clipboard: clipboard)
             }

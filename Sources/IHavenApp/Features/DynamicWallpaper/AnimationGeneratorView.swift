@@ -14,6 +14,8 @@ struct AnimationGeneratorView: View {
     @State private var seconds: Double = 12
     @State private var amplitude: Double = 0.12
     @State private var generateError: String?
+    /// 关闭 sheet。这个面板此前**没有取消 / 关闭按钮**，用户只能按 Esc——补一个显式入口。
+    @Environment(\.dismiss) private var dismiss
 
     private var spec: AnimationSpec {
         AnimationSpec(preset: preset, seconds: seconds, frameCount: 0, amplitude: amplitude)
@@ -24,6 +26,8 @@ struct AnimationGeneratorView: View {
             HStack {
                 Text("生成动态壁纸").font(IHaven.Font.system(.lg, IHaven.Font.weightAnnounce)).foregroundStyle(IHaven.Color.fg)
                 Spacer(minLength: 0)
+                Button { dismiss() } label: { Image(systemName: "xmark") }
+                    .buttonStyle(.plain)
             }
 
             if library.images.isEmpty {

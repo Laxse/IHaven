@@ -21,7 +21,10 @@ public protocol VideoFrameExtracting: Sendable {
     /// 把 `video` 按 `fps` 抽帧写入 `outputDir`（命名 `frame-%04d.jpg`，与
     /// `DynamicWallpaperEngine.frameURLs(in:)` 的字典序播放约定一致），返回按序排列的帧 URL。
     /// 长边超过 `maxLongEdge` 的帧等比缩小（控磁盘 / 内存）。
-    func extractFrames(from video: URL, fps: Double, maxLongEdge: Int, into outputDir: URL) async throws -> [URL]
+    /// - Parameter pingPong: true 时在正放序列后接一段「倒放」，让首末平滑折返、无缝循环 ——
+    ///   AI 视频片段本身不为无缝设计，硬循环会跳，正反循环是最省的循环化手段。
+    func extractFrames(from video: URL, fps: Double, maxLongEdge: Int, pingPong: Bool,
+                       into outputDir: URL) async throws -> [URL]
 }
 
 /// AI 图生视频的错误分类。与 `APIError` 同思路：把provider / 网络 / 内容策略分层，
