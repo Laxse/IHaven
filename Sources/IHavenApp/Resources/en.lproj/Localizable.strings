@@ -334,9 +334,7 @@
 
 "AI" = "AI";
 "AI 图生视频 Key" = "AI Video Key";
-"选一张本地静态图、写一句运动描述，AI 生成一段 6 秒短视频，IHaven 再把它逐帧本地化成无缝循环的动态壁纸。" = "Pick a local image and describe the motion; AI makes a 6-second clip that IHaven turns into a seamlessly looping dynamic wallpaper.";
 "服务商：" = "Provider:";
-"Replicate（replicate.com）· 模型 MiniMax video-01 · 约 $0.5 / 次" = "Replicate (replicate.com) · model MiniMax video-01 · ~$0.50 per run";
 "获取 Token：" = "Get a token:";
 "（r8_ 开头，注册即有一个默认 token）" = "(starts with r8_; a default one exists right after signup)";
 "API 调用需在 Replicate 绑卡计费；每一次生成都会扣你的额度。" = "API calls need a card on file with Replicate; every generation draws on your balance.";
@@ -380,5 +378,23 @@
 
 "AI 服务拒绝了这次请求：%@" = "The AI service rejected this request: %@";
 "尺寸" = "Size";
-"输出 6 秒 · 继承源图比例" = "Output 6s · keeps source aspect ratio";
-"每次约 $0.5" = "About $0.5 per run";
+
+
+// MARK: - AI multi-model (#70, Replicate aggregation layer)
+
+"选一张本地静态图、写一句运动描述，AI 生成一段短视频，IHaven 再把它逐帧本地化成无缝循环的动态壁纸。" = "Pick a local still image, describe the motion, and the AI generates a short clip; IHaven then turns it into seamless-looping frames on your Mac.";
+"一套 Key 可调用多家的模型（MiniMax / 阿里万相 / 快手可灵 / 字节 Seedance / Google Veo / 生数 Vidu），在生成面板里选，不必逐个申请。" = "One key covers models from many vendors (MiniMax / Alibaba Wan / Kuaishou Kling / ByteDance Seedance / Google Veo / ShengShu Vidu). Pick one in the generator panel — no separate signup per model.";
+"Replicate（replicate.com）· 一套 Key 跑多个模型" = "Replicate (replicate.com) · one key, many models";
+"模型" = "Model";
+"Hailuo video-01（MiniMax）" = "Hailuo video-01 (MiniMax)";
+"6 秒 · 720p · 约 $0.5/次 · IHaven 默认" = "6s · 720p · about $0.5 per run · IHaven default";
+"万相 2.7（阿里）" = "Wan 2.7 (Alibaba)";
+"1080p · 开源模型里最省 · 支持首尾帧" = "1080p · cheapest among open models · first/last frame control";
+"可灵 2.5 Turbo Pro（快手）" = "Kling 2.5 Turbo Pro (Kuaishou)";
+"1080p · 约 $0.07/秒 · 画面最稳" = "1080p · about $0.07/s · most stable motion";
+"Seedance 2.0 Fast（字节）" = "Seedance 2.0 Fast (ByteDance)";
+"带原生音频 · 生成快 · 效果强" = "Native audio · fast · strong results";
+"Veo 3.1 Fast（Google）" = "Veo 3.1 Fast (Google)";
+"带原生音频 · 质量标杆 · 约 $0.08/秒 起" = "Native audio · quality benchmark · from about $0.08/s";
+"Vidu Q3 Pro（生数）" = "Vidu Q3 Pro (ShengShu)";
+"最长 16 秒 · 1080p · 带音频" = "Up to 16s · 1080p · with audio";

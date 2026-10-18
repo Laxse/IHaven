@@ -14,6 +14,8 @@ struct AIVideoGeneratorView: View {
     @State private var prompt = ""
     @State private var confirmGenerate = false
     @FocusState private var promptFocused: Bool
+    /// 选中的模型（聚合层：一套 Key 跑多个模型）。持久化 —— 下一次打开仍是这个。
+    @AppStorage(UserPreferenceKey.aiVideoModel) private var modelID = AIVideoModelCatalog.fallback.id
 
     var body: some View {
         VStack(alignment: .leading, spacing: IHaven.Space.s5.rawValue) {
@@ -28,6 +30,7 @@ struct AIVideoGeneratorView: View {
             } else {
                 sourcePicker
                 previewRow
+                modelRow
                 promptField
                 // 底部按钮钉在面板下沿：内容再长也不会把主操作顶到半空。
                 Spacer(minLength: 0)
@@ -35,9 +38,9 @@ struct AIVideoGeneratorView: View {
             }
         }
         .padding(IHaven.Space.s6.rawValue)
-        // 内容实测约 540pt（标题 46 + 选图 108 + 预览 150 + 描述 92 + 底栏 32 + 间距 64 + 内边距 48）。
-        // 560 多出的 20pt 由 Spacer 吃掉：底栏被顶到下沿，错误文案折行也不会溢出。
-        .frame(width: 540, height: 560)
+        // 约 600pt（标题 46 + 选图 108 + 预览 150 + 模型 42 + 描述 92 + 底栏 32 + 间距 80 + 内边距 48）。
+        // 620 多出的 20pt 由 Spacer 吃掉：底栏被顶到下沿，错误文案折行也不会溢出。
+        .frame(width: 540, height: 620)
         .onAppear { if selected == nil { selected = library.images.first } }
         .confirmationDialog("将消耗一次 AI 生成额度，确定生成？",
                             isPresented: $confirmGenerate,
@@ -124,12 +127,29 @@ struct AIVideoGeneratorView: View {
                     Text(verbatim: "\(sel.width) × \(sel.height)").foregroundStyle(IHaven.Color.fg2)
                 }
             }
-            Text("输出 6 秒 · 继承源图比例").foregroundStyle(IHaven.Color.meta)
-            Text("每次约 $0.5").foregroundStyle(IHaven.Color.meta)
             Spacer(minLength: 0)
         }
         .font(IHaven.Font.system(.xs))
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// 模型选择。聚合层的价值就在这：一套 Replicate Key 跑多个厂商的模型，换模型不换 Key。
+    /// 规格 / 单价写在下拉下面的那一行 —— 计费功能必须让用户点之前就知道花多少。
+    private var modelRow: some View {
+        VStack(alignment: .leading, spacing: IHaven.Space.s2.rawValue) {
+            HStack(spacing: IHaven.Space.s3.rawValue) {
+                Text("模型").font(IHaven.Font.system(.sm, IHaven.Font.weightEmphasize)).foregroundStyle(IHaven.Color.fg2)
+                Picker("", selection: $modelID) {
+                    ForEach(AIVideoModelCatalog.all) { model in
+                        Text(LocalizedStringKey(model.nameKey)).tag(model.id)
+                    }
+                }
+                .pickerStyle(.menu).labelsHidden().frame(width: 240)
+            }
+            Text(LocalizedStringKey(AIVideoModelCatalog.model(id: modelID).noteKey))
+                .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 
     private var promptField: some View {

@@ -15,7 +15,11 @@ struct SettingsAITab: View {
     var body: some View {
         VStack(alignment: .leading, spacing: IHaven.Space.s5.rawValue) {
             sectionTitle("AI 图生视频 Key")
-            Text("选一张本地静态图、写一句运动描述，AI 生成一段 6 秒短视频，IHaven 再把它逐帧本地化成无缝循环的动态壁纸。")
+            Text("选一张本地静态图、写一句运动描述，AI 生成一段短视频，IHaven 再把它逐帧本地化成无缝循环的动态壁纸。")
+                .font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.muted)
+                .fixedSize(horizontal: false, vertical: true)
+            // 多模型（#70 聚合层）：说清「一套 Key 就够」—— 否则用户会以为每个模型都要再申请一个。
+            Text("一套 Key 可调用多家的模型（MiniMax / 阿里万相 / 快手可灵 / 字节 Seedance / Google Veo / 生数 Vidu），在生成面板里选，不必逐个申请。")
                 .font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.muted)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -23,7 +27,7 @@ struct SettingsAITab: View {
             VStack(alignment: .leading, spacing: IHaven.Space.s2.rawValue) {
                 HStack(spacing: 0) {
                     Text("服务商：").foregroundStyle(IHaven.Color.fg2)
-                    Text("Replicate（replicate.com）· 模型 MiniMax video-01 · 约 $0.5 / 次")
+                    Text("Replicate（replicate.com）· 一套 Key 跑多个模型")
                         .foregroundStyle(IHaven.Color.fg)
                 }
                 HStack(spacing: 4) {

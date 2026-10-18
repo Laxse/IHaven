@@ -32,4 +32,9 @@ enum UserPreferenceKey {
     /// 是否启用 ⌥⌘S 全局「换一张」。默认 false —— **启动时不索取辅助功能权限**，
     /// 由用户在设置 ▸ 快捷键里按需开启（开启时才弹一次系统授权框）。
     static let globalHotkeyEnabled = "ihaven.globalHotkeyEnabled"
+
+    // MARK: - AI 图生视频（#70 多模型）
+
+    /// 选中的模型：`AIVideoModel.id`（Replicate 的 owner/name）。缺省回落到目录里的默认模型。
+    static let aiVideoModel = "ihaven.aiVideoModel"
 }

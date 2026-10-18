@@ -15,20 +15,21 @@ import UniformTypeIdentifiers
 /// `owner/name:hash`），body 里**根本没有 `model` 字段** —— 传 `{"model": …}` 会被判
 /// 422 Unprocessable Entity（用户真机实测，错误文案就是「HTTP 422」）。
 /// 仍是 `Prefer: wait` 同步等 ≤60s，超时转轮询 `GET /v1/predictions/{id}`。
-/// 默认模型 `minimax/video-01`（Hailuo，图生视频，6s/720p，约 $0.5/次）：
-/// 入参 `first_frame_image`（底图，输出继承其宽高比）+ `prompt`；输出为**单个字符串 URI**
-/// （解析端同时兼容字符串 / 数组）。
+/// 模型不再是写死的常量，而是**用户在生成面板里选的那个**（`AIVideoModelCatalog.selected()`，
+/// 持久化在 `UserPreferenceKey.aiVideoModel`）。聚合层的价值就在这里：一套 Key 跑多个模型，
+/// 换模型不换 Key。入参键名随模型变，见 `AIVideoModel.imageInputKey` 的说明。
+///
+/// 输出统一是**单个字符串 URI**（解析端同时兼容字符串 / 数组）。
 struct ReplicateVideoClient: AIVideoGenerating {
     private let keyProvider: KeyProvider
-    /// 默认模型：文本 + 图像条件化的图生视频。**可换** —— 换模型只改这一处 + 对应 input 键名。
-    /// 选文本条件化而非 SVD：Plan B 要的是「按运动描述生成」，纯图条件的 SVD 不吃 prompt。
-    private let model: String
     private let baseURL = URL(string: "https://api.replicate.com/v1")!
 
-    init(keyProvider: KeyProvider, model: String = "minimax/video-01") {
+    init(keyProvider: KeyProvider) {
         self.keyProvider = keyProvider
-        self.model = model
     }
+
+    /// 当前模型。现读而不是 init 时固定 —— 用户改选后下一次生成立即生效，不用重启。
+    private var model: AIVideoModel { AIVideoModelCatalog.selected() }
 
     func generateVideo(sourceImage: URL, prompt: String) async throws -> URL {
         let key = keyProvider.currentKey.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -44,10 +45,11 @@ struct ReplicateVideoClient: AIVideoGenerating {
         let dataURI = "data:image/jpeg;base64," + jpeg.base64EncodedString()
 
         // 这条端点只认 input —— 模型已由 URL 决定，不能再塞 model / version（否则 422）。
+        // 底图键名随模型变（first_frame_image / first_frame / start_image / image），
+        // 取自 AIVideoModelCatalog —— 写死成 "image" 会 422（已踩过一次）。
+        let model = self.model
         let body: [String: Any] = [
-            // minimax/video-01 图生视频入参：first_frame_image = 底图（输出继承其宽高比），
-            // prompt = 运动描述。此前凭印象写的 "image" 是错的——该模型只认 first_frame_image。
-            "input": ["first_frame_image": dataURI, "prompt": prompt],
+            "input": [model.imageInputKey: dataURI, model.promptInputKey: prompt],
         ]
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
@@ -112,7 +114,7 @@ struct ReplicateVideoClient: AIVideoGenerating {
     /// `owner/name:hash`），body 里**没有 `model` 字段** —— 传 `{"model": …}` 会直接 422。
     /// 用字符串拼接而不是 `appendingPathComponent`：后者对含 `/` 的整串行为不保证。
     private func modelEndpoint() -> URL? {
-        let parts = model.split(separator: "/", maxSplits: 1)
+        let parts = model.id.split(separator: "/", maxSplits: 1)
         guard parts.count == 2, !parts[0].isEmpty, !parts[1].isEmpty else { return nil }
         return URL(string: "\(baseURL.absoluteString)/models/\(parts[0])/\(parts[1])/predictions")
     }
