@@ -11,9 +11,15 @@ import ApplicationServices
 ///
 /// ## 授权按需索取，启动绝不弹框
 /// global monitor 需要辅助功能授权，但**启动时不该为此弹窗**——那会让用户一打开 App 就被
-/// 索要一个他还没打算用的可选功能的权限。所以：启动只装 local monitor（前台可用，无需授权）；
-/// global monitor 仅在「用户在设置里开了开关」且已授权时才装，未授权则**在用户主动开开关时**
-/// 弹一次系统授权框。开关状态持久化在 `UserPreferenceKey.globalHotkeyEnabled`。
+/// 索要一个他还没打算用的可选功能的权限。所以：启动只装 global monitor（仅当已开开关且已授权）；
+/// 未授权则在用户主动开开关时弹一次系统授权框。开关状态持久化在 `UserPreferenceKey.globalHotkeyEnabled`。
+///
+/// ## App 前台的热键走菜单快捷键，不走本地 keyDown 监听
+/// 曾经用 `NSEvent.addLocalMonitorForEvents(.keyDown)` 处理 App 前台的 ⌥⌘S，实测它会把键盘
+/// 事件拦在投递链上，导致**设置 / AI 生成等 sheet 里的文本框光标在却打不了字**（用户实测，
+/// 且本 SDK 是 macOS 27 beta，本地监听对 sheet 文本框的事件投递有坑）。故前台 ⌥⌘S 改为
+/// `IHavenApp` 的菜单 `.keyboardShortcut`（走菜单键路，不拦事件链，正常打字不受影响）；
+/// 本类只保留后台用的 global monitor。`triggerShuffle()` 供菜单项调用。
 @MainActor
 final class GlobalHotkeyManager {
     static let shared = GlobalHotkeyManager()
@@ -22,7 +28,6 @@ final class GlobalHotkeyManager {
     /// 由装配点（`GlobalHotkeys.install`）注入，热键层不直接持有 ViewModel。
     var onShuffle: (() async -> String?)?
 
-    private var localMonitor: Any?
     private var globalMonitor: Any?
     private var isStarted = false
     private var activationObserver: NSObjectProtocol?
@@ -49,14 +54,7 @@ final class GlobalHotkeyManager {
         guard !isStarted else { return }
         isStarted = true
 
-        // local：App 前台即可用，无需授权，也不弹框。
-        localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self, self.matches(event) else { return event }
-            self.fire()
-            return nil   // 吞掉，避免 ⌥⌘S 同时触发系统「显示存储对话框」之类
-        }
-
-        // global：仅当「已开开关 + 已授权」才装。启动不弹授权框。
+        // 前台 ⌥⌘S 由 IHavenApp 的菜单快捷键负责（见类顶说明），这里只管后台的 global monitor。
         syncGlobalMonitor()
 
         // 用户去系统设置授权后返回 App：重新核对一次，尽量免重启补装 global monitor。
@@ -67,13 +65,17 @@ final class GlobalHotkeyManager {
     }
 
     func stop() {
-        if let localMonitor { NSEvent.removeMonitor(localMonitor); self.localMonitor = nil }
         removeGlobalMonitor()
         if let activationObserver {
             NSWorkspace.shared.notificationCenter.removeObserver(activationObserver)
             self.activationObserver = nil
         }
         isStarted = false
+    }
+
+    /// 菜单快捷键（⌥⌘S，App 前台）触发「换一张」。与 global monitor 的后台触发走同一动作。
+    func triggerShuffle() {
+        fire()
     }
 
     /// 设置里开 / 关全局热键。开启时若未授权，就地触发一次系统授权弹窗（按需索取）。

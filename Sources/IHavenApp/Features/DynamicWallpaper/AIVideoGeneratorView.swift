@@ -27,6 +27,7 @@ struct AIVideoGeneratorView: View {
                        symbol: "photo.on.rectangle.angled", tint: IHaven.Color.meta)
             } else {
                 sourcePicker
+                preview
                 promptField
                 if library.isGeneratingAI {
                     progressRow
@@ -37,9 +38,8 @@ struct AIVideoGeneratorView: View {
             }
         }
         .padding(IHaven.Space.s6.rawValue)
-        // 贴合内容的高度：AI 面板没有本地生成器的实时预览 + 参数滑块，内容约 375pt。
-        // 曾照抄本地器的 600 高，结果底部一大片空白、头轻脚轻（用户实测）。
-        .frame(width: 540, height: 440)
+        // 有源图预览 + 参数说明，内容约 560pt，面板贴合填充、不再大片空白。
+        .frame(width: 540, height: 560)
         .onAppear { if selected == nil { selected = library.images.first } }
         .confirmationDialog("将消耗一次 AI 生成额度，确定生成？",
                             isPresented: $confirmGenerate,
@@ -62,6 +62,30 @@ struct AIVideoGeneratorView: View {
             Spacer(minLength: 0)
             Button(action: onClose) { Image(systemName: "xmark") }.buttonStyle(.plain)
         }
+    }
+
+    /// 源图预览：把「要被动画化」的那张图按自身比例 fit 居中显示，确认选对了图，同时填满面板。
+    /// 固定 170pt 高档 + surfaceSunken 底（宽/高图各自留边）。**不 fill 裁切**——裁切会误导成
+    /// 「输出是这个比例」，而 AI 视频实际继承整图比例。
+    @ViewBuilder
+    private var preview: some View {
+        ZStack {
+            if let sel = selected, sel.width > 0, sel.height > 0 {
+                ThumbnailImage(url: URL(fileURLWithPath: sel.thumbnailPath))
+                    .aspectRatio(CGFloat(sel.width) / CGFloat(sel.height), contentMode: .fit)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                Text("选择上方一张图即可预览")
+                    .font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.meta)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 170)
+        .background(IHaven.Color.surfaceSunken,
+                    in: RoundedRectangle(cornerRadius: IHaven.Radius.md.rawValue, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: IHaven.Radius.md.rawValue, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: IHaven.Radius.md.rawValue, style: .continuous)
+            .stroke(IHaven.Color.borderSoft, lineWidth: 1))
     }
 
     private var sourcePicker: some View {

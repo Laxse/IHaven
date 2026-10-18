@@ -83,21 +83,39 @@ struct SettingsView: View {
         .background(IHaven.Color.bg)
     }
 
-    /// 侧栏分类（System Settings 同款 source list）。**为什么从横向 segmented 改成侧栏**：
-    /// 页签加到 9 个后，560px 宽的分段控件把标签横向挤爆、最后的「关于」被挤出边缘（用户实测）。
-    /// 竖向列表标签永不被挤，且能无限加分类，是 macOS 设置类面板在分类多时的标准形态。
+    /// 侧栏分类：竖向排列（9 个横向 segmented 会挤爆宽度，用户实测）。**不用 `List(selection:)`** ——
+    /// 它会抢占键盘焦点做 type-select，把按键从右侧 SecureField / TextField 手里抢走、导致打不了字
+    /// （用户实测）；改用普通按钮行，选中项给 accent 底色，观感同 source list 但不拦键盘。
     private var sidebar: some View {
-        List(selection: $tab) {
-            ForEach(SettingsTab.allCases) { item in
-                Text(item.label).tag(item)
+        ScrollView {
+            VStack(alignment: .leading, spacing: IHaven.Space.s1.rawValue) {
+                ForEach(SettingsTab.allCases) { item in
+                    sidebarRow(item)
+                }
             }
+            .padding(.vertical, IHaven.Space.s4.rawValue)
+            .padding(.horizontal, IHaven.Space.s3.rawValue)
         }
-        .listStyle(.sidebar)
-        .tint(IHaven.Color.accent)
-        .scrollContentBackground(.hidden)
         .background(IHaven.Color.bgChrome)
         .frame(width: 172)
         .frame(maxHeight: .infinity)
+    }
+
+    private func sidebarRow(_ item: SettingsTab) -> some View {
+        Button {
+            tab = item
+        } label: {
+            Text(item.label)
+                .font(IHaven.Font.system(.sm, tab == item ? IHaven.Font.weightEmphasize : IHaven.Font.weightRead))
+                .foregroundStyle(tab == item ? IHaven.Color.accentOn : IHaven.Color.fg)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, IHaven.Space.s4.rawValue)
+                .frame(height: 28)
+                .background(tab == item ? IHaven.Color.accent : SwiftUI.Color.clear,
+                            in: RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue, style: .continuous))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     /// 右侧详情：当前页签名作标题 + 可滚动内容 + 底部完成。

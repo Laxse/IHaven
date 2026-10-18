@@ -59,6 +59,10 @@ struct IHavenApp: App {
         // 点不到它，必须有一条不看鼠标的停止路径。
         .commands {
             CommandGroup(after: .windowArrangement) {
+                // ⌥⌘S 换一张：App 前台热键走菜单键路（不用本地 keyDown 监听——那份会拦事件链、
+                // 导致 sheet 里文本框打不了字，见 GlobalHotkeyManager 类顶说明）。后台用全局监听。
+                Button("换一张") { GlobalHotkeyManager.shared.triggerShuffle() }
+                    .keyboardShortcut("S", modifiers: [.command, .option])
                 Button("停止动态壁纸") { dynamicEngine.stop() }
                     .keyboardShortcut("K", modifiers: [.command, .shift])
                     .disabled(!dynamicEngine.isPlaying)
