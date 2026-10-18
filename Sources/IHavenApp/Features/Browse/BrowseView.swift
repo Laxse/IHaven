@@ -147,11 +147,9 @@ struct BrowseView: View {
         }
     }
 
-    /// 瀑布流统一网格项：网络项 + 本地导入项（PRD:697 要求两者同瀑布流展示，本地项有可区分标识）。
-    /// 本地项**不参与筛选与翻页** —— 筛选参数是 wallhaven 搜索参数，对本地文件无意义。
+    /// 瀑布流网格项：本地导入项只在「发现」混入，且排在最前。理由见 `browseGridItems`。
     private var gridItems: [WallpaperGridItem] {
-        viewModel.wallpapers.map(WallpaperGridItem.network)
-            + library.images.map(WallpaperGridItem.local)
+        browseGridItems(viewModel.wallpapers, local: library.images, mixLocal: nav == .discover)
     }
 
     @ViewBuilder

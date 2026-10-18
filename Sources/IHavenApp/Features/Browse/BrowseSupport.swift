@@ -221,6 +221,28 @@ func browseToastView(_ msg: String) -> some View {
 ///
 /// `Card` 走泛型而不是 `AnyView`：`MasonryView` 本身是 `MasonryView<Item, Content: View>`，
 /// 用 `some View` 包一层 `AnyView` 会让每个单元格多一次类型擦除，瀑布流是滚动热路径。
+/// 瀑布流网格项：本地导入项 + 网络项。
+///
+/// ## 为什么本地项只在「发现」混入
+/// PRD:697 的原话是「导入的图片与网络壁纸混合，**浏览**时两者在同一瀑布流展示」。而
+/// 风景 / 动漫 / 人物 是明确的 wallhaven 分类 + 关键词检索（`BrowseView.applyCategory`
+/// 下发 `q=nature` 等），用户的本地文件与这些查询毫无关系 —— 混进去等于污染检索结果，
+/// 用户会以为「搜出来的怎么有我自己电脑里的图」。本地项本就有独立的「导入…」页签做完整管理。
+///
+/// ## 为什么排在最前而不是末尾
+/// 网络结果是无限翻页**累加**的：原本拼在末尾，翻两页之后本地项就被推到几百张之外，
+/// 实际上永远滚不到，等于没展示。置于最前则恒可见，且本地项数量有限不会挤压浏览。
+///
+/// 本地项**不参与筛选与翻页** —— 筛选参数是 wallhaven 搜索参数，对本地文件无意义
+/// （文件头注释已记；若日后要改，应改成本地项也走同一套分辨率/比例过滤）。
+func browseGridItems(_ network: [Wallpaper],
+                     local: [ImportedWallpaper],
+                     mixLocal: Bool) -> [WallpaperGridItem] {
+    let online = network.map(WallpaperGridItem.network)
+    guard mixLocal else { return online }
+    return local.map(WallpaperGridItem.local) + online
+}
+
 @MainActor
 @ViewBuilder
 func browseSearchContent<Card: View>(viewModel: BrowseViewModel,
@@ -229,7 +251,9 @@ func browseSearchContent<Card: View>(viewModel: BrowseViewModel,
                                      @ViewBuilder card: @escaping (WallpaperGridItem) -> Card) -> some View {
     switch viewModel.presentedLoadState {
     case .loaded:
-        if viewModel.wallpapers.isEmpty {
+        // 用 `gridItems` 而不是 `viewModel.wallpapers` 判空：离线或搜索零结果时，网络列表是
+        // 空的但本地导入项仍在 —— 判后者会盖掉用户自己的图，给出「没有匹配的壁纸」的假空态。
+        if gridItems.isEmpty {
             browseEmptyState(title: "没有匹配的壁纸",
                              body: "当前筛选组合下没有结果。放宽分辨率或比例通常能找到更多。",
                              action: "清除全部筛选", onAction: onClearFilters)
