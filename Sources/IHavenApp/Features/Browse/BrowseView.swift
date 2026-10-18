@@ -133,6 +133,11 @@ struct BrowseView: View {
                                       onDiscover: { select(.discover) },
                                       onOpen: { detailSource = .applied; detail = Wallpaper(previewFrom: $0) },
                                       onMessage: { showToast($0) })
+            case .timeline:
+                AppliedTimelineView(viewModel: viewModel,
+                                   onDiscover: { select(.discover) },
+                                   onOpen: { detailSource = .applied; detail = Wallpaper(previewFrom: $0) },
+                                   onMessage: { showToast($0) })
             case .live:
                 DynamicWallpaperView(library: library, onMessage: { showToast($0) }, onDeleteRequest: { pendingDelete = $0 })
             case .import:
@@ -219,7 +224,7 @@ struct BrowseView: View {
         case .settings: openSettings(.apiKey); return
         // 「已设置」读本地记录，不发网络请求；落入 default 会走 reload 白打一次搜索。
         case .favorites: nav = .favorites; viewModel.loadFavorites(); return
-        case .wallpaperSet: nav = item; viewModel.loadApplied(); return
+        case .wallpaperSet, .timeline: nav = item; viewModel.loadApplied(); return
         case .live, .import: nav = item; return
         default: break
         }
@@ -250,6 +255,7 @@ struct BrowseView: View {
     private func reloadForNav() async {
         switch nav {
         case .favorites: viewModel.loadFavorites()
+        case .wallpaperSet, .timeline: viewModel.loadApplied()
         case .live, .import: break
         default: await viewModel.reload()
         }
