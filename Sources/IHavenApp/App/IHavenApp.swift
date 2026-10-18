@@ -26,9 +26,9 @@ struct IHavenApp: App {
     }
 
     var body: some Scene {
-        // id 与 `MenuBarPanelView.mainWindowID` 同源：面板的「打开主窗口」靠它定位，两处字符串
-        // 一旦漂移，`openWindow` 会静默什么都不做（不报错，最难查的那类失效）。
-        WindowGroup("IHaven", id: MenuBarPanelView.mainWindowID) {
+        // id 与 `MenuBarPanelView.mainWindowID` 同源；且必须是 `Window` 而不是 `WindowGroup`
+        // —— 后者的 id 标识「窗口组」，每次 open 都新开一个实例（详见该常量的注释）。
+        Window("IHaven", id: MenuBarPanelView.mainWindowID) {
             Group {
                 if let vm = browseViewModel, let library {
                     BrowseView(viewModel: vm, keyStore: keyStore, clipboard: clipboard,

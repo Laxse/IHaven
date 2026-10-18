@@ -14,8 +14,15 @@ import SwiftUI
 /// 版式：宽 320，水平内边距 12；分组之间 12、组内 8；底栏上方一条通栏 hairline。
 @MainActor
 struct MenuBarPanelView: View {
-    /// 主窗口 ID。`IHavenApp` 的 `WindowGroup` 与这里同源：漂移的后果是「打开主窗口」
+    /// 主窗口 ID。与 `IHavenApp` 的 `Window` 场景同源：漂移的后果是「打开主窗口」
     /// 静默失效（id 对不上时 `openWindow` 什么都不做，且不报错）。
+    ///
+    /// ## 为什么主窗口必须用 `Window` 而不是 `WindowGroup`
+    /// `WindowGroup` 是为文档型多窗口设计的，它的 `id` 标识的是**窗口组**而不是某个具体
+    /// 窗口 —— `openWindow(id:)` 每次调用都会**新开**一个实例。于是面板点几次「打开主窗口」
+    /// 就叠出几个一模一样的主窗口（每个都跑一份 `BrowseView`、各自发搜索请求）。同时 macOS
+    /// 会为 `WindowGroup` 自动往「窗口」菜单插一条「新建窗口」，用户从那里也能开出一堆。
+    /// `Window` 场景是单实例：重复 open 只会把已有的那个 activate 到前台。
     static let mainWindowID = "main"
 
     /// 主窗口的浏览状态。`bootstrap()` 完成前是 nil（`IHavenApp` 的 `@State`），故有 nil 分支。
