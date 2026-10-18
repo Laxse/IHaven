@@ -1,22 +1,42 @@
 import SwiftUI
 
-/// 设置 · AI 页签（#70，Plan B）：AI 图生视频的 Key 输入 + 成本与边界说明。
+/// 设置 · AI 页签（#70，Plan B）：AI 图生视频的 Key 输入 + 服务商 / 获取方式 / 成本边界。
 ///
 /// 与「密钥」页签同构（SecureField + 已配置/未配置 + 保存/清除），但服务商不同、Key 独立存储
 /// （`~/.ihaven/ai-key`，ADR-010 同机制）。核心差异是**成本**：每一次生成花的是用户 Key 的真金
-/// 白银，所以必须把「会计费」「需自备 Key」「内容合规自负」讲在明处。
+/// 白银，且要自备 Key，所以服务商是谁、Token 去哪拿、怎么计费，必须写在输入框旁边一眼可见。
 struct SettingsAITab: View {
     let store: KeyStore
 
     @State private var draft = ""
     @State private var savedHint = false
+    private let tokenURL = URL(string: "https://replicate.com/account/api-tokens")!
 
     var body: some View {
         VStack(alignment: .leading, spacing: IHaven.Space.s5.rawValue) {
             sectionTitle("AI 图生视频 Key")
-            Text("选一张本地静态图、写一句运动描述，AI 会生成一段短视频，IHaven 再把它逐帧本地化成动态壁纸。")
+            Text("选一张本地静态图、写一句运动描述，AI 生成一段 6 秒短视频，IHaven 再把它逐帧本地化成无缝循环的动态壁纸。")
                 .font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.muted)
                 .fixedSize(horizontal: false, vertical: true)
+
+            // 服务商 + 如何拿 Key：用户最容易卡在这一步，故放在输入框正上方。
+            VStack(alignment: .leading, spacing: IHaven.Space.s2.rawValue) {
+                HStack(spacing: 0) {
+                    Text("服务商：").foregroundStyle(IHaven.Color.fg2)
+                    Text("Replicate（replicate.com）· 模型 MiniMax video-01 · 约 $0.5 / 次")
+                        .foregroundStyle(IHaven.Color.fg)
+                }
+                HStack(spacing: 4) {
+                    Text("获取 Token：").foregroundStyle(IHaven.Color.fg2)
+                    Link(destination: tokenURL) {
+                        Text(verbatim: "replicate.com/account/api-tokens")
+                            .font(IHaven.Font.system(.sm))
+                            .foregroundStyle(IHaven.Color.accent)
+                    }
+                    Text("（r8_ 开头，注册即有一个默认 token）").foregroundStyle(IHaven.Color.meta)
+                }
+            }
+            .font(IHaven.Font.system(.sm))
 
             HStack(spacing: IHaven.Space.s4.rawValue) {
                 Circle().fill(isConfigured ? IHaven.Color.success : IHaven.Color.meta).frame(width: 8, height: 8)
@@ -35,15 +55,13 @@ struct SettingsAITab: View {
             }
 
             // 成本与边界：每一次生成都计费，且要自备 Key、联网、自负内容合规。
-            Label("每一次生成都会通过你的 Key 计费；未配置时「AI 生成」入口不可用。",
+            Label("API 调用需在 Replicate 绑卡计费；每一次生成都会扣你的额度。",
                   systemImage: "creditcard")
                 .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.warn)
                 .fixedSize(horizontal: false, vertical: true)
-            Text("需要能访问 AI 服务商的网络（与 wallhaven 一样，部分地区需 VPN）。生成内容受服务商安全策略约束，合规责任由你自负。")
+            Text("需能访问 replicate.com（部分地区需 VPN）；生成内容受服务商安全策略约束，合规责任由你自负。存储于 ~/.ihaven/ai-key（仅本机，不进日志）。")
                 .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
                 .fixedSize(horizontal: false, vertical: true)
-            Text("存储位置：~/.ihaven/ai-key（ADR-010）—— 仅存本机文件，绝不进日志与崩溃报告。")
-                .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
         }
         .onAppear { draft = store.currentKey }
     }

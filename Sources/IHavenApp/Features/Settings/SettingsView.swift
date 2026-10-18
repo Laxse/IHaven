@@ -81,7 +81,7 @@ struct SettingsView: View {
             Divider().overlay(IHaven.Color.border)
             footer
         }
-        .frame(width: 560, height: 460)
+        .frame(width: 560, height: 560)
         .background(IHaven.Color.bg)
     }
 

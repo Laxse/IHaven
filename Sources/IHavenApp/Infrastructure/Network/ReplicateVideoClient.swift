@@ -9,11 +9,11 @@ import UniformTypeIdentifiers
 /// 与「gated behind an optional key」的定位吻合。协议留了替换余地：换提供商只需再写一个
 /// `AIVideoGenerating` 实现，装配点换一行。
 ///
-/// ## ⚠️ 未真机验证的部分（首次真跑必须核对，勿直接信）
-/// 这里**无法真调**（无 Key、付费）。`model` 名与 `input` 字段名以官方文档为准，不同图生视频
-/// 模型的 schema 会有差异（有的收 `prompt`、有的收 `motion_prompt`，输出可能是字符串或数组）。
-/// 故解析端做了防御式处理（output 兼容字符串 / 数组），但 **model 常量与 input 键名需首次
-/// 用真 Key 跑通后确认**，与当初 wallhaven 端点要实测一遍同理。
+/// ## 端点 / 模型（已按官方文档核对，2026-10-18；未用真 Key 跑通）
+/// Replicate predictions API：`POST /v1/predictions`（`Prefer: wait` 同步等 ≤60s，超时转轮询
+/// `GET /v1/predictions/{id}`）。默认模型 `minimax/video-01`（Hailuo，图生视频，6s/720p，约 $0.5/次）：
+/// 入参 `first_frame_image`（底图，输出继承其宽高比）+ `prompt`；输出为**单个字符串 URI**（解析端
+/// 同时兼容字符串 / 数组）。端点形状以官方文档为准，但**尚未用真 Key 端到端跑通**——首次真跑需确认。
 struct ReplicateVideoClient: AIVideoGenerating {
     private let keyProvider: KeyProvider
     /// 默认模型：文本 + 图像条件化的图生视频。**可换** —— 换模型只改这一处 + 对应 input 键名。
@@ -37,7 +37,10 @@ struct ReplicateVideoClient: AIVideoGenerating {
 
         let body: [String: Any] = [
             "model": model,
-            "input": ["image": dataURI, "prompt": prompt],
+            // minimax/video-01 图生视频入参（已按 Replicate 官方 API 文档核对，2026-10-18）：
+            // first_frame_image = 底图（输出视频继承其宽高比）；prompt = 运动描述。
+            // ⚠️ 此前凭印象写的 "image" 是错的——该模型只认 first_frame_image。
+            "input": ["first_frame_image": dataURI, "prompt": prompt],
         ]
         var request = URLRequest(url: baseURL.appendingPathComponent("predictions"))
         request.httpMethod = "POST"
