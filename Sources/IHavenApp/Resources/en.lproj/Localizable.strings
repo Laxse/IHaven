@@ -318,3 +318,10 @@
 "已从相册移除" = "Removed from album";
 "已加入相册" = "Added to album";
 "相册" = "Albums";
+
+// MARK: - Rotation · per-display (#67)
+
+"相册（仅本地文件仍在的）" = "Album (local files only)";
+"选择相册" = "Album";
+"目标屏" = "Target display";
+"还没有相册，先到侧栏「相册」创建。" = "No albums yet — create one in the Albums sidebar first.";

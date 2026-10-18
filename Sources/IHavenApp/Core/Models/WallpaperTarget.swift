@@ -16,9 +16,15 @@ import Foundation
 enum WallpaperTarget {
     /// 用户选择的显示器；`nil` = 主屏（默认，或「上次选的屏已不在」时的回退）。
     static func resolveScreen() -> NSScreen? {
-        let saved = UserDefaults.standard.integer(forKey: UserPreferenceKey.wallpaperTargetDisplay)
-        guard saved != 0 else { return nil }
-        let wanted = CGDirectDisplayID(bitPattern: Int32(saved))
+        resolveScreen(displayID: UserDefaults.standard.integer(forKey: UserPreferenceKey.wallpaperTargetDisplay))
+    }
+
+    /// 按 `CGDirectDisplayID` 解析屏幕；`0` = 主屏（返回 nil，交由 engine 用主屏）。
+    /// 轮换规则按屏分类（#67）用这个重载 —— 每条规则各自带 `targetDisplay`，
+    /// 不再共用全局「设壁纸目标屏」。屏已拔掉时返回 nil，engine 回退主屏。
+    static func resolveScreen(displayID: Int) -> NSScreen? {
+        guard displayID != 0 else { return nil }
+        let wanted = CGDirectDisplayID(bitPattern: Int32(displayID))
         return NSScreen.screens.first { ($0.cgDirectDisplayID ?? kCGNullDirectDisplay) == wanted }
     }
 

@@ -114,6 +114,15 @@ final class GRDBWallpaperDatabase: WallpaperDatabase {
                 t.primaryKey(["albumId", "wallpaperId"])
             }
         }
+        // v7：轮换规则支持「按屏分类」（#67）——每条规则各自指定目标屏，并可指定相册来源。
+        // targetDisplay 存 CGDirectDisplayID（0 = 主屏）；albumId 仅 source='album' 时有效。
+        // ALTER ADD COLUMN 带默认值，老库的行自动补 0 / NULL，无需回填。
+        migrator.registerMigration("v7") { db in
+            try db.alter(table: "schedule") { t in
+                t.add(column: "targetDisplay", .integer).notNull().defaults(to: 0)
+                t.add(column: "albumId", .text)
+            }
+        }
         try migrator.migrate(pool)
         self.db = pool
         // 裁剪产物清理（ADR-018 清理策略）：删掉不被「已设置」记录引用的孤儿裁剪件，防止磁盘堆积。

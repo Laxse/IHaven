@@ -54,6 +54,11 @@ final class WallpaperScheduler {
         (try? database?.schedules()) ?? []
     }
 
+    /// 全部相册（设置 · 轮换页签的「相册来源」下拉用）。相册 CRUD 走 `WallpaperDatabase` 协议。
+    func allAlbums() -> [Album] {
+        (try? database?.albums()) ?? []
+    }
+
     func save(_ schedule: WallpaperSchedule) {
         try? database?.addSchedule(schedule)
         reschedule()
@@ -141,7 +146,7 @@ final class WallpaperScheduler {
 
     /// 取下一张候选；顺序模式推进游标，随机模式避开上一张。
     private func nextCandidate(for schedule: inout WallpaperSchedule) -> ImportedWallpaper? {
-        var pool = pool(for: schedule)
+        let pool = pool(for: schedule)
         guard !pool.isEmpty else { return nil }
         var index: Int
         switch schedule.order {
@@ -198,6 +203,25 @@ final class WallpaperScheduler {
                     width: record.width, height: record.height,
                     duration: nil, fileSize: 0, addedAt: record.appliedAt)
             }
+        case .album:
+            // 相册成员（Favorite）同样不带本地路径，与收藏同思路：只轮换其中「已设置历史里下过、
+            // 本地文件仍在」的成员（约束 1/2：不联网、失效即剔除）。UI 标注清楚。
+            guard let albumID = schedule.albumID,
+                  let members = try? database.albumItems(albumId: albumID),
+                  let applied = try? database.applied() else { return [] }
+            let memberIDs = Set(members.map(\.id))
+            return applied.compactMap { record -> ImportedWallpaper? in
+                guard memberIDs.contains(record.id),
+                      FileManager.default.fileExists(atPath: record.localPath) else { return nil }
+                return ImportedWallpaper(
+                    id: record.id,
+                    fileName: record.id,
+                    filePath: record.localPath,
+                    thumbnailPath: record.thumbnailURL?.path ?? record.localPath,
+                    kind: .image,
+                    width: record.width, height: record.height,
+                    duration: nil, fileSize: 0, addedAt: record.appliedAt)
+            }
         }
     }
 
@@ -206,7 +230,7 @@ final class WallpaperScheduler {
         try? database?.updateSchedule(schedule)
         do {
             try engine?.setWallpaper(fileURL: URL(fileURLWithPath: item.filePath),
-                                    for: WallpaperTarget.resolveScreen(),
+                                    for: WallpaperTarget.resolveScreen(displayID: schedule.targetDisplay),
                                     mode: WallpaperTarget.fillMode(),
                                     // ImportedWallpaper 不存主色，用中性回退。
                                     fillColor: WallpaperTarget.neutralFillColor())

@@ -18,11 +18,13 @@ struct SettingsScheduleTab: View {
 
     @State private var schedules: [WallpaperSchedule] = []
     @State private var editing: WallpaperSchedule?
+    /// 相册来源下拉用（#67）。列表态汇总行也要用它把 albumID 还原成相册名。
+    @State private var albums: [Album] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: IHaven.Space.s6.rawValue) {
             if let editing {
-                ScheduleEditorView(draft: editing) { saved in
+                ScheduleEditorView(draft: editing, albums: albums) { saved in
                     scheduler.save(saved)
                     self.editing = nil
                     reload()
@@ -106,6 +108,7 @@ struct SettingsScheduleTab: View {
 
     private func reload() {
         schedules = scheduler.allSchedules()
+        albums = scheduler.allAlbums()
     }
 
     private func defaultName() -> String {
@@ -127,8 +130,12 @@ struct SettingsScheduleTab: View {
         case .imported: source = String(localized: "本地导入")
         case .applied: source = String(localized: "已设置")
         case .favorites: source = String(localized: "收藏")
+        case .album:
+            source = albums.first { $0.id == schedule.albumID }?.name ?? String(localized: "相册")
         }
-        return "\(trigger) · 来源：\(source)"
+        let screen = WallpaperTarget.screenOptions().first { $0.id == schedule.targetDisplay }?.title
+            ?? String(localized: "主屏")
+        return "\(trigger) · 来源：\(source) · \(screen)"
     }
 }
 
@@ -136,6 +143,7 @@ struct SettingsScheduleTab: View {
 /// 而 `WallpaperSchedule` 是值类型，必须靠 `@State` + `Binding` 驱动。
 private struct ScheduleEditorView: View {
     @State var draft: WallpaperSchedule
+    let albums: [Album]
     let onSave: (WallpaperSchedule) -> Void
     let onCancel: () -> Void
 
@@ -169,8 +177,42 @@ private struct ScheduleEditorView: View {
                 Text("本地导入").tag(WallpaperSchedule.Source.imported)
                 Text("已设置（含已下载的）").tag(WallpaperSchedule.Source.applied)
                 Text("收藏（仅已下载的）").tag(WallpaperSchedule.Source.favorites)
+                Text("相册（仅本地文件仍在的）").tag(WallpaperSchedule.Source.album)
             }
             .pickerStyle(.menu)
+            // 切到相册来源却还没选具体相册时，默认落到第一个相册（否则存下来是一条空转的规则）。
+            .onChange(of: draft.source) { _, newValue in
+                if newValue == .album, draft.albumID == nil { draft.albumID = albums.first?.id }
+            }
+
+            if draft.source == .album {
+                if albums.isEmpty {
+                    Text("还没有相册，先到侧栏「相册」创建。")
+                        .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.warn)
+                } else {
+                    Picker("选择相册", selection: $draft.albumID) {
+                        ForEach(albums) { album in
+                            Text(album.name).tag(album.id as String?)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+            }
+
+            // 目标屏（#67 按屏分类）：每条规则各自指定写到哪块屏，0 = 主屏。
+            Picker("目标屏", selection: $draft.targetDisplay) {
+                ForEach(WallpaperTarget.screenOptions()) { option in
+                    Text(option.title).tag(option.id)
+                }
+            }
+            .pickerStyle(.menu)
+            // 多屏写入的著名静默失败：没开「显示器具有单独 Spaces」时只生效一块屏（要注销重登）。
+            // 选非主屏时提前提示，避免用户以为规则坏了。
+            if draft.targetDisplay != 0, WallpaperTarget.needsSeparateSpacesWarning() {
+                Text("未开启「显示器具有单独 Spaces」，多屏壁纸可能只在一块屏生效。请在系统设置 ▸ 桌面与程序坞中开启（修改后需注销重新登录）。")
+                    .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.warn)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             Picker("顺序", selection: $draft.order) {
                 Text("随机").tag(WallpaperSchedule.Order.random)

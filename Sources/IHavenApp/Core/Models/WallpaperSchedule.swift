@@ -21,6 +21,11 @@ public struct WallpaperSchedule: Codable, Sendable, Identifiable, Equatable {
     public var weekdays: [Int]
 
     public var source: Source
+    /// 目标屏（`CGDirectDisplayID`；`0` = 主屏）。每条规则各自指定，实现多屏分类轮换（#67）：
+    /// 同一条来源可拆成「客厅屏放风景相册 / 书房屏放工作相册」两条规则，互不干扰。
+    public var targetDisplay: Int
+    /// `source == .album` 时有效：轮换哪个相册的成员；其余来源为 nil。
+    public var albumID: String?
     public var order: Order
     /// 顺序轮换的游标。**必须落库** —— 否则 App 重启后每次都从头开始。
     public var cursor: Int
@@ -40,6 +45,8 @@ public struct WallpaperSchedule: Codable, Sendable, Identifiable, Equatable {
         case applied
         /// 本地导入（`Application Support`，不会被系统回收）—— 最稳的来源。
         case imported
+        /// 某个本地相册（F-组织）里**本地文件仍在**的成员；具体相册由 `albumID` 指定。
+        case album
     }
 
     public enum Order: String, Codable, Sendable, CaseIterable {
@@ -56,6 +63,8 @@ public struct WallpaperSchedule: Codable, Sendable, Identifiable, Equatable {
                 endMinute: Int = 1080,
                 weekdays: [Int] = [],
                 source: Source = .imported,
+                targetDisplay: Int = 0,
+                albumID: String? = nil,
                 order: Order = .random,
                 cursor: Int = 0,
                 lastRunAt: Date? = nil,
@@ -70,6 +79,8 @@ public struct WallpaperSchedule: Codable, Sendable, Identifiable, Equatable {
         self.endMinute = endMinute
         self.weekdays = weekdays
         self.source = source
+        self.targetDisplay = targetDisplay
+        self.albumID = albumID
         self.order = order
         self.cursor = cursor
         self.lastRunAt = lastRunAt

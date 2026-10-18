@@ -18,15 +18,17 @@ extension GRDBWallpaperDatabase {
             try db.execute(sql: """
                 INSERT OR REPLACE INTO schedule
                 (id, name, isEnabled, mode, intervalMinutes, startMinute, endMinute,
-                 weekdays, sourceKind, orderMode, cursor, lastRunAt, lastWallpaperID, createdAt)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                 weekdays, sourceKind, orderMode, cursor, lastRunAt, lastWallpaperID, createdAt,
+                 targetDisplay, albumId)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """,
                 arguments: [schedule.id, schedule.name, schedule.isEnabled, schedule.mode.rawValue,
                             schedule.intervalMinutes, schedule.startMinute, schedule.endMinute,
                             schedule.weekdays.map { String($0) }.joined(separator: ","),
                             schedule.source.rawValue, schedule.order.rawValue, schedule.cursor,
                             schedule.lastRunAt?.timeIntervalSince1970, schedule.lastWallpaperID,
-                            schedule.createdAt.timeIntervalSince1970])
+                            schedule.createdAt.timeIntervalSince1970,
+                            schedule.targetDisplay, schedule.albumID])
         }
     }
 
@@ -45,6 +47,8 @@ extension GRDBWallpaperDatabase {
                     weekdays: (row["weekdays"] as String?)
                         .map { $0.split(separator: ",").compactMap { Int($0) } } ?? [],
                     source: WallpaperSchedule.Source(rawValue: row["sourceKind"]) ?? .imported,
+                    targetDisplay: row["targetDisplay"],
+                    albumID: row["albumId"],
                     order: WallpaperSchedule.Order(rawValue: row["orderMode"]) ?? .random,
                     cursor: row["cursor"],
                     lastRunAt: (row["lastRunAt"] as Double?).map { Date(timeIntervalSince1970: $0) },
