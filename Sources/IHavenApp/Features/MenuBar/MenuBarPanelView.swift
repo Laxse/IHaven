@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 菜单栏面板（PRD F3）：搜索 / 上一张 / 下一张 / 换一张 / 收藏夹入口 + 当前壁纸 + 打开主窗口。
+/// 菜单栏面板（PRD F3）：当前壁纸 / 搜索 / 上一张 / 下一张 / 换一张 / 收藏 + 打开主窗口。
 ///
 /// ⚠️ 三条必须守住的约束（每条都对应一个真实失效模式）：
 /// 1. **状态不自建**。`viewModel` / `library` 就是主窗口那两个实例，由 `IHavenApp` 注入。
@@ -10,6 +10,8 @@ import SwiftUI
 ///    样式渲染的是 NSMenuItem 宿主，`TextField` 落不了焦。
 /// 3. **自己挂 `.appLocale()` 与 `preferredColorScheme`**：被呈现的子树不跟随根视图的环境更新，
 ///    理由见 `Core/Theme/View+Locale.swift:15-20`。
+///
+/// 版式：宽 320，水平内边距 12；分组之间 12、组内 8；底栏上方一条通栏 hairline。
 @MainActor
 struct MenuBarPanelView: View {
     /// 主窗口 ID。`IHavenApp` 的 `WindowGroup` 与这里同源：漂移的后果是「打开主窗口」
@@ -26,17 +28,20 @@ struct MenuBarPanelView: View {
     @State private var queryText = ""
     /// 「上一张 / 下一张」在 `viewModel.wallpapers` 内的游标。结果集换了会被夹回范围内。
     @State private var cursor = 0
-    /// 内联状态行。**面板看不到主窗口的 toast**（两个独立 scene，toast 挂在主窗口 overlay 上），
-    /// 设壁纸的结果必须自己显示出来，否则点「下一张」没有任何反馈。
-    @State private var status: String?
+    /// 内联状态行。成功 / 失败分色（`PanelStatus`），不再共用中性色。
+    @State private var status: PanelStatus?
     @State private var isBusy = false
+    /// 搜索框聚焦态：驱动描边换 accent（凹陷可输入 vs 凸起可点，靠这个区分）。
+    @FocusState private var searchFocused: Bool
 
-    /// 面板宽度。PRD F3 未给菜单栏线稿，取能容下 4 张收藏缩略图 + 搜索框的最小可读宽度。
-    private static let width: CGFloat = 300
+    /// 面板宽度。300 → 320：操作行改成「1 主 + 2 图标」后需要呼吸空间，
+    /// 且让 4 个 1:1 收藏格落在 68pt（(320 − 24 − 3×8) ÷ 4）这个舒适尺寸上。
+    private static let width: CGFloat = 320
     /// 收藏一次显示几条：面板是高频快捷入口，不是收藏管理器，多了要滚动。
     private static let favoriteLimit = 4
-    /// 搜索框与操作按钮共用的外形（design token `Radius.sm`）。
-    private static let fieldShape = RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue)
+    /// 收藏格边长：面板内宽减去两侧 12 与 3 个 8 间距后四等分。
+    private static let favoriteTileSize =
+        (width - IHaven.Space.s5.rawValue * 2 - IHaven.Space.s4.rawValue * 3) / 4
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -70,11 +75,15 @@ struct MenuBarPanelView: View {
             currentWallpaper(vm)
             searchField(vm)
             actions(vm)
-            statusLine
+            if let status { panelStatusLine(status) }
             favorites(vm)
+            // 通栏 hairline：两侧不再各加 padding，让底栏与上部分组分得更清楚。
             Rectangle().fill(IHaven.Color.border).frame(height: 1)
             footer
         }
+        // 顶部内边距挂在这里而不是卡片上：没有「已设置」记录时卡片整块不渲染，
+        // 挂卡片上就会让面板顶部贴边（搜索框顶到菜单栏面板的上边缘）。
+        .padding(.top, IHaven.Space.s5.rawValue)
         // 面板每次展开都刷新：`favorites` / `applied` 是惰性数组，不拉就是空的。
         .task { refresh(vm) }
     }
@@ -83,135 +92,93 @@ struct MenuBarPanelView: View {
     @ViewBuilder
     private func currentWallpaper(_ vm: BrowseViewModel) -> some View {
         if let item = vm.applied.first {
-            HStack(spacing: IHaven.Space.s4.rawValue) {
-                thumb(item.thumbnailURL, width: 56, height: 36)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("当前壁纸").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
-                    Text(item.resolutionText ?? item.id)
-                        .font(IHaven.Font.system(.sm, IHaven.Font.weightEmphasize))
-                        .foregroundStyle(IHaven.Color.fg)
-                        .lineLimit(1)
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, IHaven.Space.s5.rawValue)
-            .padding(.vertical, IHaven.Space.s4.rawValue)
+            PanelCurrentCard(item: item) { openMainWindow() }
+                .padding(.horizontal, IHaven.Space.s5.rawValue)
+                .padding(.bottom, IHaven.Space.s5.rawValue)
         }
     }
 
+    /// 搜索框：`surfaceSunken` 底 + 无描边 = 凹陷可输入；聚焦时才描 accent 边。
     private func searchField(_ vm: BrowseViewModel) -> some View {
-        HStack(spacing: 6) {
+        let shape = RoundedRectangle(cornerRadius: IHaven.Radius.md.rawValue, style: .continuous)
+        return HStack(spacing: IHaven.Space.s3.rawValue) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 11))
+                .font(.system(size: 12))
                 .foregroundStyle(IHaven.Color.meta)
             TextField("搜索壁纸、标签、上传者", text: $queryText)
                 .textFieldStyle(.plain)
+                .focused($searchFocused)
                 .onSubmit { submit(vm) }
         }
         .padding(.horizontal, IHaven.Space.s4.rawValue)
-        .frame(height: 28)
-        .background(IHaven.Color.surface, in: Self.fieldShape)
-        .overlay(Self.fieldShape.stroke(IHaven.Color.border))
+        .frame(height: 32)
+        .background(IHaven.Color.surfaceSunken, in: shape)
+        .overlay(shape.stroke(searchFocused ? IHaven.Color.accent : Color.clear, lineWidth: 1))
+        .animation(IHaven.Motion.fast, value: searchFocused)
         .padding(.horizontal, IHaven.Space.s5.rawValue)
         .padding(.bottom, IHaven.Space.s4.rawValue)
     }
 
     private func actions(_ vm: BrowseViewModel) -> some View {
-        HStack(spacing: IHaven.Space.s3.rawValue) {
-            panelButton("上一张", systemImage: "chevron.left",
-                        disabled: vm.wallpapers.isEmpty || isBusy) { step(-1, vm) }
-            panelButton("下一张", systemImage: "chevron.right",
-                        disabled: vm.wallpapers.isEmpty || isBusy) { step(1, vm) }
-            panelButton("换一张", systemImage: "shuffle", disabled: isBusy) { shuffle(vm) }
+        let empty = vm.wallpapers.isEmpty
+        return HStack(spacing: IHaven.Space.s3.rawValue) {
+            PanelIconButton(systemImage: "chevron.left",
+                            help: empty ? LocalizedStringKey("先在主窗口搜索或浏览，才有可切换的结果集")
+                                        : LocalizedStringKey("上一张"),
+                            disabled: empty || isBusy) { step(-1, vm) }
+            PanelIconButton(systemImage: "chevron.right",
+                            help: empty ? LocalizedStringKey("先在主窗口搜索或浏览，才有可切换的结果集")
+                                        : LocalizedStringKey("下一张"),
+                            disabled: empty || isBusy) { step(1, vm) }
+            PanelShuffleButton(busy: isBusy) { shuffle(vm) }
         }
         .padding(.horizontal, IHaven.Space.s5.rawValue)
-        .padding(.bottom, IHaven.Space.s4.rawValue)
+        .padding(.bottom, IHaven.Space.s5.rawValue)
     }
 
-    @ViewBuilder
-    private var statusLine: some View {
-        if isBusy {
-            HStack(spacing: 6) {
-                ProgressView().controlSize(.small)
-                Text("正在设置…").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.muted)
-            }
-            .padding(.horizontal, IHaven.Space.s5.rawValue)
-            .padding(.bottom, IHaven.Space.s4.rawValue)
-        } else if let status {
-            Text(status)
-                .font(IHaven.Font.system(.xs))
-                // 成功 / 失败共用一行且都中性色：拿不到结构化错误，用警示色会把成功文案也染红。
-                .foregroundStyle(IHaven.Color.muted)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, IHaven.Space.s5.rawValue)
-                .padding(.bottom, IHaven.Space.s4.rawValue)
-        }
-    }
-
+    /// 收藏。**为空时整块不渲染**：一行「还没有收藏」要占 40pt，只为传达「没有内容」，
+    /// 面板是快捷入口，这个信息不值 40pt。
     @ViewBuilder
     private func favorites(_ vm: BrowseViewModel) -> some View {
-        VStack(alignment: .leading, spacing: IHaven.Space.s3.rawValue) {
-            Text("收藏").font(IHaven.Font.system(.xs, IHaven.Font.weightEmphasize))
-                .foregroundStyle(IHaven.Color.meta)
-            if vm.favorites.isEmpty {
-                Text("还没有收藏").font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.muted)
-            } else {
-                HStack(spacing: 6) {
+        if !vm.favorites.isEmpty {
+            VStack(alignment: .leading, spacing: IHaven.Space.s4.rawValue) {
+                Text("收藏")
+                    .font(IHaven.Font.system(.xs, IHaven.Font.weightEmphasize))
+                    .foregroundStyle(IHaven.Color.meta)
+                HStack(spacing: IHaven.Space.s4.rawValue) {
                     ForEach(Array(vm.favorites.prefix(Self.favoriteLimit))) { fav in
-                        Button { applyFavorite(fav, vm) } label: {
-                            thumb(fav.thumbnailURL, width: 60, height: 38).contentShape(Rectangle())
+                        PanelFavoriteTile(favorite: fav, size: Self.favoriteTileSize) {
+                            applyFavorite(fav, vm)
                         }
-                        .buttonStyle(.plain)
-                        .help("设为壁纸")
                     }
                     Spacer(minLength: 0)
                 }
             }
+            .padding(.horizontal, IHaven.Space.s5.rawValue)
+            .padding(.bottom, IHaven.Space.s5.rawValue)
         }
-        .padding(.horizontal, IHaven.Space.s5.rawValue)
-        .padding(.bottom, IHaven.Space.s4.rawValue)
     }
 
+    /// 底栏。层级只靠字重 + 色阶：不再用 `IHaven.Color.focus`（那是焦点环语义色，
+    /// 亮色态是 #1B6FC4 蓝，跟全 App 的琥珀 accent 不是一个色相，看着像系统默认超链接）。
     private var footer: some View {
         HStack(spacing: IHaven.Space.s5.rawValue) {
             Button(action: openMainWindow) {
-                Text("打开主窗口").font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.focus)
+                Text("打开主窗口")
+                    .font(IHaven.Font.system(.sm, IHaven.Font.weightEmphasize))
+                    .foregroundStyle(IHaven.Color.fg)
             }
             .buttonStyle(.plain)
             Spacer(minLength: 0)
             Button { NSApp.terminate(nil) } label: {
-                Text("退出 IHaven").font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.muted)
+                Text("退出 IHaven")
+                    .font(IHaven.Font.system(.sm))
+                    .foregroundStyle(IHaven.Color.muted)
             }
             .buttonStyle(.plain)
         }
         .padding(.horizontal, IHaven.Space.s5.rawValue)
-        .padding(.vertical, IHaven.Space.s4.rawValue)
-    }
-
-    /// 缩略图小卡（当前壁纸 / 收藏格共用）：统一圆角 + hairline 描边。
-    private func thumb(_ url: URL?, width: CGFloat, height: CGFloat) -> some View {
-        let shape = RoundedRectangle(cornerRadius: IHaven.Radius.sm.rawValue, style: .continuous)
-        return ThumbnailImage(url: url)
-            .frame(width: width, height: height)
-            .clipShape(shape)
-            .overlay(shape.stroke(IHaven.Color.borderSoft, lineWidth: 1))
-    }
-
-    private func panelButton(_ title: LocalizedStringKey, systemImage: String,
-                             disabled: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
-                Image(systemName: systemImage).font(.system(size: 10))
-                Text(title).font(IHaven.Font.system(.sm, IHaven.Font.weightEmphasize))
-            }
-            .frame(height: 28)
-            .frame(maxWidth: .infinity)
-            .background(IHaven.Color.surface, in: Self.fieldShape)
-            .overlay(Self.fieldShape.stroke(IHaven.Color.border))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .disabled(disabled)
+        .padding(.vertical, IHaven.Space.s5.rawValue)
     }
 
     // MARK: - 行为
@@ -239,8 +206,10 @@ struct MenuBarPanelView: View {
 
     /// 在当前结果集内按游标移动，越界回绕。
     private func step(_ delta: Int, _ vm: BrowseViewModel) {
+        // 兜底：按钮在结果集为空时已经 disabled，正常走不到这里。留着是防「点下去之后
+        // 结果集被并发清空」这个窗口 —— 那时下标会直接越界崩，而不是给一句提示。
         guard !vm.wallpapers.isEmpty else {
-            status = String(localized: "还没有搜索结果，先在主窗口浏览或搜索。")
+            status = .failed(String(localized: "还没有搜索结果，先在主窗口浏览或搜索。"))
             return
         }
         let count = vm.wallpapers.count
@@ -258,7 +227,7 @@ struct MenuBarPanelView: View {
         } else if let item = library?.images.randomElement() {
             applyLocal(item)
         } else {
-            status = String(localized: "没有可换的壁纸，先在主窗口浏览或搜索。")
+            status = .failed(String(localized: "没有可换的壁纸，先在主窗口浏览或搜索。"))
         }
     }
 
@@ -288,7 +257,11 @@ struct MenuBarPanelView: View {
     /// 约定：`nil` = 成功，非 nil = `error.localizedDescription`（与主窗口 toast 同一口径）。
     private func finish(_ result: String?) {
         isBusy = false
-        status = result ?? String(localized: "已设为壁纸")
+        if let result {
+            status = .failed(result)
+        } else {
+            status = .ok(String(localized: "已设为壁纸"))
+        }
     }
 
     /// 与 `IHavenApp.appearanceScheme` 同逻辑：面板是独立 scene，不继承主窗口的 `preferredColorScheme`。

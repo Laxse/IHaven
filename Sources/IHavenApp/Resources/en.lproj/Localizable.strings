@@ -222,6 +222,7 @@
 "当前壁纸" = "Current Wallpaper";
 "还没有搜索结果，先在主窗口浏览或搜索。" = "No results yet. Browse or search in the main window first.";
 "没有可换的壁纸，先在主窗口浏览或搜索。" = "Nothing to shuffle. Browse or search in the main window first.";
+"先在主窗口搜索或浏览，才有可切换的结果集" = "Search or browse in the main window first — there's no result set to flip through yet.";
 
 // MARK: - Wallpaper placement (PRD F2)
 
