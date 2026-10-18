@@ -257,10 +257,14 @@ struct MenuBarPanelView: View {
     /// 约定：`nil` = 成功，非 nil = `error.localizedDescription`（与主窗口 toast 同一口径）。
     private func finish(_ result: String?) {
         isBusy = false
-        if let result {
-            status = .failed(result)
-        } else {
-            status = .ok(String(localized: "已设为壁纸"))
+        let next: PanelStatus = result.map(PanelStatus.failed) ?? .ok(String(localized: "已设为壁纸"))
+        status = next
+        // 3 秒后自动收起。面板一旦展开就会一直开着（不像 toast 浮在上面会自己消失），
+        // 一条绿色的「已设为壁纸」留在那里会变成常驻的过期状态，下次打开还以为刚设过。
+        // 同一口径见 `BrowseView.showToast`：睡醒后先比对文案，中途有新的结果就不清。
+        Task {
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            if status?.text == next.text { status = nil }
         }
     }
 
