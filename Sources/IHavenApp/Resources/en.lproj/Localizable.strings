@@ -3,7 +3,9 @@
  开发语言是简体中文：所有 key 就是界面上的中文原文。zh-Hans 下即便查不到也回退显示 key 本身（即中文），
  因此这里只需要给出英文一份。改动界面文案时，中文改代码里的字面量，英文改本文件 —— 两边 key 必须一致。
 */
+
 // MARK: - 侧栏导航 / 工具栏
+
 "发现" = "Discover";
 "风景" = "Scenery";
 "动漫" = "Anime";
@@ -22,7 +24,9 @@
 "结果不完整（未配置 Key）" = "Incomplete results (no API key)";
 "API 调用已达上限，约 %lld 秒后恢复" = "API call limit reached — resuming in about %llds";
 "正在等待 API 限流恢复（约 %lld 秒）" = "Waiting for the API rate limit to reset (about %llds)";
+
 // MARK: - 筛选面板
+
 "分类" = "Category";
 "全部" = "All";
 "纯度" = "Purity";
@@ -45,7 +49,9 @@
 "收藏最多" = "Most Favorited";
 "随机" = "Random";
 "清除全部" = "Clear All";
+
 // MARK: - 空态 / 错误 / 反馈
+
 "没有匹配的壁纸" = "No matching wallpapers";
 "当前筛选组合下没有结果。放宽分辨率或比例通常能找到更多。" = "No results for the current filters. Relaxing the resolution or aspect ratio usually finds more.";
 "清除全部筛选" = "Clear All Filters";
@@ -59,7 +65,9 @@
 "已重新设为壁纸" = "Reapplied as wallpaper";
 "重新设为壁纸" = "Set as wallpaper again";
 "从已设置中移除" = "Remove from Applied";
+
 // MARK: - 壁纸详情页（/wall/:id）
+
 "设为壁纸" = "Set as Wallpaper";
 "正在设置…" = "Setting…";
 "下载原图" = "Download Original";
@@ -77,7 +85,9 @@
 "显示 / 隐藏信息栏" = "Show or Hide the Inspector";
 "这张图暂时取不回来" = "This image can't be fetched right now";
 "重试" = "Retry";
+
 // MARK: - 设置面板
+
 "密钥" = "API Key";
 "外观" = "Appearance";
 "内容" = "Content";
@@ -110,17 +120,23 @@
 "Mock（免 VPN）" = "Mock (no VPN needed)";
 "Wallhaven 在线服务" = "Wallhaven online service";
 "完成" = "Done";
+
 // MARK: - 设置 · 内容（NSFW 开关，ADR-012）
+
 "成人内容" = "Adult Content";
 "默认关闭。开启后，筛选面板的 NSFW 档位才允许勾选，结果中可能包含裸露、暴力或色情等不适合在工作场合浏览的内容。" = "Off by default. Turning it on unlocks the NSFW tier in the filter panel; results may then include nudity, violence or pornography — content not suitable for viewing in the workplace.";
 "允许成人内容（NSFW）" = "Allow adult content (NSFW)";
 "已开启" = "On";
 "已关闭" = "Off";
 "需先在设置 · 内容中启用" = "Enable it first in Settings · Content";
+
 // MARK: - 工具栏筛选 chip（拼接型，用 String(localized:) 取用）
+
 "比例: %@" = "Ratio: %@";
 "色: #%@" = "Color: #%@";
+
 // MARK: - 网络 / 系统错误（String(localized:) 取用）
+
 "API Key 失效（401，唯一含义：Key 无效）" = "API key rejected (401 — the only meaning: the key is invalid)";
 "这是 NSFW 壁纸，需要 API Key 才能查看。请在设置中填写 API Key 后重试" = "This is an NSFW wallpaper, which requires an API key. Add your API key in Settings, then try again";
 "非 HTTP 响应" = "Non-HTTP response";
@@ -130,14 +146,18 @@
 "网络错误：%@" = "Network error: %@";
 "这张壁纸已不存在，可能已被作者或站点下架。返回列表看看其它壁纸" = "This wallpaper no longer exists — it may have been removed by its uploader or by the site. Go back to the list to browse others";
 "请求太频繁，已触发每分钟 45 次的调用上限。请稍候再试" = "Too many requests — the 45 calls per minute limit was reached. Wait a moment and try again";
+
 // MARK: - 设置面板 · 关于（AppInfo）
+
 "仓库" = "Repository";
 "作者" = "Author";
 "联系方式" = "Contact";
 "微信" = "WeChat";
 "复制" = "Copy";
 "已复制" = "Copied";
+
 // MARK: - 本地导入 / 动态壁纸（F8 / F9，ADR-015）
+
 "本地图片" = "Local Images";
 "选择文件…" = "Choose Files…";
 "从访达拖入你自己的图片文件" = "Drag your own image files from Finder";
@@ -190,7 +210,9 @@
 "没有未使用的帧序列" = "No unused frame sequences";
 "清理未使用的" = "Clean Up Unused";
 "已清理" = "Cleaned";
+
 // MARK: - Menu Bar Panel (F3)
+
 "打开主窗口" = "Open Main Window";
 "退出 IHaven" = "Quit IHaven";
 "上一张" = "Previous";
@@ -200,7 +222,9 @@
 "还没有搜索结果，先在主窗口浏览或搜索。" = "No results yet. Browse or search in the main window first.";
 "没有可换的壁纸，先在主窗口浏览或搜索。" = "Nothing to shuffle. Browse or search in the main window first.";
 "先在主窗口搜索或浏览，才有可切换的结果集" = "Search or browse in the main window first — there's no result set to flip through yet.";
+
 // MARK: - Wallpaper placement (PRD F2)
+
 "壁纸" = "Wallpaper";
 "所有「设为壁纸」按钮共用这两项；填充色优先取壁纸自身的主色。" = "Shared by every Set as Wallpaper action. The fill color prefers the wallpaper's own dominant color.";
 "主屏" = "Main Display";
@@ -209,7 +233,9 @@
 "填充（铺满屏幕，可能裁边）" = "Fill (covers the screen, may crop)";
 "未开启「显示器具有单独 Spaces」，多屏壁纸可能只在一块屏生效。请在系统设置 ▸ 桌面与程序坞中开启（修改后需注销重新登录）。" = "\"Displays have separate Spaces\" is off, so multi-display wallpapers may only apply to one screen. Turn it on in System Settings ▸ Desktop & Dock (requires logging out and back in).";
 "只能设置本地图片作为壁纸" = "Only local images can be set as wallpaper";
+
 // MARK: - 裁剪选框（竖图黑边）
+
 "裁剪选框" = "Crop Selection";
 "%@ · 已锁定屏幕比例" = "%@ · Locked to Screen Aspect";
 "裁剪后 · %lld × %lld" = "Cropped · %lld × %lld";
@@ -224,7 +250,9 @@
 "裁剪…" = "Crop…";
 "裁剪并设置" = "Crop and Set";
 "原图下载失败，请重试" = "Couldn't download the original image. Please try again.";
+
 // MARK: - Performance Guard (PRD F10)
+
 "性能" = "Performance";
 "自动暂停" = "Auto-Pause";
 "动态壁纸播放时命中下列条件会自动暂停；条件解除后约 3 秒恢复。暂停只停帧计时，桌面层窗口保留。" = "While a dynamic wallpaper plays, hitting any of these pauses it; it resumes about 3 seconds after the condition clears. Pausing only stops the frame timer — the desktop windows stay up.";
@@ -242,7 +270,9 @@
 "本机没有电池" = "This Mac has no battery";
 "已由护栏自动暂停" = "Auto-paused by the guard";
 "采样只在设置面板打开时进行（1 秒一次，getrusage 实测 0.0004ms/次，可忽略）。" = "Sampling only runs while this panel is open (once per second; getrusage measured at 0.0004 ms per call — negligible).";
+
 // MARK: - Rotation Schedule (PRD F13)
+
 "轮换" = "Rotation";
 "还没有轮换规则。新建后，壁纸会按时间或间隔自动更换。" = "No rotation rules yet. Create one and your wallpaper will change on a schedule.";
 "App 退出期间不会轮换；来源不含网络搜索（避免消耗 wallhaven 的每分钟 45 次调用上限）。" = "Rotation stops when the app quits. Sources never include web search, so the wallhaven 45-calls-per-minute budget is untouched.";
@@ -266,12 +296,16 @@
 "顺序" = "Order";
 "按顺序" = "Sequential";
 "离线模式 · 已浏览的壁纸仍可设为壁纸" = "Offline · wallpapers you've already viewed can still be set";
+
 // MARK: - Storage · crop cache (ADR-018 cleanup policy)
+
 "裁剪缓存" = "Crop cache";
 "时间线" = "Timeline";
 "由「裁剪后设为壁纸」生成的图片。清理只删除不被「已设置」记录引用的裁剪件，当前使用的壁纸不受影响。" = "Images produced by cropping before setting. Cleanup removes only crop files not referenced by any “Applied” record; the wallpaper currently in use is never touched.";
 "没有未使用的裁剪件" = "No unused crop files";
+
 // MARK: - Albums (F-组织)
+
 "加入相册" = "Add to Album";
 "新建相册" = "New Album";
 "新建相册…" = "New album…";
@@ -284,14 +318,20 @@
 "已从相册移除" = "Removed from album";
 "已加入相册" = "Added to album";
 "相册" = "Albums";
+
 // MARK: - Rotation · per-display (#67)
+
 "相册（仅本地文件仍在的）" = "Album (local files only)";
 "选择相册" = "Album";
 "目标屏" = "Target display";
 "还没有相册，先到侧栏「相册」创建。" = "No albums yet — create one in the Albums sidebar first.";
+
 // MARK: - Global hotkey (#68)
+
 "换一张（⌥⌘S）" = "Shuffle (⌥⌘S)";
+
 // MARK: - AI image-to-video (#70, Plan B)
+
 "AI" = "AI";
 "AI 图生视频 Key" = "AI Video Key";
 "获取 Token：" = "Get a token:";
@@ -317,21 +357,29 @@
 "AI 未返回视频，请重试。" = "AI returned no video — try again.";
 "API Key" = "API Key";
 "已生成并开始播放" = "Generated — now playing";
+
 // MARK: - Global hotkey (#68)
+
 "快捷键" = "Shortcuts";
 "全局热键" = "Global Hotkey";
 "⌥⌘S 一键「换一张」，App 不在前台也能用。默认关闭；开启需在「系统设置 ▸ 隐私与安全性 ▸ 辅助功能」中授权 IHaven。" = "⌥⌘S shuffles to a new wallpaper even when IHaven is in the background. Off by default; turning it on asks you to grant Accessibility in System Settings ▸ Privacy & Security.";
 "启用 ⌥⌘S 全局换一张" = "Enable ⌥⌘S global shuffle";
 "尚未获得辅助功能授权，全局热键暂不可用（App 前台时仍可用）。去系统设置授权后返回即生效。" = "Accessibility not granted yet — the global hotkey is unavailable (still works while IHaven is frontmost). Grant it in System Settings; it takes effect when you come back.";
+
 // MARK: - Keyboard focus self-check (can't-type triage)
+
 "键盘焦点自检" = "Keyboard focus self-check";
 "App 未激活 · 按键会发给上一个 App" = "App not active · keystrokes go to the previous app";
 "App 已激活 · 但当前没有 key 窗口" = "App active · but no key window";
 "App 已激活 · 主窗口是 key 窗口" = "App active · main window is key";
+
 // MARK: - AI generator panel (layout rework + 422 message)
+
 "AI 服务拒绝了这次请求：%@" = "The AI service rejected this request: %@";
 "尺寸" = "Size";
+
 // MARK: - AI multi-model (#70, Replicate aggregation layer)
+
 "选一张本地静态图、写一句运动描述，AI 生成一段短视频，IHaven 再把它逐帧本地化成无缝循环的动态壁纸。" = "Pick a local still image, describe the motion, and the AI generates a short clip; IHaven then turns it into seamless-looping frames on your Mac.";
 "一套 Key 可调用多家的模型（MiniMax / 阿里万相 / 快手可灵 / 字节 Seedance / Google Veo / 生数 Vidu），在生成面板里选，不必逐个申请。" = "One key covers models from many vendors (MiniMax / Alibaba Wan / Kuaishou Kling / ByteDance Seedance / Google Veo / ShengShu Vidu). Pick one in the generator panel — no separate signup per model.";
 "模型" = "Model";
