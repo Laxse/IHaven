@@ -12,18 +12,19 @@ struct BrowseView: View {
     /// （PRD 附录 A-6b），两个页签只是按 `kind` 过滤出不同子集。
     @Bindable var library: LocalLibraryViewModel
 
-    @State private var showFilter = false
-    @State private var showSettings = false
+    @State var showFilter = false
+    @State var showSettings = false
     /// 打开设置时落在哪个页签（点筛选面板里锁定的 NSFW 档 → 直接到「内容」）。
-    @State private var settingsTab: SettingsTab = .apiKey
+    @State var settingsTab: SettingsTab = .apiKey
     @State private var showSidebar = true
-    @State private var nav: NavItem = .discover
+    @State var nav: NavItem = .discover
     @State var toast: String?
     /// 详情页：非 nil 即进入二级页面（`←` / `→` 在结果集内切换）。
-    @State private var detail: Wallpaper?
+    @State var detail: Wallpaper?
     /// 详情页来源：决定 `←` / `→` 在哪一列里切换，以及「设为壁纸」的落库口径。
-    private enum DetailSource { case wallpapers, favorites, applied }
-    @State private var detailSource: DetailSource = .wallpapers
+    /// `internal` 而非 `private`：`BrowseView+Navigation.swift` 要为 `detailSource` 写值。
+    enum DetailSource { case wallpapers, favorites, applied }
+    @State var detailSource: DetailSource = .wallpapers
     /// 全窗口**唯一**的删除确认：瀑布流本地项 / 导入页 / 动态壁纸页三处共用。
     /// 三处各自挂 `.alert` 会彼此竞争并被父级 `.sheet` 抑制（子视图模态被抢占），
     /// 表现就是「点了删除按钮什么都没发生」；收敛到一处后确认语义也天然一致。
@@ -235,61 +236,4 @@ struct BrowseView: View {
         }
     }
 
-    // MARK: - 行为
-
-    private func select(_ item: NavItem) {
-        // [!] **切分类必须先收起详情页**：详情页是盖在 `mainArea` 上的 overlay（见 `mainArea`
-        // 的注释），不是 if/else 二选一。只改 `nav` 的话底层换了、overlay 还在 ——
-        // 表现就是「点了左边分类，界面没变，还停在详情页」（用户实测，2026-10-19）。
-        // 所有导航分支都要走，包括 return 的那些（收藏 / 已设置 / 相册里也能进详情）。
-        detail = nil
-        detailSource = .wallpapers
-        switch item {
-        case .settings: openSettings(.apiKey); return
-        // 「已设置」读本地记录，不发网络请求；落入 default 会走 reload 白打一次搜索。
-        case .favorites: nav = .favorites; viewModel.loadFavorites(); return
-        case .wallpaperSet, .timeline: nav = item; viewModel.loadApplied(); return
-        case .albums: nav = item; viewModel.loadAlbums(); return
-        case .live, .import: nav = item; return
-        default: break
-        }
-        nav = item
-        applyCategory(item)
-        // 换分类是**新的一次搜索**：page 必须回到 1。留着旧页码会以「第 5 页」去查新分类，
-        // 结果要么为空要么对不上。
-        viewModel.query.page = 1
-        Task { await viewModel.reload() }
-    }
-
-    private func applyCategory(_ item: NavItem) {
-        switch item {
-        case .discover: viewModel.query.categories = .all; viewModel.query.q = ""
-        case .landscape: viewModel.query.categories = .general; viewModel.query.q = "nature"
-        case .anime: viewModel.query.categories = .anime; viewModel.query.q = ""
-        case .people: viewModel.query.categories = .people; viewModel.query.q = ""
-        default: break
-        }
-    }
-
-    private func clearFilters() { viewModel.clearFilters(); Task { await reloadForNav() } }
-
-    /// 打开设置面板并落在指定页签；须先收起筛选 popover（它会盖住 sheet，并存还会抢焦点）。
-    private func openSettings(_ tab: SettingsTab) {
-        showFilter = false
-        settingsTab = tab
-        showSettings = true
-    }
-
-    private func reloadForNav() async {
-        switch nav {
-        case .favorites: viewModel.loadFavorites()
-        case .wallpaperSet, .timeline: viewModel.loadApplied()
-        case .albums: viewModel.loadAlbums()
-        case .live, .import: break
-        default: await viewModel.reload()
-        }
-    }
-
-    private func setWallpaper(_ wp: Wallpaper) { Task { showToast((await viewModel.setAsWallpaper(wp)) ?? String(localized: "已设为壁纸")) } }
-    private func setWallpaperFromFavorite(_ fav: Favorite) { Task { showToast((await viewModel.setWallpaperFromFavorite(fav)) ?? String(localized: "已设为壁纸")) } }
 }
