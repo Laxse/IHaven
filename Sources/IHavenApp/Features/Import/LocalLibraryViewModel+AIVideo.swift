@@ -9,12 +9,16 @@ import SwiftUI
 /// （都是 `kind: .animation` + `Animations/<uuid>/frame-*.jpg`），播放都走同一个引擎。
 extension LocalLibraryViewModel {
     /// AI 生成是否可用（三个依赖都装配了；Preview / 降级装配下为 false）。
-    var isAIAvailable: Bool { aiVideo != nil && videoFrames != nil && aiKey != nil }
+    var isAIAvailable: Bool { aiVideo != nil && videoFrames != nil && aiKeys != nil }
 
-    /// AI Key 是否已配置（驱动入口的「去设置」引导）。
+    /// 当前**选中厂商**的 Key 是否已配置（驱动入口的「去设置」引导）。
+    ///
+    /// 必须按厂商现查：每家的 Key 是独立文件，若读一个固定实例，会把 A 厂的 Key 当成
+    /// B 厂「已配置」—— 用户切了厂商却还能点生成，然后收到一个 401。
     var isAIKeyConfigured: Bool {
-        guard let aiKey else { return false }
-        return !aiKey.currentKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        guard let aiKeys else { return false }
+        let key = aiKeys.keyProvider(for: AIVideoVendorCatalog.selected().id).currentKey
+        return !key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     /// 静态图 + 运动描述 → AI 图生视频 MP4 → AVFoundation 抽帧 → 落库为动态壁纸项。

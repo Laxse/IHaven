@@ -33,8 +33,11 @@ enum UserPreferenceKey {
     /// 由用户在设置 ▸ 快捷键里按需开启（开启时才弹一次系统授权框）。
     static let globalHotkeyEnabled = "ihaven.globalHotkeyEnabled"
 
-    // MARK: - AI 图生视频（#70 多模型）
+    // MARK: - AI 图生视频（#70 多厂商）
 
-    /// 选中的模型：`AIVideoModel.id`（Replicate 的 owner/name）。缺省回落到目录里的默认模型。
+    /// 当前选中的 AI 厂商（#70 多厂商）；值来自 `AIVideoVendor.id`。
+    static let aiVideoVendor = "ihaven.aiVideoVendor"
+    /// 选中的模型：`AIVideoModel.id`（厂商自己的模型名，**非**全局唯一，只在厂商内有意义）。
+    /// 缺省或不属于当前厂商时，回落当前厂商的第一个模型 —— 见 `AIVideoVendorCatalog.selectedModel()`。
     static let aiVideoModel = "ihaven.aiVideoModel"
 }

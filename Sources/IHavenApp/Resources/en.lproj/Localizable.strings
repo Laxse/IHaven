@@ -334,10 +334,6 @@
 
 "AI" = "AI";
 "AI 图生视频 Key" = "AI Video Key";
-"获取 Token：" = "Get a token:";
-"（r8_ 开头，注册即有一个默认 token）" = "(starts with r8_; a default one exists right after signup)";
-"API 调用需在 Replicate 绑卡计费；每一次生成都会扣你的额度。" = "API calls need a card on file with Replicate; every generation draws on your balance.";
-"需能访问 replicate.com（部分地区需 VPN）；生成内容受服务商安全策略约束，合规责任由你自负。存储于 ~/.ihaven/ai-key（仅本机，不进日志）。" = "Requires network access to replicate.com (VPN in some regions); generated content is subject to the provider's safety policy and compliance is on you. Stored at ~/.ihaven/ai-key (local only, never logged).";
 "AI 生成动态壁纸" = "Generate Dynamic Wallpaper with AI";
 "图生视频 · 本地逐帧化 · 计费" = "Image-to-video · frame-localized · billed";
 "当前构建未启用 AI 生成。" = "This build has AI generation disabled.";
@@ -378,24 +374,46 @@
 "AI 服务拒绝了这次请求：%@" = "The AI service rejected this request: %@";
 "尺寸" = "Size";
 
-// MARK: - AI multi-model (#70, Replicate aggregation layer)
+// MARK: - AI direct-to-vendor (#70)
 
 "选一张本地静态图、写一句运动描述，AI 生成一段短视频，IHaven 再把它逐帧本地化成无缝循环的动态壁纸。" = "Pick a local still image, describe the motion, and the AI generates a short clip; IHaven then turns it into seamless-looping frames on your Mac.";
-"一套 Key 可调用多家的模型（MiniMax / 阿里万相 / 快手可灵 / 字节 Seedance / Google Veo / 生数 Vidu），在生成面板里选，不必逐个申请。" = "One key covers models from many vendors (MiniMax / Alibaba Wan / Kuaishou Kling / ByteDance Seedance / Google Veo / ShengShu Vidu). Pick one in the generator panel — no separate signup per model.";
+"厂商" = "Vendor";
+"Google（Veo）" = "Google (Veo)";
+"MiniMax（海螺）" = "MiniMax (Hailuo)";
+"生数 Vidu" = "ShengShu Vidu";
+"阿里百炼（万相）" = "Alibaba Bailian (Wan)";
+"火山方舟（Seedance）" = "Volcano Ark (Seedance)";
+"快手可灵" = "Kuaishou Kling";
+"按秒计费（Fast 档约 $0.10/秒）· 需能访问 Google 服务" = "Billed per second (Fast tier about $0.10/s) · needs access to Google services";
+"国内直连 · 按次计费 · 生成约 1~3 分钟" = "Direct in mainland China · per-run billing · 1-3 min per generation";
+"国内直连 · 按次计费 · 最长 16 秒" = "Direct in mainland China · per-run billing · up to 16s";
+"国内直连 · 按次计费 · 需开通百炼" = "Direct in mainland China · per-run billing · Bailian must be enabled";
+"国内直连 · 按 token 计费 · 需先开通模型" = "Direct in mainland China · billed per token · enable the model first";
+"国内直连 · 按次计费" = "Direct in mainland China · per-run billing";
+"获取 Key：" = "Get a key:";
+"在 Google AI Studio 里 Create API key，AIza… 开头" = "Create an API key in Google AI Studio; starts with AIza…";
+"控制台 ▸ 接口密钥，eyJ… 开头的 JWT 或长串" = "Console ▸ API keys; a JWT starting with eyJ…";
+"控制台 ▸ API Key，复制后直接粘贴" = "Console ▸ API Key; copy and paste it here";
+"控制台 ▸ API-KEY，sk- 开头" = "Console ▸ API-KEY; starts with sk-";
+"控制台 ▸ API Key 管理，一串 UUID" = "Console ▸ API key management; a UUID string";
+"控制台 ▸ API 密钥，复制长钥直接粘贴" = "Console ▸ API secret; copy the long key and paste it here";
 "模型" = "Model";
-"Hailuo video-01（MiniMax）" = "Hailuo video-01 (MiniMax)";
-"6 秒 · 720p · 约 $0.5/次 · IHaven 默认" = "6s · 720p · about $0.5 per run · IHaven default";
-"万相 2.7（阿里）" = "Wan 2.7 (Alibaba)";
-"1080p · 开源模型里最省 · 支持首尾帧" = "1080p · cheapest among open models · first/last frame control";
-"可灵 2.5 Turbo Pro（快手）" = "Kling 2.5 Turbo Pro (Kuaishou)";
-"1080p · 约 $0.07/秒 · 画面最稳" = "1080p · about $0.07/s · most stable motion";
-"Seedance 2.0 Fast（字节）" = "Seedance 2.0 Fast (ByteDance)";
-"带原生音频 · 生成快 · 效果强" = "Native audio · fast · strong results";
-"Veo 3.1 Fast（Google）" = "Veo 3.1 Fast (Google)";
-"带原生音频 · 质量标杆 · 约 $0.08/秒 起" = "Native audio · quality benchmark · from about $0.08/s";
-"Vidu Q3 Pro（生数）" = "Vidu Q3 Pro (ShengShu)";
-"最长 16 秒 · 1080p · 带音频" = "Up to 16s · 1080p · with audio";
-"默认模型" = "Default model";
+"Veo 3.1" = "Veo 3.1";
+"质量标杆 · 约 $0.40/秒" = "Quality benchmark · about $0.40/s";
+"Veo 3.1 Fast" = "Veo 3.1 Fast";
+"更快更省 · 约 $0.10/秒" = "Faster and cheaper · about $0.10/s";
+"Hailuo H3" = "Hailuo H3";
+"6 秒 · 1080p" = "6s · 1080p";
+"Vidu Q3 Pro" = "Vidu Q3 Pro";
+"1080p · 带音频" = "1080p · with audio";
+"万相 2.5 图生视频" = "Wan 2.5 image-to-video";
+"1080p · 支持首帧" = "1080p · first-frame control";
+"Seedance 2.0" = "Seedance 2.0";
+"带音频 · 生成快" = "With audio · fast generation";
+"可灵 3.0" = "Kling 3.0";
+"1080p · 画面最稳" = "1080p · most stable motion";
 "生成面板里也能改，两处同步。" = "You can also change it in the generator panel — both stay in sync.";
-"接口方：" = "API provider:";
-"Replicate（replicate.com）· 固定不变，Key 与计费都走它" = "Replicate (replicate.com) · fixed: your key and billing both go through it";
+"%@ 的调用按你的 Key 计费；每一次生成都会扣你的额度。" = "Calls to %@ are billed to your key; every generation draws on your balance.";
+"Key 存于 ~/.ihaven/ai-key-%@（仅本机，不进日志）。" = "Stored at ~/.ihaven/ai-key-%@ (local only, never logged).";
+"换厂商和 Key 在设置 ▸ AI" = "Switch vendor and keys in Settings ▸ AI";
+"尚未配置 %@ 的 Key，请在设置 ▸ AI 中填写后再生成。" = "No key for %@ yet — add one in Settings ▸ AI before generating.";

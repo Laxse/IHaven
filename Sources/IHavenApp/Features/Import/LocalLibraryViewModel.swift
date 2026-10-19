@@ -40,7 +40,9 @@ final class LocalLibraryViewModel {
     /// 可选依赖，未装配（Preview / 降级）时 AI 不可用；实现在 AppAssembly 注入，Feature 只见协议。
     let aiVideo: AIVideoGenerating?
     let videoFrames: VideoFrameExtracting?
-    let aiKey: KeyProvider?
+    /// 按厂商取 AI Key 的解析入口（#70 多厂商直连）：Key 是否已配置要问**当前选中那家**，
+    /// 故不能像 wallhaven 那样注入一个固定的 `KeyProvider`。
+    let aiKeys: AIVendorKeyProviding?
     /// AI 生成中 / 上次失败文案；AIVideo extension 要写，故 internal。
     var isGeneratingAI = false
     var aiErrorMessage: String?
@@ -54,7 +56,7 @@ final class LocalLibraryViewModel {
          renderer: AnimationRendering,
          aiVideo: AIVideoGenerating? = nil,
          videoFrames: VideoFrameExtracting? = nil,
-         aiKey: KeyProvider? = nil) {
+         aiKeys: AIVendorKeyProviding? = nil) {
         self.importer = importer
         self.panel = panel
         self.database = database
@@ -63,7 +65,7 @@ final class LocalLibraryViewModel {
         self.renderer = renderer
         self.aiVideo = aiVideo
         self.videoFrames = videoFrames
-        self.aiKey = aiKey
+        self.aiKeys = aiKeys
         dynamicEngine.onStateChange = { [weak self] in
             Task { @MainActor in self?.syncDynamicState() }
         }

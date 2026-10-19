@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 /// AI 图生视频面板（#70，Plan B）：选一张本地静态图 + 写一句运动描述 → AI 生成短视频 →
@@ -14,8 +15,15 @@ struct AIVideoGeneratorView: View {
     @State private var prompt = ""
     @State private var confirmGenerate = false
     @FocusState private var promptFocused: Bool
-    /// 选中的模型（聚合层：一套 Key 跑多个模型）。持久化 —— 下一次打开仍是这个。
-    @AppStorage(UserPreferenceKey.aiVideoModel) private var modelID = AIVideoModelCatalog.fallback.id
+    /// 选中的厂商与模型（#70 多厂商直连：模型挂在厂商下，Key 也按厂商分）。持久化 ——
+    /// 下一次打开仍是这个。厂商在这里只读不说：换厂商要去设置里配那家的 Key。
+    @AppStorage(UserPreferenceKey.aiVideoVendor) private var vendorID = AIVideoVendorCatalog.fallback.id
+    @AppStorage(UserPreferenceKey.aiVideoModel) private var modelID = AIVideoVendorCatalog.fallback.models[0].id
+
+    private var vendor: AIVideoVendor { AIVideoVendorCatalog.vendor(id: vendorID) }
+    /// 下拉的选中项：偏好里存的 id 可能属于上一家，回落当前厂商的第一个（与
+    /// `AIVideoVendorCatalog.selectedModel()` 同口径）。
+    private var model: AIVideoModel { vendor.models.first { $0.id == modelID } ?? vendor.models[0] }
 
     var body: some View {
         VStack(alignment: .leading, spacing: IHaven.Space.s5.rawValue) {
@@ -23,7 +31,8 @@ struct AIVideoGeneratorView: View {
             if !library.isAIAvailable {
                 banner("当前构建未启用 AI 生成。", symbol: "exclamationmark.triangle", tint: IHaven.Color.warn)
             } else if !library.isAIKeyConfigured {
-                banner("尚未配置 AI Key，请在设置 ▸ AI 中填写后再生成。", symbol: "key", tint: IHaven.Color.warn)
+                // 点名当前厂商：每家 Key 独立，说「没配 AI Key」用户会不知道该去申请哪一家。
+                banner(missingKeyText, symbol: "key", tint: IHaven.Color.warn)
             } else if library.images.isEmpty {
                 banner("先在「本地图片」页签导入一张静态图，AI 才能把它变成动态壁纸。",
                        symbol: "photo.on.rectangle.angled", tint: IHaven.Color.meta)
@@ -38,9 +47,10 @@ struct AIVideoGeneratorView: View {
             }
         }
         .padding(IHaven.Space.s6.rawValue)
-        // 约 600pt（标题 46 + 选图 108 + 预览 150 + 模型 42 + 描述 92 + 底栏 32 + 间距 80 + 内边距 48）。
-        // 620 多出的 20pt 由 Spacer 吃掉：底栏被顶到下沿，错误文案折行也不会溢出。
-        .frame(width: 540, height: 620)
+        // 高度**必须跟着内容收**：三道前置门任一未过时只显示「标题 + 一句提示」，
+        // 固定 620 会在提示下面留一大片空白（用户实测截图，看着像加载失败）。
+        // 620 → 660：模型区上方多了一行「厂商 + 去哪改」，原高度会把底部按钮挤出面板。
+        .frame(width: 540, height: hasAllPreconditions ? 660 : 260)
         .onAppear { if selected == nil { selected = library.images.first } }
         .confirmationDialog("将消耗一次 AI 生成额度，确定生成？",
                             isPresented: $confirmGenerate,
@@ -53,6 +63,18 @@ struct AIVideoGeneratorView: View {
     }
 
     // MARK: - 零件
+
+    /// 三道前置门（构建装配 / 已配 Key / 库里有静态图）是否全过。只有全过才需要整块面板。
+    private var hasAllPreconditions: Bool {
+        library.isAIAvailable && library.isAIKeyConfigured && !library.images.isEmpty
+    }
+
+    /// 厂商名是运行时才拿到的 lproj key，故走 `NSLocalizedString`；拼好再查表会查不到 key、
+    /// 静默回退成中文，故先取本地化格式串再 `String(format:)` 填参。
+    private var missingKeyText: String {
+        String(format: String(localized: "尚未配置 %@ 的 Key，请在设置 ▸ AI 中填写后再生成。"),
+               NSLocalizedString(vendor.nameKey, comment: "AI 厂商名"))
+    }
 
     private var header: some View {
         HStack {
@@ -133,20 +155,29 @@ struct AIVideoGeneratorView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    /// 模型选择。聚合层的价值就在这：一套 Replicate Key 跑多个厂商的模型，换模型不换 Key。
+    /// 厂商（只读展示）+ 该厂商下的模型。
+    ///
+    /// **厂商为什么只读**：换厂商就要换那家的 Key，而填 Key 在设置里；这里给一行「当前是谁 +
+    /// 去哪改」就够了，不在生成面板上开第二个配置入口（两个入口改同一份偏好最易出分叉）。
     /// 规格 / 单价写在下拉下面的那一行 —— 计费功能必须让用户点之前就知道花多少。
     private var modelRow: some View {
         VStack(alignment: .leading, spacing: IHaven.Space.s2.rawValue) {
             HStack(spacing: IHaven.Space.s3.rawValue) {
+                Text("厂商").font(IHaven.Font.system(.sm, IHaven.Font.weightEmphasize)).foregroundStyle(IHaven.Color.fg2)
+                Text(LocalizedStringKey(vendor.nameKey)).font(IHaven.Font.system(.sm)).foregroundStyle(IHaven.Color.fg)
+                Text("换厂商和 Key 在设置 ▸ AI").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
+            }
+            HStack(spacing: IHaven.Space.s3.rawValue) {
                 Text("模型").font(IHaven.Font.system(.sm, IHaven.Font.weightEmphasize)).foregroundStyle(IHaven.Color.fg2)
+                // 只列当前厂商的模型：模型 id 只在厂商内有意义，跨厂商列出来会发出 404。
                 Picker("", selection: $modelID) {
-                    ForEach(AIVideoModelCatalog.all) { model in
-                        Text(LocalizedStringKey(model.nameKey)).tag(model.id)
+                    ForEach(vendor.models) { item in
+                        Text(LocalizedStringKey(item.nameKey)).tag(item.id)
                     }
                 }
                 .pickerStyle(.menu).labelsHidden().frame(width: 240)
             }
-            Text(LocalizedStringKey(AIVideoModelCatalog.model(id: modelID).noteKey))
+            Text(LocalizedStringKey(model.noteKey))
                 .font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
                 .fixedSize(horizontal: false, vertical: true)
         }

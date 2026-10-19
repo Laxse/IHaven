@@ -78,9 +78,10 @@ times a day.
 
 - Turn any static image into a locally rendered dynamic wallpaper (breathe / pan / push-in, seamless
   loop). No video file is involved — frames are rendered on your Mac as a JPEG sequence
-- **AI-generated motion (optional)** — give a local image plus a motion prompt to an AI image-to-video
-  service (your own API key in Settings ▸ AI) and IHaven turns the clip into a dynamic wallpaper.
-  Each generation is billed to your key; the local, offline generation above stays free (see ADR-019)
+- **AI-generated motion (optional)** — pick one of six image-to-video vendors (Google Veo, MiniMax
+  Hailuo, Vidu, Alibaba Wan, Volcano Seedance, Kuaishou Kling), add that vendor's own API key in
+  Settings ▸ AI, and IHaven turns the clip into a dynamic wallpaper. Each vendor is billed against
+  its own key; the local, offline generation above stays free (see ADR-019)
 - Performance guard: auto-pauses when the frontmost app is full screen, on low battery, or in Low
   Power Mode, with a visible CPU / memory readout
 

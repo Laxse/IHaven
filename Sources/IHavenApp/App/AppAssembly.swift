@@ -38,12 +38,13 @@ enum AppAssembly {
             engine: engine,
             dynamicEngine: dynamicEngine,
             renderer: AnimationRenderer(),
-            // AI 图生视频（#70，Plan B）：Feature 只见 Core 协议，具体实现在此装配。
-            // Key 用 `AIKeyStore.shared` 单例 —— 与设置面板（写）同一实例，存完即刻生效。
+            // AI 图生视频（#70 多厂商直连）：Feature 只见 Core 协议，具体实现在此装配。
+            // `VendorVideoClient` 内部按当前选中厂商挑策略、按选中模型挑模型名；Key 由
+            // `AIKeyStore.shared` 单例按厂商解析 —— 与设置面板（写）同一实例，存完即刻生效。
             // 未配 Key 时生成入口自会提示去设置，不影响其它功能。
-            aiVideo: ReplicateVideoClient(keyProvider: AIKeyStore.shared),
+            aiVideo: VendorVideoClient(keyResolver: AIKeyStore.shared),
             videoFrames: AVFoundationFrameExtractor(),
-            aiKey: AIKeyStore.shared
+            aiKeys: AIKeyStore.shared
         )
         let browseViewModel = BrowseViewModel(
             client: client,

@@ -31,9 +31,6 @@ struct SettingsView: View {
     var performance: PerformanceGuard = .shared
     /// 轮换日程执行器。同为 App 级单例（已由 `IHavenApp.bootstrap()` configure 过）。
     var schedule: WallpaperScheduler = .shared
-    /// AI 图生视频的 Key 存储（#70）。App 级单例默认值 —— 与 `schedule` / `performance` 同一套路：
-    /// 设置面板（写）与生成客户端（读）必须持有同一实例，故取 shared 而非各 new 一个。
-    var aiStore: KeyStore = AIKeyStore.shared
     /// 打开时落在哪个页签（筛选面板里点灰置的 NSFW 档会直接跳到「内容」页签）。
     var initialTab: SettingsTab = .apiKey
     var onSaved: () -> Void
@@ -145,7 +142,8 @@ struct SettingsView: View {
             case .performance: SettingsPerformanceTab(guardProvider: performance)
             case .schedule: SettingsScheduleTab(scheduler: schedule)
             case .shortcut: SettingsShortcutTab()
-            case .ai: SettingsAITab(store: aiStore)
+            // AI 页签自己按厂商从 `AIKeyStore.shared` 取 Key（每家一个文件），不在这里注入。
+            case .ai: SettingsAITab()
             case .about: SettingsAboutTab(clipboard: clipboard)
             }
         }

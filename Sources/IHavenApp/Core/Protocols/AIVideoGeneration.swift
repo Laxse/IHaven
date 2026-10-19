@@ -68,3 +68,15 @@ public enum AIVideoError: LocalizedError, Sendable, Equatable {
         }
     }
 }
+
+/// 按厂商取 Key 提供方（#70 多厂商直连）。
+///
+/// 六家厂商各自发 Key、各自计费，Feature 层（设置面板 / 生成面板）只关心「当前选中这家有没有配」，
+/// 不该知道 Key 存在哪个文件里 —— 故只暴露一个「按 vendorID 取提供方」的口子，
+/// 具体实现见 App 层的 `AIKeyStore`。
+///
+/// **必须同一 vendorID 每次返回同一实例**：`FileKeyProvider` 把 Key 缓存在内存 `currentKey` 里，
+/// 若设置面板（写）与生成客户端（读）各持一个实例，会出现「设置里刚存了 Key，客户端还读到空」。
+public protocol AIVendorKeyProviding: Sendable {
+    func keyProvider(for vendorID: String) -> KeyProvider
+}

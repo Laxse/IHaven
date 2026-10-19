@@ -242,6 +242,11 @@ IHaven/
       WallhavenClient.swift
       APIError.swift
       Endpoints.swift
+      AIVendor/                        AI 图生视频多厂商直连（ADR-019）
+        VendorVideoStrategy.swift      策略协议：submit / poll / 下载鉴权头
+        VendorVideoClient.swift        唯一的 AIVideoGenerating 实现（按选中厂商分派）
+        VendorHTTP.swift               各家共用 HTTP 原语
+        *Strategy.swift                六家各一个：GoogleVeo / MiniMax / Vidu / DashScope / VolcanoArk / Kling
     Image/
       ImagePipeline.swift   Nuke 配置
       ImagePrefetcher.swift
@@ -251,6 +256,7 @@ IHaven/
       AVMediaProbe.swift       探测 + 缩略图/首帧产出（ADR-015）
     Security/
       FileKeyStore.swift        ~/.ihaven/apikey（ADR-010）
+                               AI 侧同机制：~/.ihaven/ai-key-<vendorID>，每厂商一个文件（ADR-019）
       KeychainStore.swift       已旁路，保留待签名稳定后启用
     Telemetry/
       Telemetry.swift
@@ -271,6 +277,7 @@ IHaven/
     Media/
       VideoExporter.swift
       VideoFormatProbe.swift
+      VideoFrameExtractor.swift  VideoFrameExtracting 的 AVFoundation 实现（AI 视频 → JPEG 帧序列，ADR-019）
   Resources/
     Assets.xcassets
     Localizable.xcstrings
@@ -1488,6 +1495,7 @@ bash scripts/convention-gate.sh       # ADR-004/009 规范
 | ADR-008 | 不集成 FFmpeg，不依赖私有 API |
 | ADR-009 | 代码组织与单文件 300 行约束 |
 | ADR-018 | 设置壁纸前的裁剪选框（竖图黑边）：产物先渲染成本地文件再调系统 API |
+| ADR-019 | AI 图生视频作为动态壁纸的可选帧来源：抽帧复用 ADR-016 引擎；直连六家模型厂商，每厂商一把 Key |
 
 ---
 
