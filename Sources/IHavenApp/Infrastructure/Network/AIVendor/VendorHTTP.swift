@@ -87,7 +87,9 @@ struct VendorHTTP: Sendable {
         switch response.statusCode {
         case 200...299: return
         case 401, 403: throw AIVideoError.invalidKey
-        case 402, 429: throw AIVideoError.quotaOrRate
+        // 402 / 429 也必须带原文：实测可灵「余额为 0」返回的是 429 而不是 402，
+        // 只给一句「额度不足或请求过于频繁」，用户不知道该充值还是该等（2026-10-19 真实反馈）。
+        case 402, 429: throw AIVideoError.quotaOrRate(serverMessage(body))
         // 400 / 422 = 请求本身不被接受（参数 / 模型名 / 底图格式）。必须把服务端 detail 带出来 ——
         // 只剩一句「HTTP 400」时连哪个字段错了都看不出来（本项目已为此白跑过一次真机排查）。
         case 400, 422: throw AIVideoError.requestRejected(serverMessage(body))

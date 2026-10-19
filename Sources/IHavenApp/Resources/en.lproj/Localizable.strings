@@ -351,6 +351,7 @@
 "AI 生成" = "AI Generate";
 "AI Key 无效（401/403），请在设置 ▸ AI 中检查。" = "Invalid AI key (401/403) — check it in Settings ▸ AI.";
 "AI 额度不足或请求过于频繁，请稍后再试或更换 Key。" = "AI quota exhausted or rate-limited — wait a moment or switch keys.";
+"AI 额度不足或请求过于频繁，请稍后再试或更换 Key。（服务端：%@）" = "AI quota exhausted or rate-limited — wait a moment or switch keys. (Server: %@)";
 "该描述或图片被 AI 服务商的安全策略拦截，请调整后重试。" = "Blocked by the AI provider's safety policy — adjust and retry.";
 "解析 AI 响应失败：%@" = "Failed to parse AI response: %@";
 "AI 未返回视频，请重试。" = "AI returned no video — try again.";

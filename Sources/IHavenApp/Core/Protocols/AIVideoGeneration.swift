@@ -35,7 +35,10 @@ public enum AIVideoError: LocalizedError, Sendable, Equatable {
     /// Key 无效（HTTP 401 / 403）。
     case invalidKey
     /// 额度不足 / 计费问题 / 触发限流（HTTP 402 / 429）。
-    case quotaOrRate
+    /// HTTP 402 / 429。**必须带服务端原文** —— 同一个 429 既可能是「余额为 0」也可能是
+    /// 「请求太快」，只给一句分类文案时用户和我们都无从判断该充值还是该等一会儿。
+    /// 实测样本：可灵余额不足返回 `HTTP 429 {"code":1102,"message":"Account balance not enough"}`。
+    case quotaOrRate(String)
     /// 描述或底图被 AI 服务商的安全策略拦截。
     case contentFiltered
     /// 服务端拒绝了请求本身（HTTP 422：参数 / 模型 / 输入 schema 不被接受）。
@@ -53,8 +56,11 @@ public enum AIVideoError: LocalizedError, Sendable, Equatable {
             return String(localized: "尚未配置 AI Key，请在设置 ▸ AI 中填写后再生成。")
         case .invalidKey:
             return String(localized: "AI Key 无效（401/403），请在设置 ▸ AI 中检查。")
-        case .quotaOrRate:
-            return String(localized: "AI 额度不足或请求过于频繁，请稍后再试或更换 Key。")
+        case .quotaOrRate(let detail):
+            let base = String(localized: "AI 额度不足或请求过于频繁，请稍后再试或更换 Key。")
+            return detail.isEmpty
+                ? base
+                : String(format: String(localized: "AI 额度不足或请求过于频繁，请稍后再试或更换 Key。（服务端：%@）"), detail)
         case .contentFiltered:
             return String(localized: "该描述或图片被 AI 服务商的安全策略拦截，请调整后重试。")
         case .requestRejected(let msg):

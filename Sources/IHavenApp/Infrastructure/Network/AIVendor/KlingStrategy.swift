@@ -2,7 +2,14 @@ import Foundation
 
 /// 快手可灵图生视频策略（#70 多厂商直连）。
 ///
-/// [!] 未真机验证：端点 / 字段名来自官方文档整理（2026-10-20），首次用真 Key 跑请核对。
+/// [!] 部分真机验证（2026-10-19）：**端点与鉴权头已打通** ——
+/// `POST https://api-beijing.klingai.com/image-to-video/kling-3.0` + 静态长钥
+/// `Authorization: Bearer <key>` 被服务端接受，返回的是业务错误
+/// `HTTP 429 {"code":1102,"message":"Account balance not enough"}`（账户余额为 0），
+/// 而不是鉴权失败或 404。**所以「可灵要 AccessKey+SecretKey 现签 JWT」的猜测不成立**，
+/// 静态长钥即可（JWT/AK-SK 只用于更早的 `/v1`）。
+/// 仍未验证的只剩**请求体形状**（`contents[].type=first_frame` 与实际参数名）——
+/// 余额为 0 的账户在校验请求体之前就被挡住了，拿到余额后再跑一次才算真验完。
 ///
 /// ## 三处与其它家不同
 /// 1. **模型在 URL 路径里**（`/image-to-video/{model.id}`），不是 body 字段 —— 它家是
