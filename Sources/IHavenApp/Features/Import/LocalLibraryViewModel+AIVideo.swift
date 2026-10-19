@@ -71,6 +71,12 @@ extension LocalLibraryViewModel {
         } catch let error as AIVideoError {
             aiErrorMessage = error.errorDescription
             return nil
+        } catch is CancellationError {
+            // 用户主动取消。文案必须带上「仍可能计费」——任务一旦提交成功就撤不回来了
+            // （ADR-019 成本护栏：取消只中止本地等待，不撤已发生的计费）。
+            // `defer` 已把 isGeneratingAI 置回 false，按钮不会卡在禁用态。
+            aiErrorMessage = String(localized: "已取消生成。若任务已提交成功，仍会计费。")
+            return nil
         } catch {
             aiErrorMessage = error.localizedDescription
             return nil

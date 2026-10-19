@@ -341,10 +341,13 @@
 "先在「本地图片」页签导入一张静态图，AI 才能把它变成动态壁纸。" = "Import a static image in the Local Images tab first; AI animates it.";
 "运动描述" = "Motion prompt";
 "例如：云缓缓飘动，镜头缓慢推近" = "e.g. clouds drift slowly, the camera pushes in";
-"AI 生成中…可能需要数十秒" = "AI generating… may take tens of seconds";
+"AI 生成中…可能需要 1~6 分钟" = "AI generating… may take 1–6 minutes";
 "将消耗一次 AI 生成额度，确定生成？" = "This will use one AI generation from your balance. Continue?";
-"每一次生成都会通过你的 AI Key 计费，可能需要数十秒。" = "Each generation is billed to your AI key and may take tens of seconds.";
+"每一次生成都会通过你的 AI Key 计费，可能需要 1~6 分钟。" = "Each generation is billed to your AI key and may take 1–6 minutes.";
 "生成" = "Generate";
+"取消生成" = "Cancel generation";
+"只中止本地等待；若任务已提交成功，仍会计费。" = "Only stops waiting locally; if the task was already submitted, it is still billed.";
+"已取消生成。若任务已提交成功，仍会计费。" = "Generation cancelled. If the task was already submitted, it is still billed.";
 "AI 生成" = "AI Generate";
 "AI Key 无效（401/403），请在设置 ▸ AI 中检查。" = "Invalid AI key (401/403) — check it in Settings ▸ AI.";
 "AI 额度不足或请求过于频繁，请稍后再试或更换 Key。" = "AI quota exhausted or rate-limited — wait a moment or switch keys.";

@@ -18,6 +18,13 @@ import UniformTypeIdentifiers
 /// ## 超时设置
 /// 首等 5s（各家提交后都要排队，立刻查必然是 queued）、之后 3s 一次，总上限 6 分钟。
 /// 图生视频常 1~3 分钟，可灵 / 万相在高峰期可能更久，3 分钟会误杀。
+///
+/// ## 取消语义（[!] 读一遍再改）
+/// 轮询循环响应 `Task.cancel()`：等待用的是 `Task.sleep`（被取消时立即抛
+/// `CancellationError`，不会把剩下的 3 秒睡完），每轮开工前再 `checkCancellation()` 一次。
+/// 但**取消只中止本地等待，不撤计费** —— `submit` 一旦成功返回，任务已经在厂商那侧建好，
+/// 钱已经扣了，用户中途放弃也拿不回来。所以界面上的取消按钮必须写明这一点（ADR-019 成本护栏）。
+/// 这也是为什么**只在轮询阶段**响应取消：提交阶段中断只会让用户「不知道到底提没提交」。
 struct VendorVideoClient: AIVideoGenerating {
     private let keyResolver: AIVendorKeyProviding
 
@@ -42,7 +49,9 @@ struct VendorVideoClient: AIVideoGenerating {
         let deadline = Date().addingTimeInterval(360)
         var delay: UInt64 = 5_000_000_000
         while Date() < deadline {
+            // 可中断等待：取消时立刻抛 CancellationError，不把剩余时间睡完。
             try await Task.sleep(nanoseconds: delay)
+            try Task.checkCancellation()
             delay = 3_000_000_000
             if let url = try await strategy.poll(task: task, key: key) {
                 return try await Self.download(url, headers: strategy.downloadHeaders(key: key))

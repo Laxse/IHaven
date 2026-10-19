@@ -15,6 +15,9 @@ struct AIVideoGeneratorView: View {
     @State private var prompt = ""
     @State private var confirmGenerate = false
     @FocusState private var promptFocused: Bool
+    /// 生成任务句柄。**必须**由本视图持有：生成最长要等 6 分钟，没有它用户只能干等
+    /// （取消入口 `cancelButton` 需要能 cancel 掉这个 Task）。
+    @State private var genTask: Task<Void, Never>?
     /// 选中的厂商与模型（#70 多厂商直连：模型挂在厂商下，Key 也按厂商分）。持久化 ——
     /// 下一次打开仍是这个。厂商在这里只读不说：换厂商要去设置里配那家的 Key。
     @AppStorage(UserPreferenceKey.aiVideoVendor) private var vendorID = AIVideoVendorCatalog.fallback.id
@@ -58,7 +61,7 @@ struct AIVideoGeneratorView: View {
             Button("生成") { generate() }
             Button("取消", role: .cancel) {}
         } message: {
-            Text("每一次生成都会通过你的 AI Key 计费，可能需要数十秒。")
+            Text("每一次生成都会通过你的 AI Key 计费，可能需要 1~6 分钟。")
         }
     }
 
@@ -205,7 +208,8 @@ struct AIVideoGeneratorView: View {
             if library.isGeneratingAI {
                 HStack(spacing: IHaven.Space.s3.rawValue) {
                     ProgressView().controlSize(.small)
-                    Text("AI 生成中…可能需要数十秒").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.fg2)
+                    // 6 分钟是轮询上限（VendorVideoClient），写「数十秒」会让用户在第 3 分钟以为卡死。
+                    Text("AI 生成中…可能需要 1~6 分钟").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.fg2)
                 }
             } else if let error = library.aiErrorMessage {
                 Text(error).font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.warn)
@@ -213,8 +217,20 @@ struct AIVideoGeneratorView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
-            generateButton
+            // 生成中把主操作换成取消：原按钮是禁用态，等于给用户一个点不动的死按钮。
+            if library.isGeneratingAI { cancelButton } else { generateButton }
         }
+    }
+
+    /// 取消生成。只在**本地等待**阶段真正生效 —— 任务一旦在厂商那侧提交成功就撤不回来，
+    /// 钱照扣。故提示里必须写明这一点（ADR-019 成本护栏），别让用户以为取消就不花钱。
+    private var cancelButton: some View {
+        Button("取消生成") {
+            genTask?.cancel()
+            genTask = nil
+        }
+        .buttonStyle(.bordered)
+        .help("只中止本地等待；若任务已提交成功，仍会计费。")
     }
 
     private var generateButton: some View {
@@ -246,11 +262,13 @@ struct AIVideoGeneratorView: View {
     private func generate() {
         guard let src = selected else { return }
         library.aiErrorMessage = nil
-        Task {
+        // Task 存进 @State：没有句柄就没法取消，用户只能干等到 6 分钟超时。
+        genTask = Task {
             if let item = await library.generateAIVideo(source: src, prompt: prompt) {
                 onGenerated(item)
             }
-            // 失败原因已写进 library.aiErrorMessage，由 footer 显示。
+            // 失败原因已写进 library.aiErrorMessage，由 footer 显示；
+            // 取消走 `catch is CancellationError` 分支，文案里带「仍可能计费」。
         }
     }
 }
