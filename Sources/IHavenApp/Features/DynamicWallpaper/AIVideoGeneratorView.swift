@@ -54,7 +54,15 @@ struct AIVideoGeneratorView: View {
         // 固定 620 会在提示下面留一大片空白（用户实测截图，看着像加载失败）。
         // 620 → 660：模型区上方多了一行「厂商 + 去哪改」，原高度会把底部按钮挤出面板。
         .frame(width: 540, height: hasAllPreconditions ? 660 : 260)
-        .onAppear { if selected == nil { selected = library.images.first } }
+        .onAppear {
+            if selected == nil { selected = library.images.first }
+            // 偏好里的模型 id 可能已不在目录里（换过厂商，或我们改了模型 id ——
+            // 方舟的 id 带日期后缀，`doubao-seedance-2-0` 就是这么失效的）。
+            // 不归位的话下拉会显示成「什么都没选中」，用户点开菜单还以为坏了。
+            if !vendor.models.contains(where: { $0.id == modelID }), let first = vendor.models.first {
+                modelID = first.id
+            }
+        }
         .confirmationDialog("将消耗一次 AI 生成额度，确定生成？",
                             isPresented: $confirmGenerate,
                             titleVisibility: .visible) {

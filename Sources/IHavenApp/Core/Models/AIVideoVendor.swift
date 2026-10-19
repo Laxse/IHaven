@@ -95,11 +95,19 @@ enum AIVideoVendorCatalog {
         nameKey: "火山方舟（Seedance）",
         keyPageURL: URL(string: "https://console.volcengine.com/ark/region:ark+cn-beijing/apikey")!,
         keyHintKey: "控制台 ▸ API Key 管理，一串 UUID",
-        noteKey: "国内直连 · 按 token 计费 · 需先开通模型",
+        noteKey: "国内直连 · 按 token 计费 · 充值后还需在「开通管理」里启用模型",
         models: [
-            AIVideoModel(id: "doubao-seedance-2-0",
+            // [!] 方舟的 model id **必须带版本日期后缀**（2026-10-19 真机实测）：
+            // 发 `doubao-seedance-2-0` 得到 404「The model or endpoint doubao-seedance-2-0
+            // does not exist」；补成 `-260128` 才被识别，随后又报 ModelNotOpen。
+            // 换模型 / 加模型前先 `GET /api/v3/models` 查真实 id 与 status：
+            // status 为 Shutdown / Retiring 的一律不可用，只有 null 的才是当前在售。
+            AIVideoModel(id: "doubao-seedance-2-0-260128",
                          nameKey: "Seedance 2.0",
                          noteKey: "带音频 · 生成快"),
+            AIVideoModel(id: "doubao-seedance-2-5-260628",
+                         nameKey: "Seedance 2.5",
+                         noteKey: "更新一代 · 需在控制台开通"),
         ])
 
     private static let kling = AIVideoVendor(

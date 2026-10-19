@@ -392,7 +392,7 @@
 "国内直连 · 按次计费 · 生成约 1~3 分钟" = "Direct in mainland China · per-run billing · 1-3 min per generation";
 "国内直连 · 按次计费 · 最长 16 秒" = "Direct in mainland China · per-run billing · up to 16s";
 "国内直连 · 按次计费 · 需开通百炼" = "Direct in mainland China · per-run billing · Bailian must be enabled";
-"国内直连 · 按 token 计费 · 需先开通模型" = "Direct in mainland China · billed per token · enable the model first";
+"国内直连 · 按 token 计费 · 充值后还需在「开通管理」里启用模型" = "Direct in mainland China · billed per token · enabling the model is separate from topping up";
 "国内直连 · 按次计费" = "Direct in mainland China · per-run billing";
 "获取 Key：" = "Get a key:";
 "在 Google AI Studio 里 Create API key，AIza… 开头" = "Create an API key in Google AI Studio; starts with AIza…";
@@ -414,6 +414,8 @@
 "1080p · 支持首帧" = "1080p · first-frame control";
 "Seedance 2.0" = "Seedance 2.0";
 "带音频 · 生成快" = "With audio · fast generation";
+"Seedance 2.5" = "Seedance 2.5";
+"更新一代 · 需在控制台开通" = "Newer generation · activate it in the console";
 "可灵 3.0" = "Kling 3.0";
 "1080p · 画面最稳" = "1080p · most stable motion";
 "生成面板里也能改，两处同步。" = "You can also change it in the generator panel — both stay in sync.";
