@@ -117,13 +117,16 @@ struct BrowseView: View {
                 .padding(.leading, 16)   // 线稿基准：搜索框左缘 x=56
             Spacer(minLength: 0)
             browseFilterChips(query: viewModel.query) { clearFilters() }
+            // [!] 这里原先还有「收藏（星）」和「设置（齿轮）」两个图标按钮，2026-10-20 去掉：
+            // ① 收藏按钮做的是 `select(.favorites)` —— 只是跳侧栏已有的「收藏」页签，
+            //    而那个星标在瀑布流卡片和详情页上是「收藏这张图」，同一个图标两种语义，
+            //    放在工具栏最右极易被当成后者（用户实测：点了发现界面跳走了，图没收藏）。
+            //    收藏这张图的入口在卡片 hover 与详情页页头条，都在壁纸的语境里，不混淆。
+            // ② 设置按钮与侧栏最底「设置」页签完全重复，留着只是多一个入口要维护。
+            // 两个入口都还在，只是收敛到侧栏一处。
             browseFilterButton(isPresented: $showFilter, viewModel: viewModel,
                                onOpenContentSettings: { openSettings(.content) })
                 .padding(.leading, 20)
-            BrowseIconButton(systemName: "star") { select(.favorites) }
-                .padding(.leading, 28)
-            BrowseIconButton(systemName: "gearshape") { openSettings(.apiKey) }
-                .padding(.leading, 8)
         }
         .padding(.trailing, 16)
         .frame(maxWidth: .infinity)
@@ -210,6 +213,9 @@ struct BrowseView: View {
         }
         return DetailView(wallpaper: wallpaper,
                           context: context,
+                          // 现算而非快照：`toggleFavorite` 改的是 `viewModel.favoriteIDs`，
+                          // 这里读它就会被 `@Observable` 追踪，星标即时反填。
+                          isFavorite: viewModel.favoriteIDs.contains(wallpaper.id),
                           viewModel: viewModel,
                           onClose: { detail = nil; detailSource = .wallpapers },
                           onNavigate: { detail = $0 },

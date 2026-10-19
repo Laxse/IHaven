@@ -11,6 +11,8 @@
 "动漫" = "Anime";
 "人物" = "People";
 "收藏" = "Favorites";
+"加入收藏" = "Add to Favorites";
+"取消收藏" = "Remove from Favorites";
 "已设置" = "Applied";
 "动态壁纸" = "Live Wallpaper";
 "导入…" = "Import…";

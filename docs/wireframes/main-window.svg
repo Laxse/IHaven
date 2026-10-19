@@ -30,12 +30,9 @@
   <line x1="1108.6" y1="62.8" x2="1119.4" y2="62.8" stroke="#12151A" stroke-width="1.76" stroke-linecap="round"/><line x1="1108.6" y1="66.0" x2="1116.2" y2="66.0" stroke="#12151A" stroke-width="1.76" stroke-linecap="round"/><line x1="1108.6" y1="69.2" x2="1113.4" y2="69.2" stroke="#12151A" stroke-width="1.76" stroke-linecap="round"/>
   <text x="1126.0" y="70.0" font-family="-apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif" font-size="13" font-weight="510" fill="#12151A" text-anchor="start">筛选</text>
   <text x="1134.0" y="88.0" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="9" font-weight="400" fill="#9AA2AD" text-anchor="middle">line.3.horizontal.decrease</text>
-  <rect x="1200.0" y="52.0" width="28.0" height="28.0" rx="6" fill="none" stroke="#000000" stroke-width="1" stroke-opacity="0.1"/>
-  <polygon points="1214.0,56.8 1216.4,62.7 1222.7,63.2 1217.8,67.3 1219.4,73.4 1214.0,70.0 1208.6,73.4 1210.2,67.3 1205.3,63.2 1211.6,62.7" fill="none" stroke="#414852" stroke-width="2.0" stroke-linejoin="round"/>
-  <text x="1214.0" y="88.0" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="9" font-weight="400" fill="#9AA2AD" text-anchor="middle">star</text>
-  <rect x="1236.0" y="52.0" width="28.0" height="28.0" rx="6" fill="none" stroke="#000000" stroke-width="1" stroke-opacity="0.1"/>
-  <circle cx="1250.0" cy="66.0" r="5.2" fill="none" stroke="#414852" stroke-width="1.8"/><line x1="1256.3" y1="66.0" x2="1258.4" y2="66.0" stroke="#414852" stroke-width="1.8" stroke-linecap="round"/><line x1="1253.1" y1="71.4" x2="1254.2" y2="73.3" stroke="#414852" stroke-width="1.8" stroke-linecap="round"/><line x1="1246.9" y1="71.4" x2="1245.8" y2="73.3" stroke="#414852" stroke-width="1.8" stroke-linecap="round"/><line x1="1243.7" y1="66.0" x2="1241.6" y2="66.0" stroke="#414852" stroke-width="1.8" stroke-linecap="round"/><line x1="1246.9" y1="60.6" x2="1245.8" y2="58.7" stroke="#414852" stroke-width="1.8" stroke-linecap="round"/><line x1="1253.1" y1="60.6" x2="1254.2" y2="58.7" stroke="#414852" stroke-width="1.8" stroke-linecap="round"/>
-  <text x="1250.0" y="88.0" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="9" font-weight="400" fill="#9AA2AD" text-anchor="middle">gearshape</text>
+  <!-- 2026-10-20 移除：工具栏最右的 star / gearshape 两个图标按钮。
+       收藏按钮做的只是跳侧栏已有的「收藏」页签，而星标在卡片与详情页上是「收藏这张图」，
+       同图标两义；设置按钮与侧栏「设置」页签完全重复。收藏入口移到详情页页头条。 -->
   <rect x="0.0" y="90.0" width="208.0" height="678.0" fill="#ECEEF1"/>
   <line x1="208.0" y1="90.0" x2="208.0" y2="768.0" stroke="#000000" stroke-width="1" stroke-opacity="0.1"/>
   <rect x="8.0" y="106.0" width="192.0" height="32.0" rx="6" fill="#E4E6EA"/>

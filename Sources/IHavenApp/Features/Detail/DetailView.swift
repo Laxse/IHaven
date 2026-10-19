@@ -8,6 +8,9 @@ struct DetailView: View {
     let wallpaper: Wallpaper
     /// 结果集（`←` / `→` 在结果集内切换）；当前项不在其中时两个方向都无效。
     let context: [Wallpaper]
+    /// 这张图当前是否已收藏。由 `BrowseView` 从 `viewModel.favoriteIDs` 现算传入
+    /// （详情页自己没有数据库入口）；`⌘D` 与页头条星标共用 `onToggleFavorite`。
+    let isFavorite: Bool
     var onClose: () -> Void
     var onNavigate: (Wallpaper) -> Void
     var onSearch: (String) -> Void
@@ -26,6 +29,7 @@ struct DetailView: View {
 
     init(wallpaper: Wallpaper,
          context: [Wallpaper],
+         isFavorite: Bool,
          viewModel: BrowseViewModel,
          onClose: @escaping () -> Void,
          onNavigate: @escaping (Wallpaper) -> Void,
@@ -36,6 +40,7 @@ struct DetailView: View {
          onAddToAlbum: @escaping () -> Void) {
         self.wallpaper = wallpaper
         self.context = context
+        self.isFavorite = isFavorite
         self.onClose = onClose
         self.onNavigate = onNavigate
         self.onSearch = onSearch
@@ -99,13 +104,24 @@ struct DetailView: View {
             .font(.system(size: IHaven.Font.Size.xs.rawValue, design: .monospaced))
         }
         .overlay(alignment: .trailing) {
-            BrowseIconButton(systemName: "sidebar.trailing", help: "显示 / 隐藏信息栏") {
-                inspectorVisible.toggle()
+            HStack(spacing: IHaven.Space.s3.rawValue) {
+                // 收藏这张图。放在页头条而不是信息栏的操作组，是因为信息栏可以整块收起
+                // （⌘⌥I），收起后就没有收藏入口了；而收藏是最高频的动作之一。
+                BrowseIconButton(systemName: isFavorite ? "star.fill" : "star", help: starHelp) {
+                    onToggleFavorite()
+                }
+                BrowseIconButton(systemName: "sidebar.trailing", help: "显示 / 隐藏信息栏") {
+                    inspectorVisible.toggle()
+                }
+                .keyboardShortcut("i", modifiers: [.command, .option])
             }
-            .keyboardShortcut("i", modifiers: [.command, .option])
             .padding(.trailing, IHaven.Space.s6.rawValue)
         }
     }
+
+    /// 星标提示文案。显式标注 `LocalizedStringKey`：三元里的字面量会被推断成 String，
+    /// 编译期固化后查不到本地化表（同 `DetailActions` 里按钮标题的处理）。
+    private var starHelp: LocalizedStringKey { isFavorite ? "取消收藏" : "加入收藏" }
 
     // MARK: - 键盘
 
