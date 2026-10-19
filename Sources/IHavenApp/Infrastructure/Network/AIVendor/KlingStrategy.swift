@@ -67,7 +67,7 @@ struct KlingStrategy: AIVendorVideoStrategy {
         let status = VendorHTTP.string(in: first, path: "task_status") ?? ""
         if VendorHTTP.isFailure(status) {
             let msg = VendorHTTP.string(in: first, path: "task_status_msg") ?? status
-            throw VendorHTTP.looksLikeContentFilter(msg) ? AIVideoError.contentFiltered
+            throw VendorHTTP.looksLikeContentFilter(msg) ? AIVideoError.contentFiltered(msg)
                 : AIVideoError.transport("可灵：\(msg)")
         }
         guard VendorHTTP.isSuccess(status) else { return nil }

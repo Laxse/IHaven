@@ -53,7 +53,7 @@ struct GoogleVeoStrategy: AIVendorVideoStrategy {
 
         if let error = (root["error"] as? [String: Any])?["message"] as? String {
             throw VendorHTTP.looksLikeContentFilter(error)
-                ? AIVideoError.contentFiltered
+                ? AIVideoError.contentFiltered(error)
                 : AIVideoError.transport(error)
         }
         // 结果路径兜底：官方是 response.generateVideoResponse.generatedSamples[0].video.uri，

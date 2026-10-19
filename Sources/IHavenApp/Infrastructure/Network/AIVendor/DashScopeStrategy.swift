@@ -60,7 +60,7 @@ struct DashScopeStrategy: AIVendorVideoStrategy {
             let code = VendorHTTP.string(in: output, path: "code") ?? ""
             let message = VendorHTTP.string(in: output, path: "message") ?? status
             let detail = code.isEmpty ? message : "\(code) \(message)"
-            throw VendorHTTP.looksLikeContentFilter(detail) ? AIVideoError.contentFiltered
+            throw VendorHTTP.looksLikeContentFilter(detail) ? AIVideoError.contentFiltered(detail)
                 : AIVideoError.transport("百炼：\(detail)")
         }
         guard VendorHTTP.isSuccess(status) else { return nil }

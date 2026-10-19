@@ -65,7 +65,7 @@ struct VolcanoArkStrategy: AIVendorVideoStrategy {
         if VendorHTTP.isFailure(status) {
             let msg = VendorHTTP.string(in: root, path: "error.message")
                 ?? VendorHTTP.string(in: root, path: "error") ?? status
-            throw VendorHTTP.looksLikeContentFilter(msg) ? AIVideoError.contentFiltered
+            throw VendorHTTP.looksLikeContentFilter(msg) ? AIVideoError.contentFiltered(msg)
                 : AIVideoError.transport("方舟：\(msg)")
         }
         guard VendorHTTP.isSuccess(status) else { return nil }

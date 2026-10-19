@@ -40,7 +40,11 @@ public enum AIVideoError: LocalizedError, Sendable, Equatable {
     /// 实测样本：可灵余额不足返回 `HTTP 429 {"code":1102,"message":"Account balance not enough"}`。
     case quotaOrRate(String)
     /// 描述或底图被 AI 服务商的安全策略拦截。
-    case contentFiltered
+    ///
+    /// 带服务端原文是有实际用处的：方舟的拦截会指明**是哪一项**被拦
+    /// （实测 `input image 'content[1]' may contain sensitive information` —— 是底图不是描述），
+    /// 用户据此知道该换图还是改描述，而不是两边都瞎试。
+    case contentFiltered(String)
     /// 服务端拒绝了请求本身（HTTP 422：参数 / 模型 / 输入 schema 不被接受）。
     case requestRejected(String)
     /// 网络层错误。
@@ -61,8 +65,11 @@ public enum AIVideoError: LocalizedError, Sendable, Equatable {
             return detail.isEmpty
                 ? base
                 : String(format: String(localized: "AI 额度不足或请求过于频繁，请稍后再试或更换 Key。（服务端：%@）"), detail)
-        case .contentFiltered:
-            return String(localized: "该描述或图片被 AI 服务商的安全策略拦截，请调整后重试。")
+        case .contentFiltered(let detail):
+            let base = String(localized: "该描述或图片被 AI 服务商的安全策略拦截，请换一张底图或改写描述后重试。")
+            return detail.isEmpty
+                ? base
+                : String(format: String(localized: "该描述或图片被 AI 服务商的安全策略拦截，请换一张底图或改写描述后重试。（服务端：%@）"), detail)
         case .requestRejected(let msg):
             return String(format: String(localized: "AI 服务拒绝了这次请求：%@"), msg)
         case .transport(let msg):

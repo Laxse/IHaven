@@ -53,7 +53,7 @@ struct ViduStrategy: AIVendorVideoStrategy {
         if VendorHTTP.isFailure(state) {
             let msg = VendorHTTP.string(in: root, path: "err_msg")
                 ?? VendorHTTP.string(in: root, path: "message") ?? state
-            throw VendorHTTP.looksLikeContentFilter(msg) ? AIVideoError.contentFiltered
+            throw VendorHTTP.looksLikeContentFilter(msg) ? AIVideoError.contentFiltered(msg)
                 : AIVideoError.transport("Vidu：\(msg)")
         }
         guard VendorHTTP.isSuccess(state) else { return nil }

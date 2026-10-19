@@ -95,7 +95,16 @@ struct VendorHTTP: Sendable {
         // （本项目已为此白跑过一次真机排查）。
         // 404 也归到这里而不是落到 default 的「网络错误」：实测方舟「模型未开通」返回的正是
         // 404 + `code: ModelNotOpen`，把它说成网络错误会让人去查网络，方向全错。
-        case 400, 404, 422: throw AIVideoError.requestRejected(serverMessage(body))
+        //
+        // 另外**内容审核也是走这一档**：方舟对含敏感信息的底图回 400
+        // 「The request failed because the input image 'content[1]' may contain sensitive
+        // information」。若按普通「请求被拒」显示，用户会去改参数 —— 但它其实是审核拦截，
+        // 该换图。故这里先过一次关键词判定，命中转 `contentFiltered`。
+        case 400, 404, 422:
+            let message = serverMessage(body)
+            throw looksLikeContentFilter(message)
+                ? AIVideoError.contentFiltered(message)
+                : AIVideoError.requestRejected(message)
         default: throw AIVideoError.transport("HTTP \(response.statusCode) \(serverMessage(body))")
         }
     }
@@ -190,7 +199,8 @@ struct VendorHTTP: Sendable {
     /// 判不出来就按普通失败处理 —— 误判成「被拦截」会让用户白改描述。
     static func looksLikeContentFilter(_ message: String) -> Bool {
         let lower = message.lowercased()
-        return ["safety", "nsfw", "moderat", "polic", "flagged", "sensitive", "blocked", "审核"]
+        return ["safety", "nsfw", "moderat", "polic", "flagged", "sensitive", "blocked",
+                "prohibited", "not allowed", "inappropriate", "审核", "违规", "敏感"]
             .contains { lower.contains($0) }
     }
 }

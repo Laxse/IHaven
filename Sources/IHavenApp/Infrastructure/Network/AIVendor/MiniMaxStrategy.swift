@@ -54,7 +54,7 @@ struct MiniMaxStrategy: AIVendorVideoStrategy {
         let status = VendorHTTP.string(in: root, path: "status") ?? ""
         if VendorHTTP.isFailure(status) {
             let msg = VendorHTTP.string(in: root, path: "message") ?? status
-            throw VendorHTTP.looksLikeContentFilter(msg) ? AIVideoError.contentFiltered
+            throw VendorHTTP.looksLikeContentFilter(msg) ? AIVideoError.contentFiltered(msg)
                 : AIVideoError.transport("MiniMax：\(msg)")
         }
         guard VendorHTTP.isSuccess(status) else { return nil }
