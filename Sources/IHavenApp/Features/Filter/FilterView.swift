@@ -86,13 +86,13 @@ struct FilterView: View {
         .background(IHaven.Color.bg)
     }
 
-    // MARK: - 1. 分类（全部 / 风景 / 动漫 / 人物，各 72pt）
+    // MARK: - 1. 分类（全部 / 综合 / 动漫 / 人物，各 72pt）
 
     private var categoryGroup: some View {
         // 元组数组字面量里的字符串会被推断成 String（泛型 + ExpressibleByStringLiteral 推不出
         // LocalizedStringKey），故显式包一层；atleastOptions 因为声明了元素类型，字面量能正确推断。
         FilterSegmented(options: [(value: CategoryFilter.all, label: LocalizedStringKey("全部")),
-                                  (value: .general, label: LocalizedStringKey("风景")),
+                                  (value: .general, label: LocalizedStringKey("综合")),
                                   (value: .anime, label: LocalizedStringKey("动漫")),
                                   (value: .people, label: LocalizedStringKey("人物"))],
                         selection: viewModel.query.categories) { viewModel.query.categories = $0 }

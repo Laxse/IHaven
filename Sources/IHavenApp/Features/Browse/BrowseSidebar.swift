@@ -11,7 +11,7 @@ struct BrowseSidebar: View {
             VStack(alignment: .leading, spacing: 2) {
                 sidebarRow(.discover)
                 sidebarDivider
-                sidebarRow(.landscape); sidebarRow(.anime); sidebarRow(.people)
+                sidebarRow(.general); sidebarRow(.anime); sidebarRow(.people)
                 sidebarDivider
                 sidebarRow(.favorites); sidebarRow(.wallpaperSet); sidebarRow(.timeline); sidebarRow(.albums)
                 sidebarDivider

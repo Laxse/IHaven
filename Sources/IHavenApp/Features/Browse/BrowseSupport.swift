@@ -15,12 +15,14 @@ struct CropRequest: Identifiable {
 
 /// 侧栏导航项（对齐线稿 SF Symbols 对照）。密钥不再是独立项，已并入设置面板页签。
 enum NavItem: Hashable {
-    case discover, landscape, anime, people, favorites, wallpaperSet, timeline, albums, live, `import`, settings
+    /// `general` 直译 wallhaven 的 general 分类：**非动漫、非人物的一切**（风景、载具、
+    /// 建筑、抽象、艺术都算）。早先叫 `landscape` 并标成「风景」，等于把「综合」窄化成了单一题材。
+    case discover, general, anime, people, favorites, wallpaperSet, timeline, albums, live, `import`, settings
     /// 用 `LocalizedStringKey` 而非 `String`：侧栏标签直接进 `Text(...)`，
     /// 落成 String 就固化成中文、永远查不到 Localizable.strings。
     var label: LocalizedStringKey {
         switch self {
-        case .discover: "发现"; case .landscape: "风景"; case .anime: "动漫"; case .people: "人物"
+        case .discover: "发现"; case .general: "综合"; case .anime: "动漫"; case .people: "人物"
         case .favorites: "收藏"; case .wallpaperSet: "已设置"; case .timeline: "时间线"; case .albums: "相册"
         case .live: "动态壁纸"
         case .import: "导入…"; case .settings: "设置"
@@ -28,7 +30,7 @@ enum NavItem: Hashable {
     }
     var icon: String {
         switch self {
-        case .discover: "square.grid.2x2"; case .landscape: "mountain.2.fill"; case .anime: "sparkles"
+        case .discover: "square.grid.2x2"; case .general: "photo"; case .anime: "sparkles"
         case .people: "person.fill"; case .favorites: "star"; case .wallpaperSet: "display.2"
         case .timeline: "calendar"; case .albums: "photo.on.rectangle"
         case .live: "play.circle"; case .import: "square.and.arrow.down"
@@ -214,7 +216,7 @@ func browseToastView(_ msg: String) -> some View {
 
 // MARK: - 瀑布流主区（从 BrowseView 整块搬来腾行数）
 
-/// 「发现 / 风景 / 动漫 / 人物」页签的瀑布流主区。
+/// 「发现 / 综合 / 动漫 / 人物」页签的瀑布流主区。
 ///
 /// ⚠️ **为什么整块搬出 `BrowseView`**：裁剪接线要在那里加 1 个 `@State` + 1 个 `.sheet(item:)`
 /// + 3 个私有方法（约 40 行），而它已经 299/300（`scripts/convention-gate.sh`）。搬出这一块

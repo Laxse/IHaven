@@ -34,16 +34,16 @@ extension BrowseView {
 
     /// 侧栏分类 → `categories` 维度。
     ///
-    /// [!] **只改分类，不塞关键词**。早先 `.landscape` 会顺手把 `q` 写成 `"nature"`，两个问题：
+    /// [!] **只改分类，不塞关键词**。早先 `.general` 会顺手把 `q` 写成 `"nature"`，两个问题：
     /// ① 搜索框里凭空冒出一个词，用户以为自己搜了它；② wallhaven 的分类本来就只有
-    /// general / anime / people 三类，「风景」对应的就是 general，再叠一个英文关键词等于
+    /// general / anime / people 三类，「综合」对应的就是 general，再叠一个英文关键词等于
     /// 把「非动漫非人物」窄化成「被打了 nature 标签的」，结果既不对也无从解释（用户实测反馈）。
     ///
     /// 想要具体题材应该用搜索框自己输入 —— 那才是用户主动表达，而不是我们替他猜。
     func applyCategory(_ item: NavItem) {
         switch item {
         case .discover: viewModel.query.categories = .all
-        case .landscape: viewModel.query.categories = .general
+        case .general: viewModel.query.categories = .general
         case .anime: viewModel.query.categories = .anime
         case .people: viewModel.query.categories = .people
         default: return
