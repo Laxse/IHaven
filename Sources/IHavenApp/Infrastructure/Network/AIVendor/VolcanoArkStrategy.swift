@@ -2,7 +2,18 @@ import Foundation
 
 /// 火山方舟 Ark（Seedance）图生视频策略（#70 多厂商直连）。
 ///
-/// [!] 未真机验证：端点 / 字段名来自官方文档整理（2026-10-20），首次用真 Key 跑请核对。
+/// ## 已真机端到端验证（2026-10-19，用户真 Key）
+/// `doubao-seedance-1-0-pro-fast-251015` 完整走通：
+/// 提交 `POST /api/v3/contents/generations/tasks` → HTTP 200 `{"id":"cgt-…"}`；
+/// 轮询 `GET .../tasks/{id}` → 约 30s 后 `status=succeeded`；
+/// 结果就在 `content.video_url`（带 TOS 签名，有效期 24h），1080p / 5s / 24fps，246,840 tokens。
+/// **底图用 `data:image/jpeg;base64,…` 传是被接受的** —— 不需要图床，这是本次最值钱的结论。
+///
+/// 两个仍要注意的点：
+/// 1. 底图**短边不得低于 300px**：实测过小会 `400 InvalidParameter — expected the height to be
+///    at least 300px`。本 App 的 `jpegForAPI` 只缩不放（≤1024 长边），故源图若本身很小会被拒。
+/// 2. model id 必须带版本日期后缀，且**充值 ≠ 开通**（未开通报 404 `ModelNotOpen`）。
+///    详见 `AIVideoVendor` 里 volcano 条目的注释。
 ///
 /// ## 与 MiniMax 的「形似而神不似」
 /// 两家都用 `content[]`，元素都是 `{type:"image_url",image_url:{url:…},role:"first_frame"}`，

@@ -412,10 +412,16 @@
 "1080p · 带音频" = "1080p · with audio";
 "万相 2.5 图生视频" = "Wan 2.5 image-to-video";
 "1080p · 支持首帧" = "1080p · first-frame control";
+"Seedance 1.0 Pro Fast" = "Seedance 1.0 Pro Fast";
+"已实测跑通 · 1080p · 约 30 秒出片" = "Verified end-to-end · 1080p · ~30s";
 "Seedance 2.0" = "Seedance 2.0";
 "带音频 · 生成快" = "With audio · fast generation";
+"Seedance 2.0 Fast" = "Seedance 2.0 Fast";
+"更快更省 · 需在控制台开通" = "Faster and cheaper · activate it in the console";
+"Seedance 2.0 Mini" = "Seedance 2.0 Mini";
+"最省 · 画质较低" = "Cheapest · lower quality";
 "Seedance 2.5" = "Seedance 2.5";
-"更新一代 · 需在控制台开通" = "Newer generation · activate it in the console";
+"最新一代 · 需在控制台开通" = "Newest generation · activate it in the console";
 "可灵 3.0" = "Kling 3.0";
 "1080p · 画面最稳" = "1080p · most stable motion";
 "生成面板里也能改，两处同步。" = "You can also change it in the generator panel — both stay in sync.";

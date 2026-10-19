@@ -160,3 +160,17 @@
 计费，而错误信息还不会指向真正的原因。
 
 **状态**：`Open`（2026-10-20）。
+
+### 首验进展（2026-10-19 晚）
+
+**火山方舟：已端到端跑通**（`doubao-seedance-1-0-pro-fast-251015`，用户真 Key）。
+提交 → 轮询 30s → `content.video_url` 取到视频，1080p / 5s / 24fps，246,840 tokens。
+【图床那条已部分结案】**底图用 `data:image/jpeg;base64,…` 传被接受**，本 App 不需要图床。
+另确认方舟 model id 必须带日期后缀、且**充值 ≠ 开通**（未开通报 404 `ModelNotOpen`）。
+
+**快手可灵：端点与鉴权已确认**。静态长钥 `Bearer` 即可过鉴权，「要 AK+SK 现签 JWT」的猜测不成立；
+账户余额为 0 时返回 `HTTP 429 code:1102`。请求体形状仍未验（余额为 0 的账户在校验请求体前被挡）。
+
+**仍未真机触碰**：Google Veo / MiniMax / Vidu / 阿里百炼四家。
+**已知未修的小坑**：方舟要求底图短边 ≥ 300px（`400 InvalidParameter — expected the height to be
+at least 300px`）；`jpegForAPI` 目前只缩不放，源图过小时会被拒。

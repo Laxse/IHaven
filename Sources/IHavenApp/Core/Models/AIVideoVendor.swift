@@ -99,15 +99,29 @@ enum AIVideoVendorCatalog {
         models: [
             // [!] 方舟的 model id **必须带版本日期后缀**（2026-10-19 真机实测）：
             // 发 `doubao-seedance-2-0` 得到 404「The model or endpoint doubao-seedance-2-0
-            // does not exist」；补成 `-260128` 才被识别，随后又报 ModelNotOpen。
+            // does not exist」；补成 `-260128` 才被识别。
             // 换模型 / 加模型前先 `GET /api/v3/models` 查真实 id 与 status：
-            // status 为 Shutdown / Retiring 的一律不可用，只有 null 的才是当前在售。
+            // **status 为 null 才是当前在售**，Shutdown / Retiring 一律不可用
+            // （实测 137 个模型里视频类的 12 个，在售只有下列 5 个，万相 2.1 那批已全部下线）。
+            //
+            // 排在首位的是**唯一真机端到端跑通**的那个：2026-10-19 用用户 Key 完整走完
+            // 提交 → 轮询 → 取视频 URL，1080p / 5 秒 / 24fps，30 秒出片。
+            // 其余四个在售但未开通，选了会报 `ModelNotOpen`（充值 ≠ 开通，要在控制台单独启用）。
+            AIVideoModel(id: "doubao-seedance-1-0-pro-fast-251015",
+                         nameKey: "Seedance 1.0 Pro Fast",
+                         noteKey: "已实测跑通 · 1080p · 约 30 秒出片"),
             AIVideoModel(id: "doubao-seedance-2-0-260128",
                          nameKey: "Seedance 2.0",
                          noteKey: "带音频 · 生成快"),
+            AIVideoModel(id: "doubao-seedance-2-0-fast-260128",
+                         nameKey: "Seedance 2.0 Fast",
+                         noteKey: "更快更省 · 需在控制台开通"),
+            AIVideoModel(id: "doubao-seedance-2-0-mini-260615",
+                         nameKey: "Seedance 2.0 Mini",
+                         noteKey: "最省 · 画质较低"),
             AIVideoModel(id: "doubao-seedance-2-5-260628",
                          nameKey: "Seedance 2.5",
-                         noteKey: "更新一代 · 需在控制台开通"),
+                         noteKey: "最新一代 · 需在控制台开通"),
         ])
 
     private static let kling = AIVideoVendor(
