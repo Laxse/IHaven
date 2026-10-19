@@ -7,7 +7,8 @@ import SwiftUI
 struct AlbumsView: View {
     @Bindable var viewModel: BrowseViewModel
     var onDiscover: () -> Void
-    var onOpen: (Favorite) -> Void
+    /// 带上 `Album`：详情页的 `←` `→` 要在这个相册的成员里翻，光给 `Favorite` 反查不到范围。
+    var onOpen: (Album, Favorite) -> Void
     var onMessage: (String) -> Void
 
     /// 当前打开查看内容的相册（nil = 停留在列表）。

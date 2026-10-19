@@ -23,7 +23,10 @@ struct BrowseView: View {
     @State var detail: Wallpaper?
     /// 详情页来源：决定 `←` / `→` 在哪一列里切换，以及「设为壁纸」的落库口径。
     /// `internal` 而非 `private`：`BrowseView+Navigation.swift` 要为 `detailSource` 写值。
-    enum DetailSource { case wallpapers, favorites, applied }
+    /// `.album` 携带的是**打开详情那一刻的相册成员快照**：`←` `→` 要在这个相册内翻，
+    /// 而相册内容视图自己管理的 `items` 是它的 `@State`，详情页拿不到。早先复用 `.favorites`
+    /// 凑数，结果 `←` `→` 跑到收藏列表里翻去了（用户反馈，2026-10-20）。
+    enum DetailSource { case wallpapers, favorites, applied, album([Favorite]) }
     @State var detailSource: DetailSource = .wallpapers
     /// 全窗口**唯一**的删除确认：瀑布流本地项 / 导入页 / 动态壁纸页三处共用。
     /// 三处各自挂 `.alert` 会彼此竞争并被父级 `.sheet` 抑制（子视图模态被抢占），
@@ -154,7 +157,10 @@ struct BrowseView: View {
             case .albums:
                 AlbumsView(viewModel: viewModel,
                            onDiscover: { select(.discover) },
-                           onOpen: { detailSource = .favorites; detail = Wallpaper(previewFrom: $0) },
+                           onOpen: { album, fav in
+                               detailSource = .album(viewModel.albumItems(albumId: album.id))
+                               detail = Wallpaper(previewFrom: fav)
+                           },
                            onMessage: { showToast($0) })
             case .live:
                 DynamicWallpaperView(library: library, onMessage: { showToast($0) }, onDeleteRequest: { pendingDelete = $0 })
@@ -200,6 +206,7 @@ struct BrowseView: View {
         case .wallpapers: context = viewModel.wallpapers
         case .favorites: context = viewModel.favorites.map { Wallpaper(previewFrom: $0) }
         case .applied: context = viewModel.applied.map { Wallpaper(previewFrom: $0) }
+        case .album(let items): context = items.map { Wallpaper(previewFrom: $0) }
         }
         return DetailView(wallpaper: wallpaper,
                           context: context,

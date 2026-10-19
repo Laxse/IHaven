@@ -10,7 +10,8 @@ struct AlbumContentsView: View {
     let album: Album
     @Bindable var viewModel: BrowseViewModel
     var onBack: () -> Void
-    var onOpen: (Favorite) -> Void
+    /// 带上 `Album`：详情页的 `←` `→` 要在这个相册的成员里翻，光给 `Favorite` 反查不到范围。
+    var onOpen: (Album, Favorite) -> Void
     var onMessage: (String) -> Void
     @State private var items: [Favorite] = []
 
@@ -29,7 +30,7 @@ struct AlbumContentsView: View {
                                 minColumnWidth: IHaven.Layout.masonryColMin,
                                 aspectRatio: { _ in 1.6 }) { fav in
                         FavoriteCard(favorite: fav,
-                                     onOpen: { onOpen(fav) },
+                                     onOpen: { onOpen(album, fav) },
                                      onToggleFavorite: { remove(fav) },
                                      onSetWallpaper: { setFromFavorite(fav) })
                     }
