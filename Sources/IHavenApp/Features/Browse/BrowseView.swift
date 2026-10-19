@@ -105,7 +105,11 @@ struct BrowseView: View {
             // 交通灯在系统保留的标题栏安全区内（实测 y10~22pt）：左侧 12pt 使开关按钮槽中心 x=26 对齐侧栏图标列。
             BrowseIconButton(systemName: "sidebar.left") { withAnimation { showSidebar.toggle() } }
                 .padding(.leading, 12)
-            browseSearchField(text: $viewModel.query.q) { Task { await reloadForNav() } }
+            // 回车提交是一次**新搜索**：page 必须回 1。留着旧页码会以「第 N 页」去查新关键词。
+            browseSearchField(text: $viewModel.query.q) {
+                viewModel.query.page = 1
+                Task { await reloadForNav() }
+            }
                 .padding(.leading, 16)   // 线稿基准：搜索框左缘 x=56
             Spacer(minLength: 0)
             browseFilterChips(query: viewModel.query) { clearFilters() }
@@ -234,6 +238,12 @@ struct BrowseView: View {
     // MARK: - 行为
 
     private func select(_ item: NavItem) {
+        // [!] **切分类必须先收起详情页**：详情页是盖在 `mainArea` 上的 overlay（见 `mainArea`
+        // 的注释），不是 if/else 二选一。只改 `nav` 的话底层换了、overlay 还在 ——
+        // 表现就是「点了左边分类，界面没变，还停在详情页」（用户实测，2026-10-19）。
+        // 所有导航分支都要走，包括 return 的那些（收藏 / 已设置 / 相册里也能进详情）。
+        detail = nil
+        detailSource = .wallpapers
         switch item {
         case .settings: openSettings(.apiKey); return
         // 「已设置」读本地记录，不发网络请求；落入 default 会走 reload 白打一次搜索。
@@ -245,6 +255,9 @@ struct BrowseView: View {
         }
         nav = item
         applyCategory(item)
+        // 换分类是**新的一次搜索**：page 必须回到 1。留着旧页码会以「第 5 页」去查新分类，
+        // 结果要么为空要么对不上。
+        viewModel.query.page = 1
         Task { await viewModel.reload() }
     }
 

@@ -249,11 +249,17 @@ func browseSearchContent<Card: View>(viewModel: BrowseViewModel,
                     .padding(IHaven.Space.s6.rawValue)
 
                     // 底部加载指示（纯展示）；真正的触底加载由 ScrollView 的 onScrollGeometryChange 负责。
+                    //
+                    // [!] **显示条件必须看 `hasMore`，不能只看 `page > 1`**：结果不足一页时
+                    // page 会被触底哨兵推到 2，指示条从此永久显示（用户实测的「一直转圈」）。
+                    // 翻到最后一页则给一句明确的「没有更多了」，别留一个转不出来的圈。
                     HStack(spacing: 6) {
                         Spacer(minLength: 0)
-                        if viewModel.query.page > 1 {
+                        if viewModel.hasMore {
                             ProgressView().controlSize(.small)
                             Text("加载更多…").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
+                        } else if viewModel.query.page > 1 {
+                            Text("没有更多了").font(IHaven.Font.system(.xs)).foregroundStyle(IHaven.Color.meta)
                         }
                         Spacer(minLength: 0)
                     }

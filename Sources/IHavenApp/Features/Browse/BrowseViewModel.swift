@@ -26,9 +26,26 @@ final class BrowseViewModel {
     var applied: [AppliedWallpaper] = []
     /// 相册列表（侧栏「相册」视图数据源，来自数据库）。
     var albums: [Album] = []
-
-    private let client: WallhavenAPIProtocol
-    private let keyProvider: KeyProvider
+    /// 是否还有下一页（来自 `meta.lastPage`）。
+    ///
+    /// [!] **没有这个标记就一定会出「底部转圈不停」**：底部加载指示原本只看 `query.page > 1`，
+    /// 而翻页又只靠「距底 < 240pt」触发 —— 结果不足一页时，内容略高于视口就会触发一次
+    /// `nextPage()`，page 变成 2，指示条从此永久显示；更糟的是每次滚动都会再打一次
+    /// 返回空数组的请求，白耗 wallhaven 45 次/分钟的共享配额（用户实测，2026-10-19）。
+    ///
+    /// 判据取 `meta.lastPage` 而不是「本次返回是否满 24 条」：wallhaven 的 `total` 会随
+    /// 筛选 / 权限变化，只有 `last_page` 是服务端自己算出来的权威边界。
+    /// setter 为 `internal`：翻页逻辑在 `+Pagination` 里，跨文件写不了 `private(set)`。
+    var hasMore = false
+    /// 翻页在途标记：防止触底哨兵重复触发导致 page 跳号。
+    var isLoadingMore = false
+    /// 筛选防抖任务与基准键。`internal`：`+Pagination` 的 `search()` / `scheduleFilterReload()` 要读写。
+    var filterReloadTask: Task<Void, Never>?
+    var lastFilterKey = ""
+    /// `internal` 而非 `private`：`BrowseViewModel+Pagination.swift` 的 extension 要用
+    /// （该文件是为绕过 ADR-009 的 300 行上限而拆出的，与 `+Albums` / `+Favorites` 同理）。
+    let client: WallhavenAPIProtocol
+    let keyProvider: KeyProvider
     /// `internal` 而非 `private`：`BrowseViewModel+Albums.swift` 的 extension 要用
     /// （该文件的存在本身就是为绕过 ADR-009 的 300 行上限）。
     let database: WallpaperDatabase
@@ -63,7 +80,8 @@ final class BrowseViewModel {
     }
 
     /// 最近一次加载失败是否为网络不可达。供状态栏常驻提示用（离线时不打断操作）。
-    private(set) var isOffline = false
+    /// setter 为 `internal`：翻页/重查都要写它，而那些代码在 `+Pagination` 里。
+    var isOffline = false
 
     /// 距配额恢复还剩多少秒（`0` = 未在等待）。供状态栏常驻提示用。
     var throttleSeconds: Int { throttle.waitingSeconds }
@@ -79,66 +97,6 @@ final class BrowseViewModel {
             return .waiting(seconds: throttle.waitingSeconds)
         }
         return loadState
-    }
-
-    func reload() async {
-        loadState = .loading
-        resultsIncomplete = keyProvider.currentKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        do {
-            let page = try await client.search(query)
-            wallpapers = page.data
-            refreshFavorites()
-            isOffline = false
-            loadState = .loaded
-        } catch {
-            isOffline = (error as? APIError)?.isOffline ?? false
-            loadState = .failed(error.localizedDescription)
-        }
-    }
-
-    /// 详情页点标签 / 「更多类似」：用 `+tag` 表达式回到第 1 页重查（多词标签的空格必须原样保留）。
-    func search(_ text: String) {
-        query.q = text
-        query.page = 1
-        // 同步防抖基准：否则随后一次筛选变更会因为 filterKey 与基准不一致而多打一次请求。
-        lastFilterKey = query.filterKey
-        Task { await reload() }
-    }
-
-    func nextPage() async {
-        guard case .loaded = loadState, !loadingMore else { return }
-        loadingMore = true
-        query.page += 1
-        do {
-            let page = try await client.search(query)
-            wallpapers.append(contentsOf: page.data)
-        } catch {
-            query.page -= 1
-            loadState = .failed(error.localizedDescription)
-        }
-        loadingMore = false
-    }
-
-    /// 翻页在途标记：防止触底哨兵在加载中重复触发导致 page 跳号 / 重复请求。
-    private var loadingMore = false
-
-    // MARK: - 筛选变更（DESIGN §4.3：150ms debounce 再请求）
-
-    private var filterReloadTask: Task<Void, Never>?
-    private var lastFilterKey = ""
-
-    /// 筛选面板任一维度变更 → 150ms 防抖后回到第 1 页重查。
-    /// 只有 `BrowseQuery.filterKey`（不含 page/seed）变化才算筛选变更，翻页不会触发重查。
-    func scheduleFilterReload() {
-        guard query.filterKey != lastFilterKey else { return }
-        lastFilterKey = query.filterKey
-        filterReloadTask?.cancel()
-        filterReloadTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 150_000_000)
-            guard !Task.isCancelled, let self else { return }
-            self.query.page = 1
-            await self.reload()
-        }
     }
 
     // MARK: - 收藏（F6）

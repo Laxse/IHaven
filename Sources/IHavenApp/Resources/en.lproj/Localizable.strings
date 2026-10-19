@@ -20,6 +20,7 @@
 "初始化…" = "Initializing…";
 "加载中…" = "Loading…";
 "加载更多…" = "Loading more…";
+"没有更多了" = "No more results";
 "已加载 %lld 张" = "Loaded %lld";
 "结果不完整（未配置 Key）" = "Incomplete results (no API key)";
 "API 调用已达上限，约 %lld 秒后恢复" = "API call limit reached — resuming in about %llds";
