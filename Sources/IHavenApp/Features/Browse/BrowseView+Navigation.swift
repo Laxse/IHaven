@@ -16,7 +16,9 @@ extension BrowseView {
         detail = nil
         detailSource = .wallpapers
         switch item {
-        case .settings: openSettings(.apiKey); return
+        // 设置就是主区的一个页签，与「导入…」「动态壁纸」同级：不再弹 sheet，
+        // 也不重置页签（记住上次看的是哪一页）。
+        case .settings: nav = item; return
         // 「已设置」读本地记录，不发网络请求；落入 default 会走 reload 白打一次搜索。
         case .favorites: nav = .favorites; viewModel.loadFavorites(); return
         case .wallpaperSet, .timeline: nav = item; viewModel.loadApplied(); return
@@ -81,11 +83,16 @@ extension BrowseView {
 
     func clearFilters() { viewModel.clearFilters(); Task { await reloadForNav() } }
 
-    /// 打开设置面板并落在指定页签；须先收起筛选 popover（它会盖住 sheet，并存还会抢焦点）。
+    /// 跳到设置页签的指定页（筛选面板里点了被锁的 NSFW 档 → 直达「内容」）。
+    ///
+    /// 设置已不再是 sheet：这是**一次导航**，不是弹窗。仍需先收起筛选 popover（它会抢焦点），
+    /// 并收起详情页 —— 详情页是盖在主区上的 overlay，不收就会变成「下面换了页、上面停在详情」。
     func openSettings(_ tab: SettingsTab) {
         showFilter = false
         settingsTab = tab
-        showSettings = true
+        detail = nil
+        detailSource = .wallpapers
+        nav = .settings
     }
 
     func reloadForNav() async {
@@ -93,7 +100,10 @@ extension BrowseView {
         case .favorites: viewModel.loadFavorites()
         case .wallpaperSet, .timeline: viewModel.loadApplied()
         case .albums: viewModel.loadAlbums()
-        case .live, .import: break
+        // 设置 / 动态壁纸 / 导入 都是本地页签，没有要重查的搜索结果。
+        // [!] 设置曾落进 `default` 走了 `viewModel.reload()`：在里面保存一次 Key 就白打一次
+        // wallhaven 搜索（45 次/分钟的共享配额），而用户此时根本不在看结果。
+        case .live, .import, .settings: break
         default: await viewModel.reload()
         }
     }

@@ -13,8 +13,8 @@ struct BrowseView: View {
     @Bindable var library: LocalLibraryViewModel
 
     @State var showFilter = false
-    @State var showSettings = false
-    /// 打开设置时落在哪个页签（点筛选面板里锁定的 NSFW 档 → 直接到「内容」）。
+    /// 设置页签当前停在哪一页。由本视图持有：设置是主区的一个**导航页签**（不再是 sheet），
+    /// 进出不该丢掉上次看的那一页；筛选面板里点被锁的 NSFW 档时由 `openSettings(.content)` 改它。
     @State var settingsTab: SettingsTab = .apiKey
     @State private var showSidebar = true
     @State var nav: NavItem = .discover
@@ -39,25 +39,6 @@ struct BrowseView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             toolbar
-                // `.sheet` 挂内层，与 body 上的 `.alert` 分处不同层级，避免模态互相抑制。
-                .sheet(isPresented: $showSettings) {
-                    // initialTab：普通入口落「密钥」，从筛选面板锁定的 NSFW 档点进来则直达「内容」。
-                    // onContentPolicyChanged：关掉开关时收回已勾选的 NSFW 档并重查（ADR-012）。
-                    SettingsView(store: keyStore,
-                                 clipboard: clipboard,
-                                 storage: storage,
-                                 animationIDs: animationIDs,
-                                 cropReferencedPaths: cropReferencedPaths,
-                                 initialTab: settingsTab,
-                                 onSaved: { Task { await reloadForNav() } },
-                                 onContentPolicyChanged: { viewModel.disableNSFWIfNeeded() },
-                                 onClose: { showSettings = false })
-                        // @State 只在首次构造时取 initialTab，换页签必须靠 id 强制重建，否则停在上一个页签。
-                        .id(settingsTab)
-                        // 语言要自己挂一次：被呈现的 sheet 不跟根视图的环境更新，挂上后由 sheet 自己
-                        // 读偏好重注入 —— 否则主窗口切了英文、设置面板还是中文。
-                        .appLocale()
-                }
             HStack(spacing: 0) {
                 if showSidebar { BrowseSidebar(nav: nav, onSelect: select) }
                 mainArea
@@ -171,6 +152,18 @@ struct BrowseView: View {
                 ImportView(library: library, onMessage: { showToast($0) },
                            onDeleteRequest: { pendingDelete = $0 },
                            onCropRequest: { cropImported($0) })
+            // 设置从 sheet 改成主区页签（2026-10-20）：每一项改完即时生效（AppStorage /
+            // 直接落盘），sheet 底部那个「完成」没有任何待提交状态可提交，只是多一次点击。
+            // onContentPolicyChanged：关掉开关时收回已勾选的 NSFW 档并重查（ADR-012）。
+            case .settings:
+                SettingsView(store: keyStore,
+                             clipboard: clipboard,
+                             storage: storage,
+                             animationIDs: animationIDs,
+                             cropReferencedPaths: cropReferencedPaths,
+                             tab: $settingsTab,
+                             onSaved: { Task { await reloadForNav() } },
+                             onContentPolicyChanged: { viewModel.disableNSFWIfNeeded() })
             default: browseSearchContent(viewModel: viewModel, gridItems: viewModel.wallpapers,
                                          onClearFilters: { clearFilters() }) { gridCard($0) }
             }

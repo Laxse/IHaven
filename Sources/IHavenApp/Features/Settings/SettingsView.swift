@@ -13,9 +13,13 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     }
 }
 
-/// 设置面板：页签式（密钥 / 外观 / 内容 / 关于）。密钥并入此面板，不再是独立入口。
-/// 保存密钥后回调 `onSaved` 让浏览层重载；关闭由「完成」触发 `onClose`；
-/// 「内容 · 允许成人内容」被关掉时回调 `onContentPolicyChanged`（ADR-012）。
+/// 设置：页签式（密钥 / 外观 / 内容 / 存储 / 性能 / 轮换 / 快捷键 / AI / 关于）。
+///
+/// **不是 sheet，是主区的一个导航页签**（2026-10-20 改）：每一项改完即时生效 ——
+/// `AppStorage` 直接落盘、Key 直接写文件、轮换计划直接 configure。原先那个底部「完成」
+/// 按钮没有任何待提交状态可提交，只是多一次点击，故连同 sheet 一起去掉。
+/// 保存密钥后回调 `onSaved` 让浏览层重载；「内容 · 允许成人内容」被关掉时回调
+/// `onContentPolicyChanged`（ADR-012）。
 struct SettingsView: View {
     let store: KeyStore
     /// 关于页复制微信号用。只声明协议，实现由 `IHavenApp.bootstrap()` 装配注入（ARCH §4）。
@@ -31,14 +35,13 @@ struct SettingsView: View {
     var performance: PerformanceGuard = .shared
     /// 轮换日程执行器。同为 App 级单例（已由 `IHavenApp.bootstrap()` configure 过）。
     var schedule: WallpaperScheduler = .shared
-    /// 打开时落在哪个页签（筛选面板里点灰置的 NSFW 档会直接跳到「内容」页签）。
-    var initialTab: SettingsTab = .apiKey
+    /// 当前页签。由 `BrowseView` 持有并透传：设置是主区的一个导航页签（不再是 sheet），
+    /// 进出不该丢掉上次看的那一页 —— 所以这里是 `Binding`，而不是「进来时落在哪页」的一次性初值。
+    @Binding var tab: SettingsTab
     var onSaved: () -> Void
     /// 内容策略开关被关掉时回调：由调用方收回已开启的 NSFW 档并重查（ADR-012）。
     var onContentPolicyChanged: () -> Void = {}
-    var onClose: () -> Void
 
-    @State private var tab: SettingsTab = .apiKey
     @State private var draft: String
     @State private var savedHint = false
     @AppStorage(UserPreferenceKey.appearance) private var appearance: String = "system"
@@ -53,20 +56,17 @@ struct SettingsView: View {
          storage: StorageUsage,
          animationIDs: Set<String>,
          cropReferencedPaths: Set<String> = [],
-         initialTab: SettingsTab = .apiKey,
+         tab: Binding<SettingsTab>,
          onSaved: @escaping () -> Void,
-         onContentPolicyChanged: @escaping () -> Void = {},
-         onClose: @escaping () -> Void) {
+         onContentPolicyChanged: @escaping () -> Void = {}) {
         self.store = store
         self.clipboard = clipboard
         self.storage = storage
         self.animationIDs = animationIDs
         self.cropReferencedPaths = cropReferencedPaths
-        self.initialTab = initialTab
+        self._tab = tab
         self.onSaved = onSaved
         self.onContentPolicyChanged = onContentPolicyChanged
-        self.onClose = onClose
-        _tab = State(initialValue: initialTab)
         _draft = State(initialValue: store.currentKey)
     }
 
@@ -76,7 +76,8 @@ struct SettingsView: View {
             Rectangle().fill(IHaven.Color.border).frame(width: 1)
             detail
         }
-        .frame(width: 640, height: 540)
+        // 不再固定 640×540：现在是主区的一个页签，跟着窗口走。
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(IHaven.Color.bg)
     }
 
@@ -115,7 +116,10 @@ struct SettingsView: View {
         .buttonStyle(.plain)
     }
 
-    /// 右侧详情：当前页签名作标题 + 可滚动内容 + 底部完成。
+    /// 右侧详情：当前页签名作标题 + 可滚动内容。
+    ///
+    /// 底部原有一行「完成」按钮：设置里每一项都是即时生效的，没有待提交状态，
+    /// 那个按钮唯一的作用就是关掉（现在是 sheet 的）弹窗 —— 随 sheet 一并去掉。
     private var detail: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(tab.label)
@@ -123,8 +127,6 @@ struct SettingsView: View {
                 .foregroundStyle(IHaven.Color.fg)
                 .padding(IHaven.Space.s6.rawValue)
             content
-            Divider().overlay(IHaven.Color.border)
-            footer
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
@@ -272,15 +274,6 @@ struct SettingsView: View {
 
     private func sectionTitle(_ s: LocalizedStringKey) -> some View {
         Text(s).font(IHaven.Font.system(.md, IHaven.Font.weightEmphasize)).foregroundStyle(IHaven.Color.fg)
-    }
-
-    // MARK: - 底部
-    private var footer: some View {
-        HStack {
-            Spacer(minLength: 0)
-            Button("完成") { onClose() }.buttonStyle(.borderedProminent).keyboardShortcut(.defaultAction)
-        }
-        .padding(IHaven.Space.s6.rawValue)
     }
 
     // MARK: - 行为
