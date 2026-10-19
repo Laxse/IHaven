@@ -51,6 +51,34 @@ extension BrowseView {
         viewModel.query.q = ""
     }
 
+    /// 详情页点标签 / 「更多类似」：这是一次**全局检索**，必须落到能渲染搜索结果的页签上。
+    ///
+    /// [!] **收藏 / 已设置 / 时间线 / 相册 是本地集合页签，本身没有搜索能力**。早先只调
+    /// `viewModel.search(text)` 不动 `nav`：`viewModel.wallpapers` 确实查出来了，但
+    /// `mainArea` 的 switch 仍走本地分支（渲染 `favorites` / `applied` / `albums`），
+    /// 搜索结果**无处渲染** —— 表现是「点了标签，详情页关了，然后什么都没发生」，侧栏还
+    /// 停在「收藏」，看上去像点了没反应（用户反馈，2026-10-20）。
+    ///
+    /// 这四个页签下统一跳「发现」（`applyCategory(.discover)` 顺带把分类放开成全部，
+    /// 否则会带着上一次的分类约束去搜一个标签）；本来就在检索类页签（发现 / 综合 / 动漫 /
+    /// 人物）则原地搜，保留用户当前的分类与筛选 —— 那是他显式选的，不该被一次点标签改掉。
+    ///
+    /// 不走 `select(.discover)`：那个方法内部自己会 `reload()` 一次（且此刻 `q` 还是旧值），
+    /// 与随后的 `search(text)` 形成两个并发请求，谁后返回谁覆盖，结果不可预期。
+    func searchFromDetail(_ text: String) {
+        detail = nil
+        detailSource = .wallpapers
+        switch nav {
+        case .favorites, .wallpaperSet, .timeline, .albums:
+            nav = .discover
+            applyCategory(.discover)
+        default:
+            break
+        }
+        // 内部 page=1 + reload，只发一次请求。
+        viewModel.search(text)
+    }
+
     func clearFilters() { viewModel.clearFilters(); Task { await reloadForNav() } }
 
     /// 打开设置面板并落在指定页签；须先收起筛选 popover（它会盖住 sheet，并存还会抢焦点）。

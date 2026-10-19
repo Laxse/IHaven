@@ -206,7 +206,7 @@ struct BrowseView: View {
                           viewModel: viewModel,
                           onClose: { detail = nil; detailSource = .wallpapers },
                           onNavigate: { detail = $0 },
-                          onSearch: { query in detail = nil; detailSource = .wallpapers; viewModel.search(query) },
+                          onSearch: { query in searchFromDetail(query) },
                           onToggleFavorite: { viewModel.toggleFavorite(wallpaper) },
                           onMessage: { showToast($0) },
                           onCrop: { cropWallpaper(wallpaper) },
