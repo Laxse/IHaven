@@ -63,7 +63,13 @@ final class DetailViewState {
     var isBusy: Bool { inFlight != nil }
 
     /// 详情请求。一次进入 = 一次配额（与翻页同价），结果在视图内缓存复用，绝不轮询。
+    ///
+    /// [!] **本地导入项不发这个请求**：它的 id 是 `UUID`，wallhaven 上必然 404，而 404 被
+    /// 解释成「已下架」→ 大图区整块显示「这张壁纸已不存在」，可图片明明就在本地
+    /// （用户实测，2026-10-20）。`detail` 保持 nil，信息栏自然回退到列表项字段，
+    /// 标签区与短链条也随之不渲染。
     func loadDetail() async {
+        guard !wallpaper.isLocalImport else { return }
         guard detail == nil, detailFailure == nil else { return }
         do { detail = try await client.detail(id: wallpaper.id) } catch { classify(error) }
     }
@@ -129,18 +135,26 @@ final class DetailViewState {
         actionError = nil
         let temp: URL
         do { temp = try await downloader.download(wallpaper.path) } catch { fail(error); return }
+        // [!] `ImageFileDownloader` 对 `file://` 是**原样返回**，于是导入项的 `temp` 就是壁纸
+        // 自己的库文件（`Application Support/Imports/...`）。这条链路上任何删除 / 移动都是数据丢失：
+        // 取消保存会 `removeItem` 掉原图，保存成功会把原图从库里搬走（用户实测，2026-10-20）。
+        let isOriginal = temp == wallpaper.path
         guard let dest = savePanel.chooseSaveLocation(suggestedName: suggestedFileName) else {
-            // 用户取消：静默结束，并把已经落地的临时文件清掉。
-            try? FileManager.default.removeItem(at: temp)
+            // 用户取消：静默结束，并把已经落地的**临时**文件清掉（原图不动）。
+            if !isOriginal { try? FileManager.default.removeItem(at: temp) }
             return
         }
         do {
-            // 目标已存在时 moveItem 会失败，先删再移（覆盖写是保存面板的默认语义）。
+            // 目标已存在时 moveItem / copyItem 都会失败，先删再传（覆盖写是保存面板的默认语义）。
             try? FileManager.default.removeItem(at: dest)
-            try FileManager.default.moveItem(at: temp, to: dest)
+            if isOriginal {
+                try FileManager.default.copyItem(at: temp, to: dest)
+            } else {
+                try FileManager.default.moveItem(at: temp, to: dest)
+            }
         } catch {
             fail(error)
-            try? FileManager.default.removeItem(at: temp)
+            if !isOriginal { try? FileManager.default.removeItem(at: temp) }
         }
     }
 
@@ -155,6 +169,11 @@ final class DetailViewState {
     }
 
     private var suggestedFileName: String {
+        // 导入项用原始文件名（`path` 就是它），比 `412CBBDA-1B1D-….jpg` 有意义得多。
+        if wallpaper.isLocalImport {
+            let name = wallpaper.path.lastPathComponent
+            if !name.isEmpty { return name }
+        }
         let ext = wallpaper.path.pathExtension
         return "\(wallpaper.id).\(ext.isEmpty ? "jpg" : ext)"
     }

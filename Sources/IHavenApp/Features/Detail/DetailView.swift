@@ -94,7 +94,11 @@ struct DetailView: View {
         .frame(height: IHaven.Layout.detailHeaderHeight)
         .overlay {
             HStack(spacing: IHaven.Space.s3.rawValue) {
-                Text(verbatim: wallpaper.id).foregroundStyle(IHaven.Color.muted)
+                // 导入项的 id 是 UUID（`412CBBDA-…`），顶在页头毫无意义，改显原始文件名。
+                Text(verbatim: wallpaper.isLocalImport ? wallpaper.path.lastPathComponent : wallpaper.id)
+                    .foregroundStyle(IHaven.Color.muted)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
                 // 收藏来源不持有尺寸（0）：尺寸缺失时不显示「· 0 × 0」，只留 id。
                 if wallpaper.width > 0, wallpaper.height > 0 {
                     Text("·").foregroundStyle(IHaven.Color.muted)

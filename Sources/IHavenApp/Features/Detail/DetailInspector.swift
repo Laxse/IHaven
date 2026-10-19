@@ -31,7 +31,7 @@ struct DetailInspector: View {
                 // 左右各 16pt：300 - 32 = 268 内容宽（底部短链接条不受此限制，整宽 300）。
                 .padding(IHaven.Space.s6.rawValue)
             }
-            if !isGone {
+            if !isGone && !isLocal {
                 detailShortLinkBar(url: wallpaper.shortURL) {
                     state.copyShortURL()
                     onMessage(String(localized: "已复制链接"))
@@ -48,6 +48,25 @@ struct DetailInspector: View {
     /// 壁纸已下架（404）：没有内容可操作，动作与短链一并隐藏。
     private var isGone: Bool { state.detailFailure == .gone }
 
+    /// 本地导入项：没有 wallhaven 元数据，短链也是假的（`shortURL` 就是本地 file URL），
+    /// 属性行改从文件系统现读（见 `localFile`）。
+    private var isLocal: Bool { wallpaper.isLocalImport }
+
+    /// 本地文件的名字 / 字节数 / 时间。`nil` = 不是导入项。
+    ///
+    /// 为什么不复用 `source.fileSize` / `source.createdAt`：`Wallpaper(previewFrom:)` 给导入项
+    /// 造的是空壳（0 / 空串），照搬会在信息栏里显示「0.0 KiB」和一行空白 —— 假值比缺失更糟。
+    private struct LocalFile { let name: String; let size: Int; let date: Date? }
+
+    private var localFile: LocalFile? {
+        guard isLocal else { return nil }
+        let url = wallpaper.path
+        let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
+        let size = (attrs?[.size] as? NSNumber)?.intValue ?? 0
+        let date = (attrs?[.creationDate] as? Date) ?? (attrs?[.modificationDate] as? Date)
+        return LocalFile(name: url.lastPathComponent, size: size, date: date)
+    }
+
     /// 摘要字段的数据源：详情请求成功（`detail` 非 nil）时以服务端下发的 `detail.base` 为准
     /// （真实分辨率 / 文件大小 / 浏览 / 收藏 / 分类 / 纯度 / 时间 / 色板）；请求未完成或失败
     /// （含本地导入项无 wallhaven 数据）时回退列表项 `wallpaper`。列表项对收藏 / 已设置 里重建
@@ -63,10 +82,18 @@ struct DetailInspector: View {
                               design: .monospaced))
                 .tracking(-0.33)
                 .foregroundStyle(IHaven.Color.fg)
-            Text("\(detailFileTypeLabel(source.fileType)) · \(detailByteString(source.fileSize))")
+            Text(subtitleText)
                 .font(IHaven.Font.system(.sm))
                 .foregroundStyle(IHaven.Color.fg2)
         }
+    }
+
+    /// 副行：`PNG · 4.5 MB`。导入项的类型取文件扩展名、大小现读文件（`source.fileType` 是空串）。
+    private var subtitleText: String {
+        if let file = localFile {
+            return "\(detailFileTypeLabel(wallpaper.path.pathExtension)) · \(detailByteString(file.size))"
+        }
+        return "\(detailFileTypeLabel(source.fileType)) · \(detailByteString(source.fileSize))"
     }
 
     /// `source` 是空串（wallhaven 对无来源壁纸的返回值）或非法 URL 时整块不渲染。
@@ -80,19 +107,51 @@ struct DetailInspector: View {
     private var propertiesSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             detailSectionHeader("属性") { EmptyView() }
-            detailPropertyRow("分类") { DetailAccentChip(title: detailCategoryLabel(source.category)) }
-            detailPropertyRow("纯度") { DetailPurityChip(purity: source.purity) }
-            detailPropertyRow("大小") { detailMonoText(detailByteString(source.fileSize)) }
-            detailPropertyRow("浏览") { detailMonoText(detailCountString(source.views)) }
-            detailPropertyRow("收藏") { detailMonoText(detailCountString(source.favorites)) }
-            if let uploader = detail?.uploader {
-                detailPropertyRow("上传者") { uploaderValue(uploader) }
+            if let file = localFile {
+                localProperties(file)
+            } else {
+                remoteProperties
             }
-            detailPropertyRow("时间") {
-                Text(detailDateText(source.createdAt))
-                    .font(.system(size: IHaven.Font.Size.sm.rawValue, design: .monospaced))
-                    .foregroundStyle(IHaven.Color.muted)
-            }
+        }
+    }
+
+    /// 导入项：只列文件系统里真有的东西。
+    ///
+    /// [!] 不能照搬 wallhaven 那套行：`category` 空串会经 `detailCategoryLabel` 落成「一般」，
+    /// 而空 `purity` 在 `DetailPurityChip` 里落到 `default` 分支显示成**红色的 NSFW** ——
+    /// 对一张自己的图显示 NSFW 是纯粹的假信息（用户实测截图，2026-10-20）。
+    @ViewBuilder
+    private func localProperties(_ file: LocalFile) -> some View {
+        detailPropertyRow("文件") {
+            Text(file.name)
+                .font(.system(size: IHaven.Font.Size.sm.rawValue, design: .monospaced))
+                .foregroundStyle(IHaven.Color.fg)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .help(file.name)
+        }
+        detailPropertyRow("大小") { detailMonoText(detailByteString(file.size)) }
+        detailPropertyRow("时间") {
+            Text(detailFileDateText(file.date))
+                .font(.system(size: IHaven.Font.Size.sm.rawValue, design: .monospaced))
+                .foregroundStyle(IHaven.Color.muted)
+        }
+    }
+
+    @ViewBuilder
+    private var remoteProperties: some View {
+        detailPropertyRow("分类") { DetailAccentChip(title: detailCategoryLabel(source.category)) }
+        detailPropertyRow("纯度") { DetailPurityChip(purity: source.purity) }
+        detailPropertyRow("大小") { detailMonoText(detailByteString(source.fileSize)) }
+        detailPropertyRow("浏览") { detailMonoText(detailCountString(source.views)) }
+        detailPropertyRow("收藏") { detailMonoText(detailCountString(source.favorites)) }
+        if let uploader = detail?.uploader {
+            detailPropertyRow("上传者") { uploaderValue(uploader) }
+        }
+        detailPropertyRow("时间") {
+            Text(detailDateText(source.createdAt))
+                .font(.system(size: IHaven.Font.Size.sm.rawValue, design: .monospaced))
+                .foregroundStyle(IHaven.Color.muted)
         }
     }
 

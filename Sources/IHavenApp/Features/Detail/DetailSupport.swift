@@ -114,6 +114,12 @@ func detailDateText(_ createdAt: String) -> String {
     return date.formatted(.dateTime.year().month().day())
 }
 
+/// 本地文件的时间（导入项，来源是文件系统的创建 / 修改时间）。读不到就给 `—`，不留空行。
+func detailFileDateText(_ date: Date?) -> String {
+    guard let date else { return "—" }
+    return date.formatted(.dateTime.year().month().day().hour().minute())
+}
+
 /// 分类值 → 展示文案（枚举外的值一律落到「一般」，不臆造新分类）。
 func detailCategoryLabel(_ category: String) -> LocalizedStringKey {
     switch category {

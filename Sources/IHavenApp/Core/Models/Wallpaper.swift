@@ -39,6 +39,14 @@ public struct Wallpaper: Codable, Identifiable, Sendable, Hashable {
     /// 所以任何「按原图比例显示」的地方都必须走 `original`，用另两档必然被裁。
     public var aspectThumb: URL? { thumbs.original }
 
+    /// 是否为**本地导入项**（`ImportView` 落库时用 `UUID().uuidString` 作 id）。
+    ///
+    /// [!] 判据是 **id 形状**，不是 `path.isFileURL` —— 「已设置 / 时间线」里的网络壁纸原图
+    /// 也常驻 `Application Support/Originals`，`path` 同样是 `file://`；用 path 判断会把它们
+    /// 一并当成导入项，从此不再请求 wallhaven 详情，标签 / 上传者全丢。
+    /// wallhaven 的 id 是 6 位 base36 短码，永远解析不成 UUID。
+    public var isLocalImport: Bool { UUID(uuidString: id) != nil }
+
     private enum CodingKeys: String, CodingKey {
         case id, url
         case shortURL = "short_url"
