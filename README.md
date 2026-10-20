@@ -121,6 +121,13 @@ times a day.
   <sub>Crop before setting — a draggable box locked to your screen's aspect ratio</sub>
 </div>
 
+<div align="center">
+  <img src="screenshots/menubar.jpg" alt="IHaven menu bar panel: the current wallpaper with its id, a search field, previous and next buttons, a shuffle button, a row of favorite thumbnails, and Open Main Window / Quit" width="360">
+  <br>
+  <sub>Menu bar panel — current wallpaper, search, previous / next, one-click shuffle, favorites,
+  and a way back to the main window</sub>
+</div>
+
 *Screenshots show the Chinese interface. Switch to English in **Settings ▸ Appearance**.*
 
 ## Requirements
